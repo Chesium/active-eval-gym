@@ -1,0 +1,24 @@
+schema_version = 1
+suite_id = "nominal-v2"
+seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+policy_ids = [
+    "cartpole_lqr_nominal_quantized_v1",
+    "cartpole_ppo_nominal_v1",
+    "pendulum_sac_nominal_v1",
+    "minigrid_empty8x8_ppo_partial_image_v1",
+]
+
+[gates.cartpole_lqr_nominal_quantized_v1]
+minimum_success_rate = 0.95
+minimum_mean_episode_length = 475.0
+
+[gates.cartpole_ppo_nominal_v1]
+minimum_success_rate = 0.95
+minimum_mean_episode_length = 475.0
+
+[gates.pendulum_sac_nominal_v1]
+minimum_mean_return = -250.0
+
+[gates.minigrid_empty8x8_ppo_partial_image_v1]
+minimum_success_rate = 1.0
+maximum_mean_episode_length = 100.0

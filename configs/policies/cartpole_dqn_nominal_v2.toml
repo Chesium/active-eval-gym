@@ -1,0 +1,28 @@
+schema_version = 1
+design_id = "cartpole-dqn-nominal-design-v2"
+policy_id = "cartpole_dqn_nominal_v2"
+policy_type = "sb3"
+algorithm = "DQN"
+algorithm_library = "stable-baselines3"
+nominal_environment = "../envs/cartpole_v1_nominal.toml"
+observation_adapter = "identity-v1"
+training_seed = 0
+training_steps = 50000
+device = "cpu"
+
+[hyperparameters]
+policy = "MlpPolicy"
+n_envs = 1
+learning_rate = 0.0023
+batch_size = 64
+buffer_size = 100000
+learning_starts = 1000
+gamma = 0.99
+target_update_interval = 10
+train_freq = 256
+gradient_steps = 128
+exploration_fraction = 0.16
+exploration_final_eps = 0.04
+
+[hyperparameters.policy_kwargs]
+net_arch = [256, 256]

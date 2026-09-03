@@ -1,0 +1,29 @@
+schema_version = 1
+design_id = "cartpole-ppo-nominal-design-v1"
+policy_id = "cartpole_ppo_nominal_v1"
+policy_type = "sb3"
+algorithm = "PPO"
+algorithm_library = "stable-baselines3"
+nominal_environment = "../envs/cartpole_v1_nominal.toml"
+observation_adapter = "identity-v1"
+training_seed = 0
+training_steps = 100000
+device = "cpu"
+
+[hyperparameters]
+policy = "MlpPolicy"
+n_envs = 8
+n_steps = 32
+batch_size = 256
+n_epochs = 20
+gamma = 0.98
+gae_lambda = 0.8
+ent_coef = 0.0
+
+[hyperparameters.learning_rate]
+kind = "linear"
+initial_value = 0.001
+
+[hyperparameters.clip_range]
+kind = "linear"
+initial_value = 0.2
