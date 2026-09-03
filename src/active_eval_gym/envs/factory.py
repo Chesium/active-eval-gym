@@ -19,7 +19,12 @@ SUPPORTED_ENVIRONMENTS = (
 )
 
 
-def make_environment(env_id: str, perturbation: PerturbationSpec = NO_OP) -> gym.Env:
+def make_environment(
+    env_id: str,
+    perturbation: PerturbationSpec = NO_OP,
+    *,
+    render_mode: str | None = None,
+) -> gym.Env:
     """Create a supported environment and apply its explicit perturbation."""
 
     if env_id not in SUPPORTED_ENVIRONMENTS:
@@ -29,7 +34,7 @@ def make_environment(env_id: str, perturbation: PerturbationSpec = NO_OP) -> gym
     if env_id.startswith("MiniGrid-"):
         import_module("minigrid")
 
-    env = gym.make(env_id)
+    env = gym.make(env_id, render_mode=render_mode)
     try:
         return apply_perturbation(env, perturbation)
     except Exception:

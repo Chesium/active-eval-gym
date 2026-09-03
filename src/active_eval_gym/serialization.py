@@ -98,6 +98,7 @@ def _trajectory_bytes(episode: EpisodeRecord) -> bytes:
         {
             "type": "transition",
             "action": transition.action,
+            "policy_diagnostics": transition.policy_diagnostics,
             "reward": transition.reward,
             "observation": transition.observation,
             "terminated": transition.terminated,

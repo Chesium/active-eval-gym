@@ -20,6 +20,7 @@ class EpisodeMetrics:
     terminated: bool
     truncated: bool
     end_reason: str
+    task_success: bool | None
 
 
 def compute_metrics(
@@ -40,6 +41,14 @@ def compute_metrics(
     else:
         end_reason = "truncated"
 
+    env_id = episode.metadata.resolved_environment.environment_id
+    if env_id == "CartPole-v1":
+        task_success = final.truncated and not final.terminated
+    elif env_id == "MiniGrid-Empty-8x8-v0":
+        task_success = final.terminated
+    else:
+        task_success = None
+
     return EpisodeMetrics(
         schema_version=1,
         metric_version=METRIC_VERSION,
@@ -49,4 +58,5 @@ def compute_metrics(
         terminated=final.terminated,
         truncated=final.truncated,
         end_reason=end_reason,
+        task_success=task_success,
     )
