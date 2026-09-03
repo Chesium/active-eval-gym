@@ -53,12 +53,13 @@ cmp artifacts/replay-a/trajectory.jsonl artifacts/replay-b/trajectory.jsonl
 
 ## Frozen policy zoo
 
-CHE-48 adds four reproducible nominal policy designs. Policy construction is a
-separate command from freezing, and evaluation accepts only an intact frozen
-artifact. Generated checkpoints and results live under the ignored `artifacts/`
-directory; the code and TOML files under `configs/` are the tracked recipe.
+CHE-48 and its follow-up add reproducible nominal policy designs. Policy
+construction is a separate command from freezing, and evaluation accepts only an
+intact frozen artifact. Generated checkpoints and results live under the ignored
+`artifacts/` directory; the code and TOML files under `configs/` are the tracked
+recipe.
 
-Build the analytic CartPole policy, and train the three learned candidates:
+Build the analytic CartPole policy and train the learned candidates:
 
 ```bash
 uv run active-eval-gym build-policy \
@@ -73,6 +74,9 @@ uv run active-eval-gym train-policy \
 uv run active-eval-gym train-policy \
   --config configs/policies/minigrid_empty8x8_ppo_partial_image_v1.toml \
   --output artifacts/policies/minigrid_empty8x8_ppo_partial_image_v1
+uv run active-eval-gym train-policy \
+  --config configs/policies/cartpole_ppo_nominal_v1.toml \
+  --output artifacts/policies/cartpole_ppo_nominal_v1
 ```
 
 Each command creates a candidate and refuses to overwrite an existing path.
@@ -81,25 +85,47 @@ Validate candidates against the predeclared seeds and quality gates:
 ```bash
 for policy in \
   cartpole_lqr_nominal_quantized_v1 \
-  cartpole_dqn_nominal_v1 \
+  cartpole_ppo_nominal_v1 \
   pendulum_sac_nominal_v1 \
   minigrid_empty8x8_ppo_partial_image_v1
 do
   uv run active-eval-gym freeze-policy \
     --artifact "artifacts/policies/$policy" \
-    --suite configs/eval/nominal.toml
+    --suite configs/eval/nominal_v2.toml
 done
 ```
 
 A passing candidate receives a hash-bound `freeze.json`. A failed candidate
-receives `freeze-failure.json` and remains unavailable to evaluation. Once all
-required policies are frozen, collect the fixed 20-seed suite:
+receives `freeze-failure.json` and remains unavailable to evaluation. The original
+DQN candidate failed, so `nominal-v1` remains a preserved, blocked protocol.
+CartPole PPO was first validated through the dedicated, predeclared
+`configs/eval/cartpole_ppo_v1_freeze.toml` gate; `nominal-v2` carries the identical
+gate.
+
+The original 100k-step DQN and the separately versioned 50k-step follow-up both
+failed the nominal gate in the recorded local run. The v2 recipe and its dedicated
+unchanged gate can be reproduced without altering the original suite:
+
+```bash
+uv run active-eval-gym train-policy \
+  --config configs/policies/cartpole_dqn_nominal_v2.toml \
+  --output artifacts/policies/cartpole_dqn_nominal_v2
+uv run active-eval-gym freeze-policy \
+  --artifact artifacts/policies/cartpole_dqn_nominal_v2 \
+  --suite configs/eval/cartpole_dqn_v2_freeze.toml
+```
+
+See [the nominal findings](docs/findings.md) before treating either DQN candidate
+as part of a frozen evaluation suite.
+
+The passing `nominal-v2` suite compares LQR and PPO on CartPole and retains SAC
+and PPO on the other tasks. Collect its 80 episodes with:
 
 ```bash
 uv run active-eval-gym evaluate-nominal \
-  --suite configs/eval/nominal.toml \
+  --suite configs/eval/nominal_v2.toml \
   --artifact-root artifacts/policies \
-  --output artifacts/evaluations/nominal-v1
+  --output artifacts/evaluations/nominal-v2
 ```
 
 To inspect one frozen policy interactively:
@@ -120,9 +146,9 @@ contracts, and the fixed-policy invariant.
 - `MiniGrid-Empty-8x8-v0`: dictionary observation and discrete navigation action.
 
 The original constant-zero policy remains useful for rollout smoke tests. The
-policy zoo adds a quantized LQR and three learned policies, all evaluated through
-the same raw-trajectory path. Non-nominal perturbation sweeps, failure-surface
-plots, oracle LQR, and optional PID remain outside CHE-48.
+policy zoo adds a quantized LQR and learned DQN, SAC, and PPO policies, all
+evaluated through the same raw-trajectory path. Non-nominal perturbation sweeps,
+failure-surface plots, oracle LQR, and optional PID remain outside CHE-48.
 
 ## Development
 

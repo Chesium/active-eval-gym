@@ -51,6 +51,15 @@ to action `1` and negative values to action `0`, and records both
   DQN with the tracked [RL Zoo CartPole parameters](https://github.com/DLR-RM/rl-baselines3-zoo/blob/master/hyperparams/dqn.yml),
   seed 0, a requested budget of 100,000 environment steps, and greedy
   deterministic inference.
+- `cartpole_dqn_nominal_v2` is a separately versioned diagnostic design that
+  changes only the requested budget to the upstream 50,000-step endpoint. It is
+  not a replacement baseline because its unchanged nominal gate also failed.
+- `cartpole_ppo_nominal_v1` is the learned CartPole replacement baseline. It uses
+  the RL Zoo CartPole PPO settings: eight environments, 100,000 requested steps,
+  32-step rollouts, batch size 256, 20 epochs, gamma 0.98, GAE lambda 0.8, and
+  linear schedules from learning rate 0.001 and clip range 0.2. The schedule
+  descriptions remain serializable in the manifest and are resolved to callables
+  only inside the training command.
 - `pendulum_sac_nominal_v1` uses Stable-Baselines3 SAC with seed 0, a requested
   budget of 50,000 steps,
   a `1e-3` learning rate, and all other important SB3 defaults made explicit in
@@ -69,7 +78,9 @@ there is no evaluation-informed checkpoint selection.
 Stable-Baselines3 treats `total_timesteps` as a lower bound when an algorithm must
 finish a rollout or collection interval. Training summaries therefore distinguish
 the requested budget from the model's actual final `num_timesteps`; the design
-spec continues to record the requested experimental budget.
+spec continues to record the requested experimental budget. New training runs also
+record aggregate completed-episode statistics for diagnosis only; those values do
+not select or mutate the final checkpoint.
 
 ## Environment and episode records
 
@@ -87,10 +98,10 @@ the exact trajectory used.
 
 ## Quality gates and reproduction
 
-The immutable nominal suite uses evaluation seeds 0 through 19:
+Every immutable nominal protocol uses evaluation seeds 0 through 19:
 
-- CartPole LQR and DQN: at least 95% time-limit success and mean length at least
-  475 steps.
+- CartPole policies: at least 95% time-limit success and mean length at least 475
+  steps.
 - Pendulum SAC: mean return at least -250. Pendulum has no invented binary success
   field.
 - MiniGrid PPO: 100% goal success and mean length at most 100 steps.
@@ -99,6 +110,11 @@ Success means truncation at 500 steps without termination for CartPole, and goal
 termination for MiniGrid Empty. A failed gate preserves the candidate and writes
 `freeze-failure.json`; it never silently changes the algorithm, budget, or design.
 Any hyperparameter change requires a new design and policy version.
+
+The original `nominal-v1` protocol retains the failed DQN baseline and is not
+materialized as a partial result. The completed `nominal-v2` protocol replaces
+DQN with frozen CartPole PPO, providing a same-task comparison between model-based
+LQR and a learned policy while retaining Pendulum SAC and MiniGrid PPO.
 
 Reproduce the environment and run the commands shown in the README with:
 
