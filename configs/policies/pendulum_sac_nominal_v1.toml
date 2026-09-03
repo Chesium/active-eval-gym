@@ -1,0 +1,27 @@
+schema_version = 1
+design_id = "pendulum-sac-nominal-design-v1"
+policy_id = "pendulum_sac_nominal_v1"
+policy_type = "sb3"
+algorithm = "SAC"
+algorithm_library = "stable-baselines3"
+nominal_environment = "../envs/pendulum_v1_nominal.toml"
+observation_adapter = "identity-v1"
+training_seed = 0
+training_steps = 50000
+device = "cpu"
+
+[hyperparameters]
+policy = "MlpPolicy"
+n_envs = 1
+learning_rate = 0.001
+buffer_size = 1000000
+learning_starts = 100
+batch_size = 256
+tau = 0.005
+gamma = 0.99
+train_freq = 1
+gradient_steps = 1
+ent_coef = "auto"
+target_update_interval = 1
+target_entropy = "auto"
+use_sde = false

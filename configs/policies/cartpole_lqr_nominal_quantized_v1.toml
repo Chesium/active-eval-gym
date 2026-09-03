@@ -1,0 +1,14 @@
+schema_version = 1
+design_id = "cartpole-lqr-nominal-design-v1"
+policy_id = "cartpole_lqr_nominal_quantized_v1"
+policy_type = "quantized_lqr"
+algorithm = "DLQR"
+algorithm_library = "python-control"
+nominal_environment = "../envs/cartpole_v1_nominal.toml"
+observation_adapter = "identity-v1"
+
+[hyperparameters]
+q_diagonal = [1.0, 0.1, 10.0, 0.1]
+r = 0.1
+discretization = "gym_explicit_euler"
+zero_force_action = 1

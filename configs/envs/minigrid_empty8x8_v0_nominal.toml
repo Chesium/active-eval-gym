@@ -1,0 +1,16 @@
+schema_version = 1
+spec_id = "minigrid-empty8x8-v0-nominal-v1"
+environment_id = "MiniGrid-Empty-8x8-v0"
+max_episode_steps = 256
+
+[parameters]
+width = 8
+height = 8
+agent_view_size = 7
+agent_start_pos = [1, 1]
+agent_start_dir = 0
+
+[initial_state_distribution]
+kind = "fixed"
+agent_position = [1, 1]
+agent_direction = 0

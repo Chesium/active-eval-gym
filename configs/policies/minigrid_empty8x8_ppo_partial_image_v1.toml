@@ -1,0 +1,23 @@
+schema_version = 1
+design_id = "minigrid-empty8x8-ppo-partial-image-design-v1"
+policy_id = "minigrid_empty8x8_ppo_partial_image_v1"
+policy_type = "sb3"
+algorithm = "PPO"
+algorithm_library = "stable-baselines3"
+nominal_environment = "../envs/minigrid_empty8x8_v0_nominal.toml"
+observation_adapter = "minigrid-partial-image-flat-v1"
+training_seed = 0
+training_steps = 500000
+device = "cpu"
+
+[hyperparameters]
+policy = "MlpPolicy"
+n_envs = 8
+n_steps = 128
+batch_size = 64
+n_epochs = 10
+gamma = 0.99
+gae_lambda = 0.95
+learning_rate = 0.00025
+clip_range = 0.2
+ent_coef = 0.0

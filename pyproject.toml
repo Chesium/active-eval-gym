@@ -5,9 +5,12 @@ description = "A reproducible sandbox for evaluating fixed policies under contro
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "control>=0.10.2,<0.11",
     "gymnasium>=1.3.0,<2",
+    "ipykernel>=7.3.0",
     "minigrid>=3.1.0,<4",
     "numpy>=2.5.0,<3",
+    "stable-baselines3>=2.9.0,<3",
 ]
 
 [project.scripts]

@@ -1,0 +1,21 @@
+schema_version = 1
+spec_id = "cartpole-v1-nominal-v1"
+environment_id = "CartPole-v1"
+max_episode_steps = 500
+
+[parameters]
+gravity = 9.8
+masscart = 1.0
+masspole = 0.1
+length = 0.5
+force_mag = 10.0
+tau = 0.02
+kinematics_integrator = "euler"
+theta_threshold_radians = 0.20943951023931953
+x_threshold = 2.4
+
+[initial_state_distribution]
+kind = "independent_uniform"
+state_order = ["cart_position", "cart_velocity", "pole_angle", "pole_angular_velocity"]
+low = -0.05
+high = 0.05
