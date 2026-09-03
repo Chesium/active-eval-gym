@@ -35,7 +35,8 @@ def test_rollout_cli_writes_complete_bundle(
     metrics = json.loads((output / METRICS_FILENAME).read_text())
     trajectory = (output / TRAJECTORY_FILENAME).read_bytes()
     assert summary["environment_id"] == "CartPole-v1"
-    assert metadata["policy"]["policy_id"] == "constant-zero-v1"
+    assert metadata["policy_artifact"]["policy_id"] == "constant-zero-v1"
+    assert metadata["schema_version"] == 2
     assert metrics["source_trajectory_sha256"] == hashlib.sha256(trajectory).hexdigest()
 
 

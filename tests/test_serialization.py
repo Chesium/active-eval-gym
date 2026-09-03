@@ -7,7 +7,6 @@ import pytest
 
 from active_eval_gym.envs.factory import make_environment
 from active_eval_gym.metrics import METRIC_VERSION, compute_metrics
-from active_eval_gym.models import PolicyMetadata
 from active_eval_gym.policies.base import ConstantPolicy, zero_action
 from active_eval_gym.rollout import collect_episode
 from active_eval_gym.serialization import (
@@ -18,6 +17,7 @@ from active_eval_gym.serialization import (
     write_episode,
     write_metrics,
 )
+from tests.helpers import rollout_provenance
 
 
 def test_identical_inputs_produce_byte_identical_artifacts(tmp_path: Path) -> None:
@@ -70,7 +70,8 @@ def test_artifacts_round_trip_supported_observations(
     ]
     saved_metrics = json.loads((output / METRICS_FILENAME).read_text())
 
-    assert metadata["environment_id"] == env_id
+    assert metadata["resolved_environment"]["environment_id"] == env_id
+    assert metadata["schema_version"] == 2
     assert rows[0]["type"] == "reset"
     assert len(rows) == len(episode.transitions) + 1
     assert "episode_return" not in metadata
@@ -121,10 +122,13 @@ def test_strict_json_converts_numpy_values() -> None:
 def _collect(env_id: str, *, seed: int):
     env = make_environment(env_id)
     try:
+        artifact, nominal, resolved = rollout_provenance(env, env_id)
         return collect_episode(
             env,
             ConstantPolicy(zero_action(env.action_space)),
-            policy_metadata=PolicyMetadata(policy_id="test-constant"),
+            policy_artifact=artifact,
+            nominal_environment=nominal,
+            resolved_environment=resolved,
             episode_seed=seed,
         )
     finally:

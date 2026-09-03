@@ -6,10 +6,10 @@ import pytest
 
 from active_eval_gym.envs.factory import SUPPORTED_ENVIRONMENTS, make_environment
 from active_eval_gym.envs.perturbations import PerturbationSpec
-from active_eval_gym.models import PolicyMetadata
 from active_eval_gym.policies.base import ConstantPolicy, zero_action
 from active_eval_gym.rollout import collect_episode
 from active_eval_gym.serialization import to_jsonable
+from tests.helpers import rollout_provenance
 
 
 @pytest.mark.parametrize(
@@ -54,10 +54,13 @@ def test_no_op_rejects_parameters() -> None:
 def test_constant_policy_completes_episode(env_id: str) -> None:
     env = make_environment(env_id)
     try:
+        artifact, nominal, resolved = rollout_provenance(env, env_id)
         episode = collect_episode(
             env,
             ConstantPolicy(zero_action(env.action_space)),
-            policy_metadata=PolicyMetadata(policy_id="test-constant"),
+            policy_artifact=artifact,
+            nominal_environment=nominal,
+            resolved_environment=resolved,
             episode_seed=123,
         )
     finally:
@@ -65,7 +68,7 @@ def test_constant_policy_completes_episode(env_id: str) -> None:
 
     assert episode.transitions
     assert episode.transitions[-1].terminated or episode.transitions[-1].truncated
-    assert episode.metadata.environment_id == env_id
+    assert episode.metadata.resolved_environment.environment_id == env_id
     assert episode.metadata.perturbation.name == "none"
 
 
