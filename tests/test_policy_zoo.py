@@ -33,7 +33,11 @@ from active_eval_gym.policies.lqr import (
     QuantizedLQRPolicy,
     design_cartpole_lqr,
 )
-from active_eval_gym.policies.sb3 import load_sb3_policy
+from active_eval_gym.policies.sb3 import (
+    TrainingEpisodeRecorder,
+    linear_schedule,
+    load_sb3_policy,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 LQR_CONFIG = ROOT / "configs/policies/cartpole_lqr_nominal_quantized_v1.toml"
@@ -198,3 +202,59 @@ def test_sb3_adapter_loads_checkpoint_for_deterministic_inference(
     assert isinstance(first, np.ndarray)
     assert first.shape == (1,)
     np.testing.assert_array_equal(first, second)
+
+
+def test_training_episode_recorder_is_diagnostic_only() -> None:
+    recorder = TrainingEpisodeRecorder()
+    recorder.locals = {
+        "infos": [
+            {"episode": {"r": 10.0, "l": 10}},
+            {},
+            {"episode": {"r": 20.0, "l": 20}},
+        ]
+    }
+
+    assert recorder._on_step()
+    assert recorder.summary() == {
+        "episode_count": 2,
+        "return": {
+            "mean": 15.0,
+            "standard_deviation": 5.0,
+            "minimum": 10.0,
+            "maximum": 20.0,
+        },
+        "episode_length": {
+            "mean": 15.0,
+            "standard_deviation": 5.0,
+            "minimum": 10.0,
+            "maximum": 20.0,
+        },
+    }
+
+
+def test_cartpole_ppo_uses_serializable_linear_schedules() -> None:
+    design = load_policy_design(
+        ROOT / "configs/policies/cartpole_ppo_nominal_v1.toml"
+    )
+
+    assert design.hyperparameters["learning_rate"] == {
+        "kind": "linear",
+        "initial_value": 0.001,
+    }
+    assert design.hyperparameters["clip_range"] == {
+        "kind": "linear",
+        "initial_value": 0.2,
+    }
+    schedule = linear_schedule(0.2)
+    assert schedule(1.0) == pytest.approx(0.2)
+    assert schedule(0.5) == pytest.approx(0.1)
+    assert schedule(0.0) == pytest.approx(0.0)
+
+    suite = load_nominal_suite(ROOT / "configs/eval/nominal_v2.toml")
+    assert suite.suite_id == "nominal-v2"
+    assert suite.policy_ids == (
+        "cartpole_lqr_nominal_quantized_v1",
+        "cartpole_ppo_nominal_v1",
+        "pendulum_sac_nominal_v1",
+        "minigrid_empty8x8_ppo_partial_image_v1",
+    )
