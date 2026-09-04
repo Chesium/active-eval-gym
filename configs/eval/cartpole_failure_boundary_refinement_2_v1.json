@@ -1,0 +1,5800 @@
+{
+  "boundary_study": {
+    "classification_threshold": 0.5,
+    "final_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "kind": "adaptive-boundary-v1",
+    "max_final_conditions": 250,
+    "recovery_rms_angle_deg": 5.0,
+    "recovery_tail_steps": 100,
+    "refinement_rounds": 2,
+    "selected_condition_count": 713,
+    "selector_version": "cartpole-boundary-selector-v1",
+    "source_summary_sha256": [
+      "708efb70a655cd6c3d4294a3f50167d3f3381df1c836eed9360add46e7f2b564",
+      "09b1825114794874ae7bf0f19e2a5546dec99ffa796f04f0c6e0303b9d727538"
+    ],
+    "stage": "refinement-2",
+    "study_id": "cartpole-failure-boundary-v1"
+  },
+  "conditions": [
+    {
+      "condition_id": "theta-m45_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m45_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -45.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m42p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -42.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m40_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -40.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m37p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -37.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m35_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -35.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m32p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": -32.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m30_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -30.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m27p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -27.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m25_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -25.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m22p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": -22.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m20_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -20.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m17p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": -17.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m15_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -15.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0282842712475",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.0282842712474619,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m12p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": -12.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m10_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": -10.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0282842712475",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.0282842712474619,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m7p5_length-p1p73205080757",
+      "parameters": {
+        "initial_theta_deg": -7.5,
+        "length": 1.7320508075688772,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m5_length-p1p8612097182",
+      "parameters": {
+        "initial_theta_deg": -5.0,
+        "length": 1.8612097182041991,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0282842712475",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.0282842712474619,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p73205080757",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.7320508075688772,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p1p8612097182",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 1.8612097182041991,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-m2p5_length-p2",
+      "parameters": {
+        "initial_theta_deg": -2.5,
+        "length": 2.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p0336358566101",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.03363585661014858,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p0_length-p1p8612097182",
+      "parameters": {
+        "initial_theta_deg": 0.0,
+        "length": 1.8612097182041991,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p73205080757",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.7320508075688772,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p1p8612097182",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 1.8612097182041991,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p2p5_length-p2",
+      "parameters": {
+        "initial_theta_deg": 2.5,
+        "length": 2.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p5_length-p1p8612097182",
+      "parameters": {
+        "initial_theta_deg": 5.0,
+        "length": 1.8612097182041991,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p7p5_length-p1p73205080757",
+      "parameters": {
+        "initial_theta_deg": 7.5,
+        "length": 1.7320508075688772,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p10_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 10.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p12p5_length-p1p73205080757",
+      "parameters": {
+        "initial_theta_deg": 12.5,
+        "length": 1.7320508075688772,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p15_length-p1p61185489774",
+      "parameters": {
+        "initial_theta_deg": 15.0,
+        "length": 1.6118548977353129,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p17p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": 17.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p20_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 20.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p1p22474487139",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 1.224744871391589,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p22p5_length-p1p5",
+      "parameters": {
+        "initial_theta_deg": 22.5,
+        "length": 1.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p1p1066819197",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 1.1066819197003215,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p25_length-p1p35540300541",
+      "parameters": {
+        "initial_theta_deg": 25.0,
+        "length": 1.3554030054147672,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p27p5_length-p1",
+      "parameters": {
+        "initial_theta_deg": 27.5,
+        "length": 1.0,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p30_length-p0p930604859102",
+      "parameters": {
+        "initial_theta_deg": 30.0,
+        "length": 0.9306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p612372435696",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.6123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p75",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.75,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p32p5_length-p0p866025403784",
+      "parameters": {
+        "initial_theta_deg": 32.5,
+        "length": 0.8660254037844386,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p55334095985",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.5533409598501607,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p677701502707",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.6777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p35_length-p0p805927448868",
+      "parameters": {
+        "initial_theta_deg": 35.0,
+        "length": 0.8059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p2",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.2,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p244948974278",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.2449489742783178,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p3",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.3,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p387298334621",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.3872983346207417,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p37p5_length-p0p5",
+      "parameters": {
+        "initial_theta_deg": 37.5,
+        "length": 0.5,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p168179283051",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.16817928305074292,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p22133638394",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.22133638394006433,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p271080601083",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.27108060108295345,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p34086580994",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.3408658099402498,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p40_length-p0p440055868397",
+      "parameters": {
+        "initial_theta_deg": 40.0,
+        "length": 0.4400558683966967,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p04",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.04,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p04472135955",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.044721359549995794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p05",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.05,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0612372435696",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.06123724356957945,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p075",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.075,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0866025403784",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.08660254037844387,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p1",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.1,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p42p5_length-p0p141421356237",
+      "parameters": {
+        "initial_theta_deg": 42.5,
+        "length": 0.14142135623730953,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p0422948505376",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.042294850537622566,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p0472870804502",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.047287080450158794,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p055334095985",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.05533409598501608,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p0677701502707",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.06777015027073836,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p0805927448868",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.08059274488676564,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p0930604859102",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.09306048591020996,
+        "theta_threshold_deg": 90.0
+      }
+    },
+    {
+      "condition_id": "theta-p45_length-p0p1189207115",
+      "parameters": {
+        "initial_theta_deg": 45.0,
+        "length": 0.11892071150027213,
+        "theta_threshold_deg": 90.0
+      }
+    }
+  ],
+  "derived_policies": {
+    "cartpole_ppo_nominal_v1_antisymmetrized_v1": {
+      "kind": "antisymmetrized-cartpole-ppo-v1",
+      "source_model_sha256": "37c9bac10919b2d6bdc833fd5a3a920460d4b80f09392ef7fb758e4777a856e8",
+      "source_policy_id": "cartpole_ppo_nominal_v1"
+    }
+  },
+  "environment_id": "CartPole-v1",
+  "metric_version": "episode-summary-v4",
+  "perturbation_name": "cartpole-recovery-angle-length-v1",
+  "policy_ids": [
+    "cartpole_lqr_nominal_quantized_v1",
+    "cartpole_ppo_nominal_v1",
+    "cartpole_ppo_nominal_v1_antisymmetrized_v1"
+  ],
+  "schema_version": 1,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "suite_id": "cartpole-failure-boundary-v1-refinement-2"
+}

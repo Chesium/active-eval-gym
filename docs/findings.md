@@ -450,3 +450,72 @@ study establishes that the final trained checkpoint is asymmetric, but not when
 that asymmetry arose. Fixed-interval training snapshots or predeclared replicate
 training seeds are still required to distinguish optimization-induced symmetry
 breaking from an asymmetric initialization.
+
+# CartPole recovery failure-boundary study
+
+This separately versioned study changes the task definition: the pole-angle
+termination cutoff is 90 degrees rather than Gymnasium's standard 12 degrees. It
+sets the initial pole angle exactly while retaining the seeded cart position,
+cart velocity, and pole angular velocity. The plant axis is Gymnasium's pole
+half-length. None of these runs trained or changed a policy.
+
+The five-seed pilot sampled 143 conditions. Two deterministic adaptive rounds
+added 258 and 713 new conditions, respectively. The capped selector retained 248
+conditions for an independent final evaluation with seeds 0 through 49 and all
+three policies: 37,200 schema-v4 episodes. All trajectory digests verified under
+`episode-summary-v4`. The final raw data occupy 5.7 GB; pilot and refinement raw
+data remain separate from the final ground-truth set.
+
+Both co-primary outcomes are reported:
+
+- Survival: reach the 500-step time limit without termination.
+- Recovery: survive and have final-100-step RMS pole angle at most 5 degrees.
+
+Every evaluated point on all four domain edges—initial angle `-50` or `+50`
+degrees, or half-length `0.02` or `3.0`—had 0% survival and 0% recovery for every
+policy. Thus the selected domain encloses the observed success regions rather
+than clipping them at a successful edge.
+
+At nominal half-length `0.5`, the central and near-boundary results were:
+
+| Exact initial angle | LQR survival / recovery | PPO survival / recovery | Antisymmetrized PPO survival / recovery |
+| ---: | ---: | ---: | ---: |
+| -35 deg | 0% / 0% | 0% / 0% | 0% / 0% |
+| -30 deg | 100% / 100% | 34% / 2% | 96% / 0% |
+| -25 deg | 100% / 100% | 100% / 88% | 100% / 4% |
+| 0 deg | 100% / 100% | 100% / 100% | 100% / 100% |
+| +25 deg | 100% / 100% | 100% / 98% | 100% / 12% |
+| +30 deg | 100% / 100% | 100% / 78% | 98% / 0% |
+| +35 deg | 0% / 0% | 0% / 0% | 0% / 0% |
+
+The relaxed cutoff therefore exposes LQR's track-constrained recovery boundary
+between 30 and 35 degrees. It also shows why survival alone is inadequate for
+the learned policies: antisymmetrized PPO often remained alive for 500 steps
+without settling inside the declared recovery band. At the nominal condition,
+mean final-window RMS angle was `0.00343`, `0.02207`, and `0.00382` radians for
+LQR, PPO, and antisymmetrized PPO, respectively.
+
+Across the 89 final conditions with exact positive/negative counterparts, mean
+absolute signed-angle differences in survival rate were 0.25 percentage points
+for LQR, 7.01 points for PPO, and 0.79 points for antisymmetrized PPO. Recovery
+differences were 0.36, 7.69, and 0.76 points. Antisymmetrization therefore
+substantially reduced signed asymmetry, but did not imply stable recovery from
+large angles.
+
+Among the 12,400 final episodes per policy, the ending counts were:
+
+| Policy | Survived | Angle-limit failure | Cart-limit failure | Both limits |
+| --- | ---: | ---: | ---: | ---: |
+| Quantized LQR | 7,334 | 2,052 | 2,983 | 31 |
+| PPO | 4,363 | 3,885 | 4,118 | 34 |
+| Antisymmetrized PPO | 4,536 | 4,087 | 3,743 | 34 |
+
+These totals describe the adaptively selected condition set, not a deployment
+distribution. The machine-readable summary also includes per-cell success
+counts, recovery counts, and 95% Wilson intervals.
+
+![CartPole recovery-study survival boundary](figures/cartpole_boundary_survival.png)
+
+![CartPole recovery-study stable-recovery boundary](figures/cartpole_boundary_recovery.png)
+
+![CartPole recovery gap and failure causes](figures/cartpole_boundary_recovery_gap_failure_cause.png)

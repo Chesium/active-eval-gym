@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import dataclass
+from math import sqrt
 from pathlib import Path
 from statistics import fmean, pstdev
 from typing import Any
@@ -14,6 +15,7 @@ from active_eval_gym.envs.perturbations import (
     CARTPOLE_FORCE_MAGNITUDE,
     CARTPOLE_MASS,
     CARTPOLE_POLE_ANGLE_NOISE,
+    CARTPOLE_RECOVERY_ANGLE_LENGTH,
     MINIGRID_START_POSE,
     PENDULUM_LENGTH,
     PerturbationSpec,
@@ -53,6 +55,16 @@ def expand_sweep(
             f"Suite {suite.suite_id!r} requires {suite.environment_id}, "
             f"not {nominal.environment_id}."
         )
+    if suite.conditions:
+        return tuple(
+            SweepCondition(
+                condition_id=item["condition_id"],
+                perturbation=PerturbationSpec(
+                    suite.perturbation_name, item["parameters"]
+                ),
+            )
+            for item in suite.conditions
+        )
     if suite.perturbation_name == CARTPOLE_ANGLE_LENGTH:
         _require_grid_keys(suite, {"delta_theta_deg", "length"})
         return tuple(
@@ -66,6 +78,35 @@ def expand_sweep(
                 ),
             )
             for angle in _number_list(suite.grid["delta_theta_deg"], "delta_theta_deg")
+            for length in _number_list(suite.grid["length"], "length")
+        )
+    if suite.perturbation_name == CARTPOLE_RECOVERY_ANGLE_LENGTH:
+        _require_grid_keys(
+            suite, {"initial_theta_deg", "length", "theta_threshold_deg"}
+        )
+        thresholds = _number_list(
+            suite.grid["theta_threshold_deg"], "theta_threshold_deg"
+        )
+        if len(thresholds) != 1:
+            raise ValueError("Recovery boundary suites require one fixed threshold.")
+        threshold = thresholds[0]
+        return tuple(
+            SweepCondition(
+                condition_id=(
+                    f"theta-{_slug_number(angle)}_length-{_slug_number(length)}"
+                ),
+                perturbation=PerturbationSpec(
+                    CARTPOLE_RECOVERY_ANGLE_LENGTH,
+                    {
+                        "initial_theta_deg": angle,
+                        "length": length,
+                        "theta_threshold_deg": threshold,
+                    },
+                ),
+            )
+            for angle in _number_list(
+                suite.grid["initial_theta_deg"], "initial_theta_deg"
+            )
             for length in _number_list(suite.grid["length"], "length")
         )
     scalar_cartpole_sweeps = {
@@ -417,6 +458,21 @@ def _aggregate(metrics: list[dict[str, Any]]) -> dict[str, Any]:
         "episode_count": len(metrics),
         "success_rate": None if not successes else fmean(successes),
     }
+    if successes:
+        result["success_count"] = sum(bool(value) for value in successes)
+        result["success_rate_wilson_95"] = _wilson_interval(
+            [bool(value) for value in successes]
+        )
+    if all("recovery_success" in metric for metric in metrics):
+        recovery = [bool(metric["recovery_success"]) for metric in metrics]
+        result["recovery_count"] = sum(recovery)
+        result["recovery_rate"] = fmean(recovery)
+        result["recovery_rate_wilson_95"] = _wilson_interval(recovery)
+        causes = ("none", "angle_limit", "cart_limit", "both", "unknown")
+        result["failure_cause_counts"] = {
+            cause: sum(metric["failure_cause"] == cause for metric in metrics)
+            for cause in causes
+        }
     for name in ("episode_return", "episode_length"):
         result[name] = _summary([float(metric[name]) for metric in metrics])
     environment_names = sorted(
@@ -490,6 +546,8 @@ def _flat_numeric_metrics(metrics: dict[str, Any]) -> dict[str, float]:
     }
     if metrics["task_success"] is not None:
         result["task_success"] = float(metrics["task_success"])
+    if "recovery_success" in metrics:
+        result["recovery_success"] = float(metrics["recovery_success"])
     for name, value in metrics["environment_metrics"].items():
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             result[name] = float(value)
@@ -503,6 +561,19 @@ def _summary(values: list[float]) -> dict[str, float]:
         "minimum": min(values),
         "maximum": max(values),
     }
+
+
+def _wilson_interval(values: list[bool], z: float = 1.96) -> dict[str, float]:
+    count = len(values)
+    rate = sum(values) / count
+    denominator = 1.0 + z * z / count
+    center = (rate + z * z / (2.0 * count)) / denominator
+    radius = (
+        z
+        * sqrt(rate * (1.0 - rate) / count + z * z / (4.0 * count * count))
+        / denominator
+    )
+    return {"lower": max(0.0, center - radius), "upper": min(1.0, center + radius)}
 
 
 def _require_grid_keys(suite: SweepSuiteSpec, expected: set[str]) -> None:

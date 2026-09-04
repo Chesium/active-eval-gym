@@ -316,6 +316,63 @@ The three-policy one-dimensional dashboards use the
 `*_sweep_three_policy.png` suffix. Results and replay-integrity checks are
 recorded in [`docs/findings.md`](docs/findings.md).
 
+## Adaptive CartPole failure-boundary study
+
+The recovery study is separate from standard CartPole success. It sets the pole
+angle exactly at reset, expands the termination cutoff to 90 degrees, and treats
+500-step survival and final-100-step pole-angle RMS at or below 5 degrees as
+co-primary outcomes. Gymnasium's `length` parameter is the pole half-length.
+
+Run the fixed five-seed pilot, analyze it, and generate the first immutable
+refinement suite:
+
+```bash
+root=artifacts/evaluations/cartpole-failure-boundary-v1
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/cartpole_failure_boundary_pilot_v1.toml \
+  --artifact-root artifacts/policies --output "$root/pilot"
+uv run active-eval-gym analyze-sweep --evaluation "$root/pilot"
+uv run active-eval-gym select-boundary-sweep \
+  --pilot "$root/pilot" --evaluation "$root/pilot" \
+  --stage refinement-1 \
+  --output configs/eval/cartpole_failure_boundary_refinement_1_v1.json
+```
+
+Collect and analyze each generated refinement before selecting the next one:
+
+```bash
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/cartpole_failure_boundary_refinement_1_v1.json \
+  --artifact-root artifacts/policies --output "$root/refinement-1"
+uv run active-eval-gym analyze-sweep --evaluation "$root/refinement-1"
+uv run active-eval-gym select-boundary-sweep \
+  --pilot "$root/pilot" --evaluation "$root/pilot" \
+  --evaluation "$root/refinement-1" --stage refinement-2 \
+  --output configs/eval/cartpole_failure_boundary_refinement_2_v1.json
+
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/cartpole_failure_boundary_refinement_2_v1.json \
+  --artifact-root artifacts/policies --output "$root/refinement-2"
+uv run active-eval-gym analyze-sweep --evaluation "$root/refinement-2"
+uv run active-eval-gym select-boundary-sweep \
+  --pilot "$root/pilot" --evaluation "$root/pilot" \
+  --evaluation "$root/refinement-1" --evaluation "$root/refinement-2" \
+  --stage final --output configs/eval/cartpole_failure_boundary_final_v1.json
+```
+
+The final generated suite reruns selected conditions independently with 50
+seeds. Plotting shows observed points and crossing brackets without interpolating
+unsampled regions:
+
+```bash
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/cartpole_failure_boundary_final_v1.json \
+  --artifact-root artifacts/policies --output "$root/final"
+uv run active-eval-gym analyze-sweep --evaluation "$root/final"
+uv run active-eval-gym plot-sweep \
+  --evaluation "$root/final" --output docs/figures
+```
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.

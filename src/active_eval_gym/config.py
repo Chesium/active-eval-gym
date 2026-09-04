@@ -43,7 +43,9 @@ class SweepSuiteSpec:
     seeds: tuple[int, ...]
     policy_ids: tuple[str, ...]
     grid: dict[str, Any]
+    conditions: tuple[dict[str, Any], ...]
     derived_policies: dict[str, dict[str, Any]]
+    boundary_study: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -153,7 +155,7 @@ def load_nominal_suite(path: Path) -> NominalSuiteSpec:
 def load_sweep_suite(path: Path) -> SweepSuiteSpec:
     """Load a tracked perturbation sampling strategy."""
 
-    data = _read_toml(path)
+    data = _read_json(path) if path.suffix == ".json" else _read_toml(path)
     seeds = tuple(
         _required_int_value(value, "seeds") for value in data.get("seeds", [])
     )
@@ -170,6 +172,35 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
         raise ValueError("derived_policies must be a table of policy tables.")
     if any(policy_id not in policy_ids for policy_id in raw_derived):
         raise ValueError("Every derived policy must appear in policy_ids.")
+    raw_grid = data.get("grid")
+    raw_conditions = data.get("conditions")
+    if (raw_grid is None) == (raw_conditions is None):
+        raise ValueError("A sweep requires exactly one of grid or conditions.")
+    if raw_grid is not None and not isinstance(raw_grid, dict):
+        raise ValueError("grid must be a table.")
+    conditions: tuple[dict[str, Any], ...] = ()
+    if raw_conditions is not None:
+        if not isinstance(raw_conditions, list) or not raw_conditions:
+            raise ValueError("conditions must be a non-empty array of tables.")
+        normalized: list[dict[str, Any]] = []
+        identifiers: set[str] = set()
+        for raw in raw_conditions:
+            if not isinstance(raw, dict):
+                raise ValueError("Every condition must be a table.")
+            condition_id = _required_str(raw, "condition_id")
+            if condition_id in identifiers:
+                raise ValueError(f"Duplicate condition_id {condition_id!r}.")
+            identifiers.add(condition_id)
+            normalized.append(
+                {
+                    "condition_id": condition_id,
+                    "parameters": dict(_required_table(raw, "parameters")),
+                }
+            )
+        conditions = tuple(normalized)
+    boundary_study = data.get("boundary_study", {})
+    if not isinstance(boundary_study, dict):
+        raise ValueError("boundary_study must be a table.")
     return SweepSuiteSpec(
         schema_version=_required_int(data, "schema_version"),
         suite_id=_required_str(data, "suite_id"),
@@ -179,10 +210,12 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
         or "episode-summary-v2",
         seeds=seeds,
         policy_ids=policy_ids,
-        grid=dict(_required_table(data, "grid")),
+        grid={} if raw_grid is None else dict(raw_grid),
+        conditions=conditions,
         derived_policies={
             policy_id: dict(spec) for policy_id, spec in raw_derived.items()
         },
+        boundary_study=dict(boundary_study),
     )
 
 
@@ -236,6 +269,18 @@ def _read_toml(path: Path) -> dict[str, Any]:
             return tomllib.load(file)
     except FileNotFoundError as error:
         raise FileNotFoundError(f"Configuration does not exist: {path}.") from error
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    import json
+
+    try:
+        value = json.loads(path.read_text())
+    except FileNotFoundError as error:
+        raise FileNotFoundError(f"Configuration does not exist: {path}.") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"Configuration root must be an object: {path}.")
+    return value
 
 
 def _required_str(data: dict[str, Any], name: str) -> str:

@@ -25,6 +25,8 @@ def plot_sweep(evaluation_dir: Path, output_dir: Path) -> list[Path]:
     if env_id == "CartPole-v1":
         if suite["perturbation_name"] == "cartpole-angle-length-v1":
             return _plot_cartpole(summary, output_dir)
+        if suite["perturbation_name"] == "cartpole-recovery-angle-length-v1":
+            return _plot_cartpole_boundary(summary, output_dir)
         return _plot_cartpole_one_dimensional(
             summary, output_dir, suite["perturbation_name"]
         )
@@ -165,6 +167,152 @@ def _plot_cartpole(summary: dict[str, Any], output_dir: Path) -> list[Path]:
     slice_path = output_dir / slice_filename
     _save_new(figure, slice_path)
     return [surface_path, slice_path]
+
+
+def _plot_cartpole_boundary(
+    summary: dict[str, Any], output_dir: Path
+) -> list[Path]:
+    """Plot only observed adaptive points and empirical crossing brackets."""
+
+    policies = summary["policy_ids"]
+    records = summary["conditions"]
+    paths = []
+    for metric, label, filename in (
+        ("success_rate", "Survival rate", "cartpole_boundary_survival.png"),
+        ("recovery_rate", "Recovery rate", "cartpole_boundary_recovery.png"),
+    ):
+        figure, axes = plt.subplots(
+            1, len(policies), figsize=(5 * len(policies), 4.5), constrained_layout=True
+        )
+        axes = np.atleast_1d(axes)
+        for axis, policy in zip(axes, policies, strict=True):
+            values = [item["policies"][policy][metric] for item in records]
+            image = axis.scatter(
+                [item["parameters"]["length"] for item in records],
+                [item["parameters"]["initial_theta_deg"] for item in records],
+                c=values,
+                cmap="viridis",
+                vmin=0,
+                vmax=1,
+                s=34,
+                edgecolors="black",
+                linewidths=0.25,
+            )
+            _plot_crossing_brackets(axis, records, policy, metric)
+            axis.set_xscale("log")
+            axis.set_xlabel("Pole half-length")
+            axis.set_ylabel("Exact initial pole angle (degrees)")
+            axis.set_title(_short_policy(policy))
+            axis.grid(alpha=0.2)
+            figure.colorbar(image, ax=axis, label=label)
+        path = output_dir / filename
+        _save_new(figure, path)
+        paths.append(path)
+
+    figure, axes = plt.subplots(
+        2, len(policies), figsize=(5 * len(policies), 8), constrained_layout=True
+    )
+    cause_colors = {
+        "none": "#4daf4a",
+        "angle_limit": "#e41a1c",
+        "cart_limit": "#377eb8",
+        "both": "#984ea3",
+        "unknown": "#777777",
+    }
+    for column, policy in enumerate(policies):
+        gap_axis = axes[0, column]
+        gap = [
+            item["policies"][policy]["success_rate"]
+            - item["policies"][policy]["recovery_rate"]
+            for item in records
+        ]
+        image = gap_axis.scatter(
+            [item["parameters"]["length"] for item in records],
+            [item["parameters"]["initial_theta_deg"] for item in records],
+            c=gap,
+            cmap="magma",
+            vmin=0,
+            vmax=1,
+            s=34,
+            edgecolors="black",
+            linewidths=0.25,
+        )
+        gap_axis.set_title(f"{_short_policy(policy)}: survival - recovery")
+        figure.colorbar(image, ax=gap_axis, label="Rate gap")
+
+        cause_axis = axes[1, column]
+        for item in records:
+            aggregate = item["policies"][policy]
+            counts = aggregate["failure_cause_counts"]
+            failure_counts = {
+                name: count for name, count in counts.items() if name != "none"
+            }
+            cause = max(failure_counts, key=lambda name: (failure_counts[name], name))
+            if sum(failure_counts.values()) == 0:
+                cause = "none"
+            cause_axis.scatter(
+                item["parameters"]["length"],
+                item["parameters"]["initial_theta_deg"],
+                color=cause_colors[cause],
+                s=34,
+                edgecolors="black",
+                linewidths=0.25,
+            )
+        cause_axis.set_title(f"{_short_policy(policy)}: dominant ending")
+        for axis in (gap_axis, cause_axis):
+            axis.set_xscale("log")
+            axis.set_xlabel("Pole half-length")
+            axis.set_ylabel("Exact initial pole angle (degrees)")
+            axis.grid(alpha=0.2)
+    handles = [
+        plt.Line2D([], [], marker="o", linestyle="", color=color, label=name)
+        for name, color in cause_colors.items()
+    ]
+    axes[1, 0].legend(handles=handles, loc="best")
+    dashboard = output_dir / "cartpole_boundary_recovery_gap_failure_cause.png"
+    _save_new(figure, dashboard)
+    paths.append(dashboard)
+    return paths
+
+
+def _plot_crossing_brackets(
+    axis: Any,
+    records: list[dict[str, Any]],
+    policy: str,
+    metric: str,
+) -> None:
+    points = {
+        (
+            float(item["parameters"]["initial_theta_deg"]),
+            float(item["parameters"]["length"]),
+        ): float(item["policies"][policy][metric])
+        for item in records
+    }
+    pairs: set[tuple[tuple[float, float], tuple[float, float]]] = set()
+    for fixed_index, varying_index in ((0, 1), (1, 0)):
+        fixed_values = sorted({point[fixed_index] for point in points})
+        for fixed in fixed_values:
+            line = sorted(
+                (point for point in points if point[fixed_index] == fixed),
+                key=lambda point: point[varying_index],
+            )
+            pairs.update(zip(line, line[1:], strict=False))
+    for first, second in pairs:
+        if (points[first] >= 0.5) != (points[second] >= 0.5):
+            axis.plot(
+                [first[1], second[1]],
+                [first[0], second[0]],
+                color="white",
+                linewidth=2.5,
+                zorder=0,
+            )
+            axis.plot(
+                [first[1], second[1]],
+                [first[0], second[0]],
+                color="black",
+                linewidth=0.8,
+                zorder=0,
+            )
 
 
 def _plot_pendulum(summary: dict[str, Any], output_dir: Path) -> list[Path]:

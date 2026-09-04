@@ -1,7 +1,7 @@
 """Derived metrics computed without mutating raw episode records."""
 
 from dataclasses import dataclass
-from math import atan2, cos, fsum, sin, sqrt
+from math import atan2, cos, fsum, radians, sin, sqrt
 from typing import Any
 
 from active_eval_gym.models import EpisodeRecord
@@ -9,6 +9,9 @@ from active_eval_gym.models import EpisodeRecord
 METRIC_VERSION = "episode-summary-v1"
 SWEEP_METRIC_VERSION = "episode-summary-v2"
 INTERVENTION_METRIC_VERSION = "episode-summary-v3"
+RECOVERY_METRIC_VERSION = "episode-summary-v4"
+RECOVERY_TAIL_STEPS = 100
+RECOVERY_RMS_ANGLE_RADIANS = radians(5.0)
 
 
 @dataclass(frozen=True)
@@ -40,6 +43,14 @@ class SweepEpisodeMetrics:
     end_reason: str
     task_success: bool | None
     environment_metrics: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class RecoveryEpisodeMetrics(SweepEpisodeMetrics):
+    """Recovery-study metrics with explicit co-primary outcomes."""
+
+    recovery_success: bool
+    failure_cause: str
 
 
 def compute_metrics(
@@ -86,7 +97,11 @@ def compute_saved_metrics(
 ) -> SweepEpisodeMetrics:
     """Compute selected metrics solely from a hash-verified saved raw episode."""
 
-    if metric_version not in (SWEEP_METRIC_VERSION, INTERVENTION_METRIC_VERSION):
+    if metric_version not in (
+        SWEEP_METRIC_VERSION,
+        INTERVENTION_METRIC_VERSION,
+        RECOVERY_METRIC_VERSION,
+    ):
         raise ValueError(f"Unsupported sweep metric version {metric_version!r}.")
 
     transitions = episode.transitions
@@ -117,10 +132,12 @@ def compute_saved_metrics(
     else:
         raise ValueError(f"Unsupported metrics environment {env_id!r}.")
 
-    return SweepEpisodeMetrics(
-        schema_version=(
-            3 if metric_version == INTERVENTION_METRIC_VERSION else 2
-        ),
+    common = dict(
+        schema_version={
+            SWEEP_METRIC_VERSION: 2,
+            INTERVENTION_METRIC_VERSION: 3,
+            RECOVERY_METRIC_VERSION: 4,
+        }[metric_version],
         metric_version=metric_version,
         source_trajectory_sha256=episode.trajectory_sha256,
         episode_return=fsum(float(row["reward"]) for row in transitions),
@@ -131,6 +148,19 @@ def compute_saved_metrics(
         task_success=task_success,
         environment_metrics=environment_metrics,
     )
+    if metric_version == RECOVERY_METRIC_VERSION:
+        if env_id != "CartPole-v1":
+            raise ValueError("Recovery metrics require CartPole-v1.")
+        return RecoveryEpisodeMetrics(
+            **common,
+            recovery_success=bool(
+                task_success
+                and environment_metrics["tail_100_rms_pole_angle_radians"]
+                <= RECOVERY_RMS_ANGLE_RADIANS
+            ),
+            failure_cause=_cartpole_failure_cause(episode, task_success),
+        )
+    return SweepEpisodeMetrics(**common)
 
 
 def _cartpole_metrics(episode: Any, metric_version: str) -> dict[str, Any]:
@@ -144,6 +174,9 @@ def _cartpole_metrics(episode: Any, metric_version: str) -> dict[str, Any]:
         "max_abs_pole_angle_radians": max(abs(value) for value in angles),
         "rms_cart_position": _rms(positions),
     }
+    if metric_version == RECOVERY_METRIC_VERSION:
+        tail_angles = angles[-RECOVERY_TAIL_STEPS:]
+        result["tail_100_rms_pole_angle_radians"] = _rms(tail_angles)
     if metric_version == SWEEP_METRIC_VERSION:
         result["action_switch_rate"] = _action_switch_rate(requested_actions)
         return result
@@ -172,6 +205,29 @@ def _cartpole_metrics(episode: Any, metric_version: str) -> dict[str, Any]:
         }
     )
     return result
+
+
+def _cartpole_failure_cause(episode: Any, task_success: bool | None) -> str:
+    if task_success:
+        return "none"
+    final = episode.transitions[-1]
+    if not bool(final["terminated"]):
+        return "unknown"
+    state = final["environment_state"]
+    parameters = episode.metadata["resolved_environment"]["parameters"]
+    cart_failed = abs(float(state["cart_position"])) > float(
+        parameters["x_threshold"]
+    )
+    angle_failed = abs(float(state["pole_angle"])) > float(
+        parameters["theta_threshold_radians"]
+    )
+    if cart_failed and angle_failed:
+        return "both"
+    if cart_failed:
+        return "cart_limit"
+    if angle_failed:
+        return "angle_limit"
+    return "unknown"
 
 
 def _pendulum_metrics(episode: Any) -> dict[str, float]:

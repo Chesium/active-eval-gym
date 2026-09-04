@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from active_eval_gym.animation import animate_cartpole_sweep
+from active_eval_gym.boundary import plan_boundary_stage
 from active_eval_gym.config import (
     load_cartpole_symmetry_suite,
     load_nominal_env_spec,
@@ -138,6 +139,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     animate_sweep_parser.add_argument("--frame-stride", type=int, default=5)
     animate_sweep_parser.set_defaults(handler=_run_animate_sweep)
+
+    boundary_parser = subparsers.add_parser(
+        "select-boundary-sweep",
+        help="select an immutable adaptive CartPole boundary stage",
+    )
+    boundary_parser.add_argument("--pilot", required=True, type=Path)
+    boundary_parser.add_argument(
+        "--evaluation", required=True, action="append", type=Path
+    )
+    boundary_parser.add_argument(
+        "--stage", required=True, choices=("refinement-1", "refinement-2", "final")
+    )
+    boundary_parser.add_argument("--output", required=True, type=Path)
+    boundary_parser.set_defaults(handler=_run_select_boundary_sweep)
 
     symmetry_parser = subparsers.add_parser(
         "evaluate-cartpole-symmetry",
@@ -279,6 +294,17 @@ def _run_collect_sweep(args: argparse.Namespace) -> int:
     suite = load_sweep_suite(args.suite)
     result = collect_sweep(
         suite, artifact_root=args.artifact_root, output_dir=args.output
+    )
+    _print_json(result)
+    return 0
+
+
+def _run_select_boundary_sweep(args: argparse.Namespace) -> int:
+    result = plan_boundary_stage(
+        args.pilot,
+        args.evaluation,
+        stage=args.stage,
+        output=args.output,
     )
     _print_json(result)
     return 0
