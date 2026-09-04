@@ -16,6 +16,7 @@ CARTPOLE_POLE_ANGLE_NOISE = "cartpole-pole-angle-noise-v1"
 CARTPOLE_FORCE_MAGNITUDE = "cartpole-force-magnitude-v1"
 CARTPOLE_ACTION_DELAY = "cartpole-action-delay-v1"
 CARTPOLE_ACTION_DROPOUT = "cartpole-action-dropout-v1"
+CARTPOLE_FIXED_INITIAL_STATE = "cartpole-fixed-initial-state-v1"
 PENDULUM_LENGTH = "pendulum-length-v1"
 MINIGRID_START_POSE = "minigrid-start-pose-v1"
 
@@ -69,6 +70,30 @@ class CartPoleAngleLengthPerturbation(gym.Wrapper):
         state = np.asarray(base.state, dtype=float).copy()
         state[2] += self._delta_theta
         base.state = state
+        return np.asarray(state, dtype=np.float32), info
+
+
+class CartPoleFixedInitialStatePerturbation(gym.Wrapper):
+    """Set an exact CartPole state and pole length for mirror-paired rollouts."""
+
+    def __init__(self, env: gym.Env, spec: PerturbationSpec) -> None:
+        super().__init__(env)
+        _require_cartpole(env, spec.name)
+        _require_parameters(spec, {"initial_state", "length"})
+        state = np.asarray(spec.parameters["initial_state"], dtype=float)
+        if state.shape != (4,) or not np.all(np.isfinite(state)):
+            raise ValueError("initial_state must contain four finite numbers.")
+        length = _positive_number(spec.parameters["length"], "length")
+        base = env.unwrapped
+        base.length = length
+        base.polemass_length = base.masspole * base.length
+        self._initial_state = state.copy()
+        self.perturbation_spec = spec
+
+    def reset(self, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
+        _, info = self.env.reset(**kwargs)
+        state = self._initial_state.copy()
+        self.env.unwrapped.state = state
         return np.asarray(state, dtype=np.float32), info
 
 
@@ -319,6 +344,7 @@ def apply_perturbation(env: gym.Env, spec: PerturbationSpec = NO_OP) -> gym.Env:
         CARTPOLE_FORCE_MAGNITUDE: CartPoleForceMagnitudePerturbation,
         CARTPOLE_ACTION_DELAY: CartPoleActionDelayPerturbation,
         CARTPOLE_ACTION_DROPOUT: CartPoleActionDropoutPerturbation,
+        CARTPOLE_FIXED_INITIAL_STATE: CartPoleFixedInitialStatePerturbation,
         PENDULUM_LENGTH: PendulumLengthPerturbation,
         MINIGRID_START_POSE: MiniGridStartPosePerturbation,
     }
@@ -351,6 +377,18 @@ def resolved_initial_state_distribution(
                 "pole_angular_velocity": 0.0,
             },
         }
+    if spec.name == CARTPOLE_FIXED_INITIAL_STATE:
+        state = [float(value) for value in spec.parameters["initial_state"]]
+        return {
+            "kind": "fixed",
+            "state_order": [
+                "cart_position",
+                "cart_velocity",
+                "pole_angle",
+                "pole_angular_velocity",
+            ],
+            "state": state,
+        }
     if spec.name == MINIGRID_START_POSE:
         return {
             "kind": "fixed",
@@ -367,6 +405,8 @@ def expected_parameters(
 
     expected = dict(nominal)
     if spec.name == CARTPOLE_ANGLE_LENGTH:
+        expected["length"] = float(spec.parameters["length"])
+    elif spec.name == CARTPOLE_FIXED_INITIAL_STATE:
         expected["length"] = float(spec.parameters["length"])
     elif spec.name == CARTPOLE_MASS:
         expected["masspole"] = float(spec.parameters["masspole"])

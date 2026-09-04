@@ -9,6 +9,7 @@ from typing import Any
 
 from active_eval_gym.animation import animate_cartpole_sweep
 from active_eval_gym.config import (
+    load_cartpole_symmetry_suite,
     load_nominal_env_spec,
     load_nominal_suite,
     load_sweep_suite,
@@ -41,6 +42,7 @@ from active_eval_gym.serialization import (
     write_metrics,
 )
 from active_eval_gym.sweeps import analyze_sweep, collect_sweep
+from active_eval_gym.symmetry import run_cartpole_symmetry_study
 
 CONSTANT_POLICY_ID = "constant-zero-v1"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -136,6 +138,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     animate_sweep_parser.add_argument("--frame-stride", type=int, default=5)
     animate_sweep_parser.set_defaults(handler=_run_animate_sweep)
+
+    symmetry_parser = subparsers.add_parser(
+        "evaluate-cartpole-symmetry",
+        help="audit a PPO and run exact CartPole mirror interventions",
+    )
+    symmetry_parser.add_argument("--suite", required=True, type=Path)
+    symmetry_parser.add_argument("--artifact-root", required=True, type=Path)
+    symmetry_parser.add_argument("--source-evaluation", required=True, type=Path)
+    symmetry_parser.add_argument("--output", required=True, type=Path)
+    symmetry_parser.add_argument("--figure", required=True, type=Path)
+    symmetry_parser.set_defaults(handler=_run_cartpole_symmetry)
     return parser
 
 
@@ -297,6 +310,27 @@ def _run_animate_sweep(args: argparse.Namespace) -> int:
         frame_stride=args.frame_stride,
     )
     _print_json({"animation_artifacts": [str(path) for path in paths]})
+    return 0
+
+
+def _run_cartpole_symmetry(args: argparse.Namespace) -> int:
+    suite = load_cartpole_symmetry_suite(args.suite)
+    result = run_cartpole_symmetry_study(
+        suite,
+        artifact_root=args.artifact_root,
+        source_evaluation=args.source_evaluation,
+        output_dir=args.output,
+        figure_path=args.figure,
+    )
+    _print_json(
+        {
+            "suite_id": result["suite_id"],
+            "audit_version": result["audit"]["audit_version"],
+            "mirror_episode_count": result["mirror_pairs"]["episode_count"],
+            "causal_episode_count": result["causal_intervention"]["episode_count"],
+            "figure": result["figure"],
+        }
+    )
     return 0
 
 

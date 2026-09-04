@@ -234,6 +234,44 @@ trajectory hashes, and output hashes. Animation files are never overwritten.
 Composite views are limited to six conditions for legibility; use
 `--layout individual` for larger CartPole grids.
 
+## CartPole policy-symmetry study
+
+The tracked symmetry protocol directly audits the frozen CartPole PPO's
+categorical action distribution, rather than inferring it from deterministic
+rollout action counts. It evaluates the identities
+
+```text
+pi(action 1 | s) = 1 - pi(action 1 | -s)
+logit_margin(s) = -logit_margin(-s)
+V(s) = V(-s)
+```
+
+under the CartPole reflection that negates all four state components and swaps
+actions 0 and 1. The same workflow collects exact mirror-paired trajectories for
+PPO and LQR, then evaluates a separately identified diagnostic controller whose
+binary PPO logit margin is antisymmetrized at inference. The source PPO checkpoint
+and its weights are not modified.
+
+Run the complete predeclared study against the existing angle-length evaluation:
+
+```bash
+uv run active-eval-gym evaluate-cartpole-symmetry \
+  --suite configs/eval/che49_cartpole_symmetry_v1.toml \
+  --artifact-root artifacts/policies \
+  --source-evaluation \
+    artifacts/evaluations/che-49/che49-cartpole-angle-length-v1 \
+  --output artifacts/evaluations/che-49/che49-cartpole-symmetry-v1 \
+  --figure docs/figures/che49_cartpole_ppo_symmetry_audit.png
+```
+
+The command refuses to overwrite either output. It writes a hash-bound static
+audit, 1,600 raw mirror-pair episodes, 900 raw causal-intervention episodes,
+per-episode metrics, aggregate summaries, and the decision-boundary figure. The
+mirror collection uses an explicit fixed-initial-state perturbation: if one
+branch begins at `s`, the other begins at exactly `-s`, with equal plant
+parameters and complementary actions required by symmetry. Results from the
+local acceptance run are recorded in [`docs/findings.md`](docs/findings.md).
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.

@@ -1,0 +1,20 @@
+schema_version = 1
+suite_id = "che49-cartpole-symmetry-v1"
+environment_id = "CartPole-v1"
+policy_id = "cartpole_ppo_nominal_v1"
+control_policy_id = "cartpole_lqr_nominal_quantized_v1"
+derived_policy_id = "cartpole_ppo_nominal_v1_antisymmetrized_v1"
+seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+angle_magnitudes_deg = [2, 4, 6, 8]
+signed_angles_deg = [-8, -6, -4, -2, 0, 2, 4, 6, 8]
+lengths = [0.35, 0.425, 0.50, 0.575, 0.65]
+
+# The static audit reads policy-input states from the frozen PPO's existing
+# angle-length trajectories at this stride, then evaluates both s and -s.
+observed_stride = 25
+
+# Decision-boundary figure sampling. Each panel fixes cart position at zero and
+# uses one of these cart velocities over a pole angle/angular-velocity grid.
+plot_grid_points = 161
+plot_angular_velocity_limit = 2.0
+plot_cart_velocities = [-0.5, 0.0, 0.5]

@@ -6,6 +6,7 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
+import torch
 from stable_baselines3 import DQN, PPO, SAC
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
@@ -13,7 +14,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 from active_eval_gym.envs.factory import make_environment
 from active_eval_gym.envs.specs import apply_observation_adapter
-from active_eval_gym.models import PolicyDesignSpec
+from active_eval_gym.models import PolicyAction, PolicyDesignSpec
 
 ALGORITHMS = {"DQN": DQN, "SAC": SAC, "PPO": PPO}
 SCHEDULE_PARAMETERS = ("learning_rate", "clip_range")
@@ -69,6 +70,73 @@ class SB3Policy:
         if isinstance(action, np.ndarray) and action.shape == ():
             return action.item()
         return action
+
+    def cartpole_actor_critic(
+        self, observations: Any
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Return binary-action logits, probabilities, and values without sampling."""
+
+        if not isinstance(self._model, PPO):
+            raise TypeError("CartPole actor-critic diagnostics require a PPO model.")
+        array = np.asarray(observations, dtype=np.float32)
+        if array.ndim == 1:
+            array = array.reshape(1, -1)
+        if array.ndim != 2 or array.shape[1] != 4:
+            raise ValueError(
+                "CartPole actor-critic diagnostics require observations of shape "
+                "(n, 4)."
+            )
+        with torch.no_grad():
+            tensor, _ = self._model.policy.obs_to_tensor(array)
+            distribution = self._model.policy.get_distribution(tensor).distribution
+            probabilities = distribution.probs
+            logits = distribution.logits
+            values = self._model.policy.predict_values(tensor)
+        if probabilities.shape[1] != 2:
+            raise ValueError("CartPole symmetry requires exactly two discrete actions.")
+        return (
+            logits.cpu().numpy(),
+            probabilities.cpu().numpy(),
+            values.cpu().numpy().reshape(-1),
+        )
+
+
+class AntisymmetrizedCartPolePPOPolicy:
+    """Inference intervention whose binary logit margin is odd under reflection."""
+
+    def __init__(self, source: SB3Policy) -> None:
+        self._source = source
+
+    def act(
+        self,
+        observation: Any,
+        *,
+        deterministic: bool = True,
+    ) -> PolicyAction:
+        if not deterministic:
+            raise ValueError(
+                "The antisymmetrized diagnostic policy supports deterministic "
+                "evaluation only."
+            )
+        state = np.asarray(observation, dtype=np.float32)
+        if state.shape != (4,):
+            raise ValueError(
+                f"Expected CartPole observation shape (4,), got {state.shape}."
+            )
+        logits, _, _ = self._source.cartpole_actor_critic(np.stack((state, -state)))
+        margins = logits[:, 1] - logits[:, 0]
+        margin = float(0.5 * (margins[0] - margins[1]))
+        probability_right = float(1.0 / (1.0 + np.exp(-margin)))
+        return PolicyAction(
+            action=1 if margin > 0.0 else 0,
+            diagnostics={
+                "intervention": "antisymmetrized-binary-logit-margin-v1",
+                "source_logit_margin": float(margins[0]),
+                "reflected_source_logit_margin": float(margins[1]),
+                "antisymmetrized_logit_margin": margin,
+                "action_1_probability": probability_right,
+            },
+        )
 
 
 def train_sb3_policy(spec: PolicyDesignSpec, model_path: Path) -> dict[str, Any]:

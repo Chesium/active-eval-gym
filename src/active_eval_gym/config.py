@@ -45,6 +45,26 @@ class SweepSuiteSpec:
     grid: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class CartPoleSymmetrySuiteSpec:
+    """Checkpoint probes and paired rollouts for a CartPole symmetry study."""
+
+    schema_version: int
+    suite_id: str
+    environment_id: str
+    policy_id: str
+    control_policy_id: str
+    derived_policy_id: str
+    seeds: tuple[int, ...]
+    angle_magnitudes_deg: tuple[float, ...]
+    signed_angles_deg: tuple[float, ...]
+    lengths: tuple[float, ...]
+    observed_stride: int
+    plot_grid_points: int
+    plot_angular_velocity_limit: float
+    plot_cart_velocities: tuple[float, ...]
+
+
 def load_nominal_env_spec(path: Path) -> NominalEnvSpec:
     """Load one nominal environment specification."""
 
@@ -154,6 +174,50 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
     )
 
 
+def load_cartpole_symmetry_suite(path: Path) -> CartPoleSymmetrySuiteSpec:
+    """Load and validate the tracked CartPole symmetry protocol."""
+
+    data = _read_toml(path)
+    seeds = tuple(
+        _required_int_value(value, "seeds") for value in data.get("seeds", [])
+    )
+    if not seeds or len(set(seeds)) != len(seeds):
+        raise ValueError("seeds must be a non-empty list of unique integers.")
+    angles = _number_tuple(data.get("angle_magnitudes_deg"), "angle_magnitudes_deg")
+    signed_angles = _number_tuple(data.get("signed_angles_deg"), "signed_angles_deg")
+    lengths = _number_tuple(data.get("lengths"), "lengths")
+    cart_velocities = _number_tuple(
+        data.get("plot_cart_velocities"), "plot_cart_velocities"
+    )
+    if any(value <= 0.0 for value in angles):
+        raise ValueError("angle_magnitudes_deg values must be positive.")
+    if any(value <= 0.0 for value in lengths):
+        raise ValueError("lengths values must be positive.")
+    observed_stride = _required_int(data, "observed_stride")
+    plot_grid_points = _required_int(data, "plot_grid_points")
+    angular_velocity_limit = _required_number(data, "plot_angular_velocity_limit")
+    if observed_stride <= 0 or plot_grid_points < 3 or angular_velocity_limit <= 0:
+        raise ValueError("Symmetry sampling counts and limits must be positive.")
+    if len(cart_velocities) != 3:
+        raise ValueError("plot_cart_velocities must contain exactly three values.")
+    return CartPoleSymmetrySuiteSpec(
+        schema_version=_required_int(data, "schema_version"),
+        suite_id=_required_str(data, "suite_id"),
+        environment_id=_required_str(data, "environment_id"),
+        policy_id=_required_str(data, "policy_id"),
+        control_policy_id=_required_str(data, "control_policy_id"),
+        derived_policy_id=_required_str(data, "derived_policy_id"),
+        seeds=seeds,
+        angle_magnitudes_deg=angles,
+        signed_angles_deg=signed_angles,
+        lengths=lengths,
+        observed_stride=observed_stride,
+        plot_grid_points=plot_grid_points,
+        plot_angular_velocity_limit=angular_velocity_limit,
+        plot_cart_velocities=cart_velocities,
+    )
+
+
 def _read_toml(path: Path) -> dict[str, Any]:
     try:
         with path.open("rb") as file:
@@ -176,6 +240,24 @@ def _optional_str(value: Any, name: str, *, required: bool = False) -> str | Non
 
 def _required_int(data: dict[str, Any], name: str) -> int:
     return _required_int_value(data.get(name), name)
+
+
+def _required_number(data: dict[str, Any], name: str) -> float:
+    value = data.get(name)
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise ValueError(f"{name} must be numeric.")
+    return float(value)
+
+
+def _number_tuple(value: Any, name: str) -> tuple[float, ...]:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{name} must be a non-empty list of numbers.")
+    result = []
+    for item in value:
+        if not isinstance(item, (int, float)) or isinstance(item, bool):
+            raise ValueError(f"{name} must be a non-empty list of numbers.")
+        result.append(float(item))
+    return tuple(result)
 
 
 def _required_int_value(value: Any, name: str) -> int:

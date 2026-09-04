@@ -232,3 +232,116 @@ the held action does not create a mismatch.
 3. Given the flat success surfaces for mass and force, when should an evaluator
    stop probing an axis and redirect budget toward observation or action-channel
    perturbations?
+
+# CHE-49 CartPole PPO symmetry study
+
+The separately versioned `che49-cartpole-symmetry-v1` study audited the frozen
+`cartpole_ppo_nominal_v1` checkpoint, collected exact mirror-paired closed-loop
+trajectories, and evaluated an antisymmetrized inference intervention. The PPO
+model hash remained
+`37c9bac10919b2d6bdc833fd5a3a920460d4b80f09392ef7fb758e4777a856e8`;
+the intervention did not retrain or change its weights. All 2,500 new raw
+schema-v4 trajectory digests verified after collection.
+
+For CartPole state
+`s = [x, x_dot, theta, theta_dot]`, physical reflection maps `s` to `-s` and
+swaps actions 0 and 1. Actor symmetry therefore requires
+`pi(1 | s) = 1 - pi(1 | -s)`, or equivalently an odd binary logit margin
+`d(s) = -d(-s)`. The critic should satisfy `V(s) = V(-s)`.
+
+## Frozen-checkpoint audit and decision boundary
+
+The PPO actor does not satisfy the action-distribution identity. At the origin it
+assigned action probabilities `[0.9999904, 0.00000959]`; its action-1-minus-action-0
+logit margin was `-11.5549`, whereas stochastic reflection symmetry requires both
+probabilities to be `0.5` and the margin to be zero.
+
+The audit evaluated the existing angle-length trajectory states and their exact
+counterfactual mirrors without advancing an environment:
+
+| Probe set | States | Mean absolute probability error | Deterministic action violation | Mean absolute value error |
+| --- | ---: | ---: | ---: | ---: |
+| Angle-length reset states | 900 | 0.94873 | 96.11% | 0.00866 |
+| Saved policy-input states, stride 25 | 16,825 | 0.52575 | 52.22% | 0.42236 |
+
+Probability error is `abs(pi(1 | s) + pi(1 | -s) - 1)` and is zero for a
+symmetric actor. A deterministic violation means that the argmax action was the
+same at `s` and `-s`, rather than complementary. The critic is also not exactly
+symmetric, although its reset-state error is much smaller than the actor's
+distribution error.
+
+One-dimensional slices show a substantially displaced deterministic boundary.
+With all other state components zero, the action changes only near cart position
+`+0.70`, cart velocity `+0.70`, pole angle `+0.179` radians, or pole angular
+velocity `+0.28` radians. An odd logit margin would instead pass through zero at
+the origin. The two-dimensional slices below show the observed action boundary
+as a solid curve and the boundary required by evaluating reflected states as a
+dashed curve; their separation visualizes the nonzero even component of the
+actor.
+
+![CartPole PPO policy-symmetry audit](figures/che49_cartpole_ppo_symmetry_audit.png)
+
+## Exact mirror-paired rollouts
+
+The paired experiment used 20 seeds, angle magnitudes 2, 4, 6, and 8 degrees,
+and all five pole lengths. For each seeded positive state `s`, a structured
+fixed-state perturbation created a second episode at exactly `-s`. Each policy
+therefore had 400 pairs and 800 raw episodes. The unmodified Gymnasium dynamics
+receive complementary actions in a physically symmetric pair.
+
+| Policy | First action equivariant | Fully action equivariant | Equal episode length | Positive success | Reflected success | Mean absolute length difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Quantized LQR | 100% | 100% | 100% | 100% | 100% | 0.00 |
+| Frozen PPO | 1.25% | 0% | 81.25% | 99.25% | 81.25% | 73.64 |
+
+LQR's paired states remained exact negatives up to floating-point comparison in
+all 400 pairs, providing a positive control for both the environment symmetry and
+the fixed-state protocol. PPO violated the required action swap on the first
+decision in 395 of 400 pairs. Its paired success outcomes agreed on 82% of pairs,
+with a pronounced 18-percentage-point success difference between the two exact
+mirror branches. This establishes closed-loop symmetry breaking without relying
+on the earlier seeded `+/-` angle-offset comparison, whose individual states were
+not exact mirrors.
+
+## Antisymmetrized-policy intervention
+
+The diagnostic policy computes the frozen actor's binary margins at both `s` and
+`-s` and acts from
+
+```text
+d_sym(s) = 0.5 * (d(s) - d(-s)).
+```
+
+This gives an odd margin by construction while retaining the frozen network as
+its only learned component. It is recorded under the distinct derived policy ID
+`cartpole_ppo_nominal_v1_antisymmetrized_v1`, with the source policy ID, model
+hash, transformation version, and `weights_changed = false` in every episode's
+metadata.
+
+The intervention was evaluated on the same 900 signed-angle, pole-length, and
+seed combinations as the original sweep. Initial states matched the saved source
+episodes exactly:
+
+| Seeded angle offset | Original PPO success | Antisymmetrized PPO success | Original mean length | Antisymmetrized mean length |
+| ---: | ---: | ---: | ---: | ---: |
+| -8 deg | 49% | 100% | 288.34 | 500.00 |
+| -6 deg | 83% | 100% | 430.51 | 500.00 |
+| -4 deg | 97% | 100% | 488.11 | 500.00 |
+| -2 through +6 deg | 100% | 100% | 500.00 | 500.00 |
+| +8 deg | 97% | 100% | 487.30 | 500.00 |
+
+The original positive-minus-negative success gaps at magnitudes 4, 6, and 8
+degrees were 3, 17, and 48 percentage points. All became zero after the
+intervention. Together with the exact mirror experiment, this is strong causal
+evidence that the frozen actor's asymmetric decision boundary drives the sampled
+directional failures, rather than the asymmetry coming from CartPole dynamics or
+the perturbation implementation.
+
+The conclusion is limited to this frozen checkpoint and declared grid. A
+deterministic binary controller cannot choose a self-reflecting action at the
+exact origin because CartPole has no neutral action; this is why the categorical
+distribution and logit margin are the primary symmetry objects. Finally, the
+study establishes that the final trained checkpoint is asymmetric, but not when
+that asymmetry arose. Fixed-interval training snapshots or predeclared replicate
+training seeds are still required to distinguish optimization-induced symmetry
+breaking from an asymmetric initialization.
