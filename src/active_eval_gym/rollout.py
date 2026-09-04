@@ -1,11 +1,15 @@
 """Fixed-policy episode collection."""
 
 from copy import deepcopy
+from importlib.metadata import version
 
 import gymnasium as gym
 
 from active_eval_gym.envs.factory import capture_environment_state
-from active_eval_gym.envs.perturbations import PerturbationSpec
+from active_eval_gym.envs.perturbations import (
+    PERTURBATION_INFO_KEY,
+    PerturbationSpec,
+)
 from active_eval_gym.envs.specs import package_versions
 from active_eval_gym.models import (
     EpisodeMetadata,
@@ -19,7 +23,7 @@ from active_eval_gym.models import (
 )
 from active_eval_gym.policies.base import Policy
 
-EPISODE_SCHEMA_VERSION = 3
+EPISODE_SCHEMA_VERSION = 4
 
 
 def collect_episode(
@@ -39,6 +43,7 @@ def collect_episode(
     observation, reset_info = env.reset(seed=episode_seed)
     initial_observation = deepcopy(observation)
     initial_state = capture_environment_state(env, env_id)
+    reset_diagnostics = _perturbation_diagnostics(reset_info)
     transitions: list[TransitionRecord] = []
 
     while True:
@@ -51,10 +56,22 @@ def collect_episode(
             policy_diagnostics = {}
         observation, reward, terminated, truncated, info = env.step(action)
         environment_state = capture_environment_state(env, env_id)
+        perturbation_diagnostics = _perturbation_diagnostics(info)
+        environment_action = deepcopy(
+            perturbation_diagnostics.get("environment_action", action)
+        )
+        if env_id == "CartPole-v1":
+            force_magnitude = float(resolved_environment.parameters["force_mag"])
+            force_sign = 1.0 if int(environment_action) == 1 else -1.0
+            perturbation_diagnostics["environment_force"] = (
+                force_sign * force_magnitude
+            )
         transitions.append(
             TransitionRecord(
                 action=deepcopy(action),
+                environment_action=environment_action,
                 policy_diagnostics=policy_diagnostics,
+                perturbation_diagnostics=perturbation_diagnostics,
                 reward=float(reward),
                 observation=deepcopy(observation),
                 environment_state=environment_state,
@@ -76,12 +93,13 @@ def collect_episode(
             resolved_environment=resolved_environment,
             episode_seed=episode_seed,
             deterministic=deterministic,
-            package_versions=package_versions(env_id),
+            package_versions={**package_versions(env_id), "numpy": version("numpy")},
             initial_state=initial_state,
         ),
         reset=ResetRecord(
             observation=initial_observation,
             environment_state=initial_state,
+            perturbation_diagnostics=reset_diagnostics,
             info=deepcopy(dict(reset_info)),
         ),
         transitions=tuple(transitions),
@@ -106,3 +124,10 @@ def _perturbation_spec(env: gym.Env) -> PerturbationSpec:
     if not isinstance(spec, PerturbationSpec):
         raise TypeError("Environment perturbation metadata is invalid.")
     return spec
+
+
+def _perturbation_diagnostics(info: dict) -> dict:
+    value = info.get(PERTURBATION_INFO_KEY, {})
+    if not isinstance(value, dict):
+        raise TypeError("Environment perturbation diagnostics must be a mapping.")
+    return deepcopy(value)

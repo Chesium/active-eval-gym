@@ -72,11 +72,11 @@ def write_metrics(output_dir: Path, metrics: EpisodeMetrics) -> None:
 
 
 def read_saved_episode(output_dir: Path) -> SavedEpisode:
-    """Load a schema-v3 raw episode and verify its recorded trajectory digest."""
+    """Load a supported raw episode and verify its recorded trajectory digest."""
 
     metadata = json.loads((output_dir / METADATA_FILENAME).read_text())
-    if metadata.get("schema_version") != 3:
-        raise ValueError("Versioned sweep analysis requires episode schema version 3.")
+    if metadata.get("schema_version") not in (3, 4):
+        raise ValueError("Sweep analysis requires episode schema version 3 or 4.")
     trajectory_bytes = (output_dir / TRAJECTORY_FILENAME).read_bytes()
     actual_hash = hashlib.sha256(trajectory_bytes).hexdigest()
     expected_hash = (output_dir / TRAJECTORY_DIGEST_FILENAME).read_text().strip()
@@ -146,6 +146,7 @@ def _trajectory_bytes(episode: EpisodeRecord) -> bytes:
             "type": "reset",
             "observation": episode.reset.observation,
             "environment_state": episode.reset.environment_state,
+            "perturbation_diagnostics": episode.reset.perturbation_diagnostics,
             "info": episode.reset.info,
         }
     ]
@@ -153,7 +154,9 @@ def _trajectory_bytes(episode: EpisodeRecord) -> bytes:
         {
             "type": "transition",
             "action": transition.action,
+            "environment_action": transition.environment_action,
             "policy_diagnostics": transition.policy_diagnostics,
+            "perturbation_diagnostics": transition.perturbation_diagnostics,
             "reward": transition.reward,
             "observation": transition.observation,
             "environment_state": transition.environment_state,

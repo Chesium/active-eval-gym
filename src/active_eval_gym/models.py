@@ -95,6 +95,7 @@ class ResetRecord:
 
     observation: Any
     environment_state: dict[str, Any]
+    perturbation_diagnostics: dict[str, Any]
     info: dict[str, Any]
 
 
@@ -103,7 +104,9 @@ class TransitionRecord:
     """One policy decision and the resulting environment transition."""
 
     action: Any
+    environment_action: Any
     policy_diagnostics: dict[str, Any]
+    perturbation_diagnostics: dict[str, Any]
     reward: float
     observation: Any
     environment_state: dict[str, Any]

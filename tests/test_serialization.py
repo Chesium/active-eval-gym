@@ -71,10 +71,13 @@ def test_artifacts_round_trip_supported_observations(
     saved_metrics = json.loads((output / METRICS_FILENAME).read_text())
 
     assert metadata["resolved_environment"]["environment_id"] == env_id
-    assert metadata["schema_version"] == 3
+    assert metadata["schema_version"] == 4
     assert rows[0]["type"] == "reset"
     assert "environment_state" in rows[0]
     assert "environment_state" in rows[1]
+    assert "perturbation_diagnostics" in rows[0]
+    assert "perturbation_diagnostics" in rows[1]
+    assert rows[1]["environment_action"] == rows[1]["action"]
     assert len(rows) == len(episode.transitions) + 1
     assert "episode_return" not in metadata
     assert saved_metrics["metric_version"] == METRIC_VERSION
