@@ -1,4 +1,4 @@
-"""Shared constructors for schema-v2 rollout tests."""
+"""Shared constructors for rollout-schema tests."""
 
 from pathlib import Path
 

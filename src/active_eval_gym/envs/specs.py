@@ -6,6 +6,11 @@ from typing import Any
 
 import gymnasium as gym
 
+from active_eval_gym.envs.perturbations import (
+    PerturbationSpec,
+    expected_parameters,
+    resolved_initial_state_distribution,
+)
 from active_eval_gym.models import NominalEnvSpec, ResolvedEnvSpec
 
 IDENTITY_OBSERVATION = "identity-v1"
@@ -40,6 +45,7 @@ def capture_resolved_environment(
     env: gym.Env,
     nominal: NominalEnvSpec,
     observation_adapter: str,
+    perturbation: PerturbationSpec | None = None,
 ) -> ResolvedEnvSpec:
     """Capture actual values from an environment and validate its identity."""
 
@@ -48,8 +54,11 @@ def capture_resolved_environment(
         raise ValueError(
             f"Expected environment {nominal.environment_id!r}, received {actual!r}."
         )
+    if perturbation is None:
+        perturbation = env.get_wrapper_attr("perturbation_spec")
     parameters, derived, max_steps = _environment_values(env)
-    for name, expected in nominal.parameters.items():
+    expected_values = expected_parameters(nominal.parameters, perturbation)
+    for name, expected in expected_values.items():
         if parameters.get(name) != expected:
             raise ValueError(
                 f"Nominal parameter {name!r} expected {expected!r}, "
@@ -61,12 +70,14 @@ def capture_resolved_environment(
             f"resolved to {max_steps}."
         )
     return ResolvedEnvSpec(
-        schema_version=1,
+        schema_version=2,
         nominal_spec_id=nominal.spec_id,
         environment_id=nominal.environment_id,
         parameters=parameters,
         derived_parameters=derived,
-        initial_state_distribution=dict(nominal.initial_state_distribution),
+        initial_state_distribution=resolved_initial_state_distribution(
+            nominal.initial_state_distribution, perturbation
+        ),
         observation_adapter=observation_adapter,
         max_episode_steps=max_steps,
     )

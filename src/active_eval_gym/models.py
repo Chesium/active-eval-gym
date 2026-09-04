@@ -94,6 +94,7 @@ class ResetRecord:
     """Observation and environment information returned by reset."""
 
     observation: Any
+    environment_state: dict[str, Any]
     info: dict[str, Any]
 
 
@@ -105,6 +106,7 @@ class TransitionRecord:
     policy_diagnostics: dict[str, Any]
     reward: float
     observation: Any
+    environment_state: dict[str, Any]
     terminated: bool
     truncated: bool
     info: dict[str, Any]

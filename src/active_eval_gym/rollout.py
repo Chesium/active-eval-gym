@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import gymnasium as gym
 
-from active_eval_gym.envs.factory import capture_initial_state
+from active_eval_gym.envs.factory import capture_environment_state
 from active_eval_gym.envs.perturbations import PerturbationSpec
 from active_eval_gym.envs.specs import package_versions
 from active_eval_gym.models import (
@@ -19,7 +19,7 @@ from active_eval_gym.models import (
 )
 from active_eval_gym.policies.base import Policy
 
-EPISODE_SCHEMA_VERSION = 2
+EPISODE_SCHEMA_VERSION = 3
 
 
 def collect_episode(
@@ -38,7 +38,7 @@ def collect_episode(
     perturbation = _perturbation_spec(env)
     observation, reset_info = env.reset(seed=episode_seed)
     initial_observation = deepcopy(observation)
-    initial_state = capture_initial_state(env, env_id)
+    initial_state = capture_environment_state(env, env_id)
     transitions: list[TransitionRecord] = []
 
     while True:
@@ -50,12 +50,14 @@ def collect_episode(
             action = decision
             policy_diagnostics = {}
         observation, reward, terminated, truncated, info = env.step(action)
+        environment_state = capture_environment_state(env, env_id)
         transitions.append(
             TransitionRecord(
                 action=deepcopy(action),
                 policy_diagnostics=policy_diagnostics,
                 reward=float(reward),
                 observation=deepcopy(observation),
+                environment_state=environment_state,
                 terminated=bool(terminated),
                 truncated=bool(truncated),
                 info=deepcopy(dict(info)),
@@ -79,6 +81,7 @@ def collect_episode(
         ),
         reset=ResetRecord(
             observation=initial_observation,
+            environment_state=initial_state,
             info=deepcopy(dict(reset_info)),
         ),
         transitions=tuple(transitions),

@@ -8,6 +8,7 @@ from typing import Any
 
 from active_eval_gym.config import NominalSuiteSpec, QualityGate
 from active_eval_gym.envs.factory import make_environment
+from active_eval_gym.envs.perturbations import NO_OP, PerturbationSpec
 from active_eval_gym.envs.specs import (
     apply_observation_adapter,
     capture_resolved_environment,
@@ -163,7 +164,12 @@ def check_quality_gate(
     return not failures, failures
 
 
-def make_artifact_environment(metadata: Any, *, render_mode: str | None = None):
+def make_artifact_environment(
+    metadata: Any,
+    perturbation: PerturbationSpec = NO_OP,
+    *,
+    render_mode: str | None = None,
+):
     """Construct the exact nominal policy-facing environment."""
 
     design = metadata.design_spec
@@ -176,11 +182,13 @@ def make_artifact_environment(metadata: Any, *, render_mode: str | None = None):
                 f"Policy {metadata.policy_id!r} requires {package}=={recorded}, "
                 f"but evaluation has {installed}."
             )
-    env = make_environment(nominal.environment_id, render_mode=render_mode)
+    env = make_environment(
+        nominal.environment_id, perturbation=perturbation, render_mode=render_mode
+    )
     try:
         env = apply_observation_adapter(env, design.observation_adapter)
         resolved = capture_resolved_environment(
-            env, nominal, design.observation_adapter
+            env, nominal, design.observation_adapter, perturbation
         )
         return env, resolved
     except Exception:

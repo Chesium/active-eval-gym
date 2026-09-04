@@ -42,8 +42,8 @@ def make_environment(
         raise
 
 
-def capture_initial_state(env: gym.Env, env_id: str) -> dict[str, Any]:
-    """Read the interpretable initial state exposed by a supported environment."""
+def capture_environment_state(env: gym.Env, env_id: str) -> dict[str, Any]:
+    """Read the current interpretable state of a supported environment."""
 
     base_env = env.unwrapped
     if env_id == "CartPole-v1":
@@ -70,6 +70,10 @@ def capture_initial_state(env: gym.Env, env_id: str) -> dict[str, Any]:
             "agent_direction": int(direction),
         }
     raise ValueError(f"Cannot capture state for unsupported environment {env_id!r}.")
+
+
+# Compatibility name for callers that only capture state immediately after reset.
+capture_initial_state = capture_environment_state
 
 
 def _required_state(env: Any, env_id: str, *, expected_size: int) -> np.ndarray:
