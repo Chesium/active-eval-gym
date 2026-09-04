@@ -31,6 +31,19 @@ class NominalSuiteSpec:
     gates: dict[str, QualityGate]
 
 
+@dataclass(frozen=True)
+class SweepSuiteSpec:
+    """A deterministic grid of perturbations for frozen policies."""
+
+    schema_version: int
+    suite_id: str
+    environment_id: str
+    perturbation_name: str
+    seeds: tuple[int, ...]
+    policy_ids: tuple[str, ...]
+    grid: dict[str, Any]
+
+
 def load_nominal_env_spec(path: Path) -> NominalEnvSpec:
     """Load one nominal environment specification."""
 
@@ -112,6 +125,29 @@ def load_nominal_suite(path: Path) -> NominalSuiteSpec:
         seeds=seeds,
         policy_ids=policy_ids,
         gates=gates,
+    )
+
+
+def load_sweep_suite(path: Path) -> SweepSuiteSpec:
+    """Load a tracked perturbation sampling strategy."""
+
+    data = _read_toml(path)
+    seeds = tuple(
+        _required_int_value(value, "seeds") for value in data.get("seeds", [])
+    )
+    if not seeds or len(set(seeds)) != len(seeds):
+        raise ValueError("seeds must be a non-empty list of unique integers.")
+    policy_ids = tuple(data.get("policy_ids", []))
+    if not policy_ids or any(not isinstance(value, str) for value in policy_ids):
+        raise ValueError("policy_ids must be a non-empty list of strings.")
+    return SweepSuiteSpec(
+        schema_version=_required_int(data, "schema_version"),
+        suite_id=_required_str(data, "suite_id"),
+        environment_id=_required_str(data, "environment_id"),
+        perturbation_name=_required_str(data, "perturbation_name"),
+        seeds=seeds,
+        policy_ids=policy_ids,
+        grid=dict(_required_table(data, "grid")),
     )
 
 

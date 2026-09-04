@@ -1,0 +1,10 @@
+schema_version = 1
+suite_id = "che49-minigrid-start-pose-v1"
+environment_id = "MiniGrid-Empty-8x8-v0"
+perturbation_name = "minigrid-start-pose-v1"
+seeds = [0]
+policy_ids = ["minigrid_empty8x8_ppo_partial_image_v1"]
+
+[grid]
+agent_start_pos = "all_valid_non_wall_non_goal"
+agent_start_dir = [0, 1, 2, 3]

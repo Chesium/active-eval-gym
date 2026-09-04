@@ -7,7 +7,11 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
-from active_eval_gym.config import load_nominal_env_spec, load_nominal_suite
+from active_eval_gym.config import (
+    load_nominal_env_spec,
+    load_nominal_suite,
+    load_sweep_suite,
+)
 from active_eval_gym.envs.factory import SUPPORTED_ENVIRONMENTS, make_environment
 from active_eval_gym.envs.specs import (
     IDENTITY_OBSERVATION,
@@ -22,6 +26,7 @@ from active_eval_gym.evaluate import (
 )
 from active_eval_gym.metrics import compute_metrics
 from active_eval_gym.models import PolicyArtifactMetadata, PolicyDesignSpec
+from active_eval_gym.plotting import plot_sweep
 from active_eval_gym.policies.artifacts import (
     build_lqr_artifact,
     load_policy_artifact,
@@ -34,6 +39,7 @@ from active_eval_gym.serialization import (
     write_episode,
     write_metrics,
 )
+from active_eval_gym.sweeps import analyze_sweep, collect_sweep
 
 CONSTANT_POLICY_ID = "constant-zero-v1"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -94,6 +100,27 @@ def build_parser() -> argparse.ArgumentParser:
     render_parser.add_argument("--artifact", required=True, type=Path)
     render_parser.add_argument("--seed", required=True, type=int)
     render_parser.set_defaults(handler=_run_render_policy)
+
+    collect_sweep_parser = subparsers.add_parser(
+        "collect-sweep", help="collect a frozen-policy perturbation grid"
+    )
+    collect_sweep_parser.add_argument("--suite", required=True, type=Path)
+    collect_sweep_parser.add_argument("--artifact-root", required=True, type=Path)
+    collect_sweep_parser.add_argument("--output", required=True, type=Path)
+    collect_sweep_parser.set_defaults(handler=_run_collect_sweep)
+
+    analyze_sweep_parser = subparsers.add_parser(
+        "analyze-sweep", help="derive versioned metrics from raw sweep trajectories"
+    )
+    analyze_sweep_parser.add_argument("--evaluation", required=True, type=Path)
+    analyze_sweep_parser.set_defaults(handler=_run_analyze_sweep)
+
+    plot_sweep_parser = subparsers.add_parser(
+        "plot-sweep", help="plot a completed perturbation analysis"
+    )
+    plot_sweep_parser.add_argument("--evaluation", required=True, type=Path)
+    plot_sweep_parser.add_argument("--output", required=True, type=Path)
+    plot_sweep_parser.set_defaults(handler=_run_plot_sweep)
     return parser
 
 
@@ -217,6 +244,33 @@ def _run_render_policy(args: argparse.Namespace) -> int:
             "task_success": metrics.task_success,
         }
     )
+    return 0
+
+
+def _run_collect_sweep(args: argparse.Namespace) -> int:
+    suite = load_sweep_suite(args.suite)
+    result = collect_sweep(
+        suite, artifact_root=args.artifact_root, output_dir=args.output
+    )
+    _print_json(result)
+    return 0
+
+
+def _run_analyze_sweep(args: argparse.Namespace) -> int:
+    summary = analyze_sweep(args.evaluation)
+    _print_json(
+        {
+            "suite_id": summary["suite_id"],
+            "metric_version": summary["metric_version"],
+            "episode_count": summary["episode_count"],
+        }
+    )
+    return 0
+
+
+def _run_plot_sweep(args: argparse.Namespace) -> int:
+    paths = plot_sweep(args.evaluation, args.output)
+    _print_json({"figures": [str(path) for path in paths]})
     return 0
 
 
