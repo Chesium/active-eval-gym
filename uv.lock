@@ -13,6 +13,7 @@ dependencies = [
     { name = "matplotlib" },
     { name = "minigrid" },
     { name = "numpy" },
+    { name = "pillow" },
     { name = "stable-baselines3" },
 ]
 
@@ -30,6 +31,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.0,<4" },
     { name = "minigrid", specifier = ">=3.1.0,<4" },
     { name = "numpy", specifier = ">=2.5.0,<3" },
+    { name = "pillow", specifier = ">=12.3.0,<13" },
     { name = "stable-baselines3", specifier = ">=2.9.0,<3" },
 ]
 

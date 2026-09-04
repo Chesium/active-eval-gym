@@ -206,6 +206,34 @@ Schema v4 retains the policy-requested `action`, adds the delivered
 intervention diagnostics. Their five checked-in dashboards and measured results
 are included in [`docs/findings.md`](docs/findings.md).
 
+### CartPole sweep animations
+
+CartPole sweeps can also be visualized directly from their saved, hash-verified
+raw trajectories. This does not load a policy, recreate an environment, or alter
+the evaluation. The default creates one GIF per condition and a synchronized
+comparison GIF:
+
+```bash
+uv run active-eval-gym animate-sweep \
+  --evaluation artifacts/evaluations/che-49/che49-cartpole-action-dropout-v1 \
+  --output artifacts/animations/che49-cartpole-action-dropout-v1 \
+  --layout both \
+  --frame-stride 5
+```
+
+Each condition overlays all paired seeds, with the first two policies rendered
+as blue and red density layers. Overlap is purple and does not depend on
+drawing order. A terminal failure is marked once and then removed; the live-run
+counts remain visible. The composite uses one shared clock and physical scale so
+that its condition panels stay synchronized and comparable. GIF timing is derived
+from the recorded CartPole timestep and `--frame-stride`; the default is 10 FPS
+for the nominal 0.02-second timestep.
+
+An `animation-manifest.json` records the rendering settings, policy colors, input
+trajectory hashes, and output hashes. Animation files are never overwritten.
+Composite views are limited to six conditions for legibility; use
+`--layout individual` for larger CartPole grids.
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.

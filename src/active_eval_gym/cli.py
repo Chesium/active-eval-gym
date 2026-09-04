@@ -7,6 +7,7 @@ from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
+from active_eval_gym.animation import animate_cartpole_sweep
 from active_eval_gym.config import (
     load_nominal_env_spec,
     load_nominal_suite,
@@ -121,6 +122,20 @@ def build_parser() -> argparse.ArgumentParser:
     plot_sweep_parser.add_argument("--evaluation", required=True, type=Path)
     plot_sweep_parser.add_argument("--output", required=True, type=Path)
     plot_sweep_parser.set_defaults(handler=_run_plot_sweep)
+
+    animate_sweep_parser = subparsers.add_parser(
+        "animate-sweep",
+        help="animate saved CartPole sweep trajectories",
+    )
+    animate_sweep_parser.add_argument("--evaluation", required=True, type=Path)
+    animate_sweep_parser.add_argument("--output", required=True, type=Path)
+    animate_sweep_parser.add_argument(
+        "--layout",
+        choices=("individual", "composite", "both"),
+        default="both",
+    )
+    animate_sweep_parser.add_argument("--frame-stride", type=int, default=5)
+    animate_sweep_parser.set_defaults(handler=_run_animate_sweep)
     return parser
 
 
@@ -271,6 +286,17 @@ def _run_analyze_sweep(args: argparse.Namespace) -> int:
 def _run_plot_sweep(args: argparse.Namespace) -> int:
     paths = plot_sweep(args.evaluation, args.output)
     _print_json({"figures": [str(path) for path in paths]})
+    return 0
+
+
+def _run_animate_sweep(args: argparse.Namespace) -> int:
+    paths = animate_cartpole_sweep(
+        args.evaluation,
+        args.output,
+        layout=args.layout,
+        frame_stride=args.frame_stride,
+    )
+    _print_json({"animation_artifacts": [str(path) for path in paths]})
     return 0
 
 
