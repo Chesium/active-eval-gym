@@ -1,5 +1,7 @@
 # Active Eval Gym
 
+- heavily agent-assisted
+
 A small research sandbox for evaluating fixed control and reinforcement-learning
 policies under explicit environment perturbations. The core data flow is:
 
@@ -10,6 +12,65 @@ policy + environment + perturbation -> raw trajectory -> derived metrics
 Training, rollout collection, perturbation generation, and metric computation
 remain separate so that evaluation never silently changes a policy and new metrics
 can be computed without rerunning an episode.
+
+## What the sandbox has found
+
+Full write-up (agent's output) in [`docs/findings.md`](docs/findings.md).
+
+Every result below comes
+from frozen policy artifacts evaluated on paired seeds; no sweep retrained,
+reselected, or re-tuned a controller.
+
+- **Two policies that tie at nominal come apart under perturbation.** (Also signify the difference between binary metric - success rate - and real valued metric - episode length) A quantized
+  nominal-model LQR and a nominal-trained PPO both reach 20/20 successes at
+  mean episode length 500. Off nominal they diverge sharply, and even where both
+  succeed their trajectories differ by an order of magnitude in RMS pole angle.
+- **PPO's failures are asymmetric in the sign of the initial angle.** At a `-8`
+  degree offset PPO succeeds 49% of the time against 97% at `+8` degrees, while
+  LQR is at 100% throughout. The cause is the frozen actor's own decision
+  boundary, not the environment. (exact reason why the boundary arouse to be investigated)
+- **Antisymmetrizing the frozen actor removes most of that asymmetry** without
+  retraining, cutting mean absolute signed-angle asymmetry from 7.01 to 0.79
+  percentage points.
+- **Surviving is not recovering.** Under a relaxed 90-degree termination cutoff,
+  the learned policies routinely stay alive for the full 500 steps without ever
+  settling upright. Any evaluation reporting only terminal success would score
+  those runs as clean successes.
+- **The failure boundary was mapped adaptively**, refining a coarse grid twice
+  and spending a final 37,200-episode budget where the boundary actually is,
+  rather than uniformly over the domain.
+
+### Crossing the failure boundary
+
+Half-length fixed at `0.5`, initial angle stepping from `-35` to `+35` degrees,
+50 paired seeds per policy drawn as a density cloud. At `-30` degrees LQR keeps
+all 50 runs while PPO keeps 17; at `±35` every policy is wiped out.
+
+![CartPole boundary crossing](https://assets.chesium.com/assets/cartpole_boundary_crossing-optimized.gif)
+
+### Survival is not recovery
+
+Every policy is 50/50 alive at ten seconds, but only LQR has settled inside the
+`±5` degree recovery band. PPO and its antisymmetrized variant are still swinging
+at 7 to 23 degrees.
+
+![CartPole survival without recovery](https://assets.chesium.com/assets/cartpole_boundary_survival_without_recovery-optimized.gif)
+
+### PPO fails on one side of upright
+
+Difference in survival rate between mirrored `+θ` and `-θ` conditions. PPO is the
+bright diagonal streak, reaching a full 1.00 gap; LQR and the antisymmetrized
+policy are near-blank.
+
+![CartPole mirror asymmetry](docs/figures/cartpole_boundary_signed_asymmetry_v2.png)
+
+### The mapped boundary
+
+Survival rate on the adaptive angle-by-length mesh, 248 of 440 lattice slots
+sampled. Gray is unsampled, the black line is the 0.5 contour, and the bottom row
+is the policy-versus-policy difference.
+
+![CartPole survival boundary](docs/figures/cartpole_boundary_survival_v2.png)
 
 ## Five-minute quickstart
 

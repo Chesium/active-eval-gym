@@ -10,6 +10,8 @@ import numpy as np
 
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt  # noqa: E402
+from matplotlib.colors import BoundaryNorm, ListedColormap  # noqa: E402
+from matplotlib.patches import Patch, Rectangle  # noqa: E402
 
 
 def plot_sweep(evaluation_dir: Path, output_dir: Path) -> list[Path]:
@@ -169,150 +171,680 @@ def _plot_cartpole(summary: dict[str, Any], output_dir: Path) -> list[Path]:
     return [surface_path, slice_path]
 
 
-def _plot_cartpole_boundary(
-    summary: dict[str, Any], output_dir: Path
-) -> list[Path]:
-    """Plot only observed adaptive points and empirical crossing brackets."""
+_BOUNDARY_LEVELS = (0.0, 0.02, 0.1, 0.3, 0.5, 0.7, 0.9, 0.98, 1.0)
+# One neutral for "no condition was sampled here", used by every boundary panel.
+# It has to survive two collisions: a diverging map's pale centre (a measured
+# zero difference) and a sequential map's near-white low end (a measured zero
+# gap). A mid gray clears both, and no level of the discrete rate colormap is a
+# neutral, so it never reads as a rate either.
+_UNSAMPLED_COLOR = "#8c8c8c"
+_BOUNDARY_CAUSES = ("none", "angle_limit", "cart_limit", "both", "unknown")
+_BOUNDARY_CAUSE_COLORS = {
+    "none": "#4daf4a",
+    "angle_limit": "#e41a1c",
+    "cart_limit": "#377eb8",
+    "both": "#984ea3",
+    # Not a gray: the unsampled neutral already owns that slot in the legend.
+    "unknown": "#ff7f00",
+}
+_BOUNDARY_RATE_METRICS = (
+    ("success_rate", "Survival rate"),
+    ("recovery_rate", "Recovery rate"),
+)
+
+
+def _plot_cartpole_boundary(summary: dict[str, Any], output_dir: Path) -> list[Path]:
+    """Render the adaptive failure-boundary lattice as index-space heat maps.
+
+    The sampled conditions form a sparse subset of an angle-by-length lattice.
+    Every panel is drawn in *mesh rank* space so that the irregular geometric
+    length mesh does not hide the interior (strictly between 0 and 1) cells that
+    carry the scientific content, and unsampled lattice slots stay visibly gray
+    rather than being confused with a measured zero.
+    """
 
     policies = summary["policy_ids"]
-    records = summary["conditions"]
-    paths = []
-    for metric, label, filename in (
-        ("success_rate", "Survival rate", "cartpole_boundary_survival.png"),
-        ("recovery_rate", "Recovery rate", "cartpole_boundary_recovery.png"),
-    ):
-        figure, axes = plt.subplots(
-            1, len(policies), figsize=(5 * len(policies), 4.5), constrained_layout=True
-        )
-        axes = np.atleast_1d(axes)
-        for axis, policy in zip(axes, policies, strict=True):
-            values = [item["policies"][policy][metric] for item in records]
-            image = axis.scatter(
-                [item["parameters"]["length"] for item in records],
-                [item["parameters"]["initial_theta_deg"] for item in records],
-                c=values,
-                cmap="viridis",
-                vmin=0,
-                vmax=1,
-                s=34,
-                edgecolors="black",
-                linewidths=0.25,
-            )
-            _plot_crossing_brackets(axis, records, policy, metric)
-            axis.set_xscale("log")
-            axis.set_xlabel("Pole half-length")
-            axis.set_ylabel("Exact initial pole angle (degrees)")
-            axis.set_title(_short_policy(policy))
-            axis.grid(alpha=0.2)
-            figure.colorbar(image, ax=axis, label=label)
-        path = output_dir / filename
-        _save_new(figure, path)
-        paths.append(path)
-
-    figure, axes = plt.subplots(
-        2, len(policies), figsize=(5 * len(policies), 8), constrained_layout=True
+    angles = sorted(
+        {item["parameters"]["initial_theta_deg"] for item in summary["conditions"]}
     )
-    cause_colors = {
-        "none": "#4daf4a",
-        "angle_limit": "#e41a1c",
-        "cart_limit": "#377eb8",
-        "both": "#984ea3",
-        "unknown": "#777777",
-    }
-    for column, policy in enumerate(policies):
-        gap_axis = axes[0, column]
-        gap = [
-            item["policies"][policy]["success_rate"]
-            - item["policies"][policy]["recovery_rate"]
-            for item in records
-        ]
-        image = gap_axis.scatter(
-            [item["parameters"]["length"] for item in records],
-            [item["parameters"]["initial_theta_deg"] for item in records],
-            c=gap,
-            cmap="magma",
-            vmin=0,
-            vmax=1,
-            s=34,
-            edgecolors="black",
-            linewidths=0.25,
-        )
-        gap_axis.set_title(f"{_short_policy(policy)}: survival - recovery")
-        figure.colorbar(image, ax=gap_axis, label="Rate gap")
+    lengths = sorted({item["parameters"]["length"] for item in summary["conditions"]})
+    lookup = _boundary_lookup(summary)
 
-        cause_axis = axes[1, column]
-        for item in records:
-            aggregate = item["policies"][policy]
-            counts = aggregate["failure_cause_counts"]
-            failure_counts = {
-                name: count for name, count in counts.items() if name != "none"
-            }
-            cause = max(failure_counts, key=lambda name: (failure_counts[name], name))
-            if sum(failure_counts.values()) == 0:
-                cause = "none"
-            cause_axis.scatter(
-                item["parameters"]["length"],
-                item["parameters"]["initial_theta_deg"],
-                color=cause_colors[cause],
-                s=34,
-                edgecolors="black",
-                linewidths=0.25,
-            )
-        cause_axis.set_title(f"{_short_policy(policy)}: dominant ending")
-        for axis in (gap_axis, cause_axis):
-            axis.set_xscale("log")
-            axis.set_xlabel("Pole half-length")
-            axis.set_ylabel("Exact initial pole angle (degrees)")
-            axis.grid(alpha=0.2)
-    handles = [
-        plt.Line2D([], [], marker="o", linestyle="", color=color, label=name)
-        for name, color in cause_colors.items()
+    paths = [
+        _plot_boundary_rate(
+            policies,
+            lookup,
+            angles,
+            lengths,
+            metric,
+            label,
+            output_dir / f"cartpole_boundary_{stem}_v2.png",
+        )
+        for metric, label, stem in (
+            ("success_rate", "Survival rate", "survival"),
+            ("recovery_rate", "Recovery rate", "recovery"),
+        )
     ]
-    axes[1, 0].legend(handles=handles, loc="best")
-    dashboard = output_dir / "cartpole_boundary_recovery_gap_failure_cause.png"
-    _save_new(figure, dashboard)
-    paths.append(dashboard)
+    paths.append(
+        _plot_boundary_asymmetry(
+            policies,
+            lookup,
+            angles,
+            lengths,
+            output_dir / "cartpole_boundary_signed_asymmetry_v2.png",
+        )
+    )
+    paths.append(
+        _plot_boundary_gap_and_cause(
+            policies,
+            lookup,
+            angles,
+            lengths,
+            output_dir / "cartpole_boundary_recovery_gap_failure_cause_v2.png",
+        )
+    )
+    paths.append(
+        _plot_boundary_wilson(
+            policies,
+            lookup,
+            angles,
+            lengths,
+            output_dir / "cartpole_boundary_wilson_uncertainty_v2.png",
+        )
+    )
+    paths.append(
+        _plot_boundary_physical_geometry(
+            policies,
+            lookup,
+            angles,
+            lengths,
+            output_dir / "cartpole_boundary_physical_geometry_v2.png",
+        )
+    )
     return paths
 
 
-def _plot_crossing_brackets(
-    axis: Any,
-    records: list[dict[str, Any]],
-    policy: str,
-    metric: str,
-) -> None:
-    points = {
+def _boundary_lookup(summary: dict[str, Any]) -> dict[tuple[float, float], Any]:
+    return {
         (
             float(item["parameters"]["initial_theta_deg"]),
             float(item["parameters"]["length"]),
-        ): float(item["policies"][policy][metric])
-        for item in records
+        ): item
+        for item in summary["conditions"]
     }
-    pairs: set[tuple[tuple[float, float], tuple[float, float]]] = set()
-    for fixed_index, varying_index in ((0, 1), (1, 0)):
-        fixed_values = sorted({point[fixed_index] for point in points})
-        for fixed in fixed_values:
-            line = sorted(
-                (point for point in points if point[fixed_index] == fixed),
-                key=lambda point: point[varying_index],
+
+
+def _boundary_surface(
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    value: Any,
+) -> np.ndarray:
+    """Lay sampled conditions onto the (angle rank, length rank) lattice."""
+
+    surface = np.full((len(angles), len(lengths)), np.nan)
+    for row, angle in enumerate(angles):
+        for column, length in enumerate(lengths):
+            item = lookup.get((angle, length))
+            if item is None:
+                continue
+            result = value(item)
+            if result is not None:
+                surface[row, column] = result
+    return surface
+
+
+def _nearest_filled(surface: np.ndarray) -> np.ndarray:
+    """Fill lattice holes from the nearest sampled slot in index space.
+
+    Only ever used as input to ``contour``; the displayed arrays keep their
+    holes so the figures stay honest about where sampling actually happened.
+    """
+
+    filled = np.array(surface, dtype=float)
+    sampled = np.argwhere(np.isfinite(surface))
+    if len(sampled) == 0:
+        return np.zeros_like(filled)
+    for row, column in np.argwhere(~np.isfinite(surface)):
+        offsets = sampled - np.array([row, column])
+        nearest = sampled[int(np.argmin((offsets * offsets).sum(axis=1)))]
+        filled[row, column] = surface[nearest[0], nearest[1]]
+    return filled
+
+
+def _boundary_colormap(name: str, count: int | None = None) -> Any:
+    colormap = plt.get_cmap(name)
+    if count is not None:
+        colormap = colormap.resampled(count)
+    return colormap.with_extremes(bad=_UNSAMPLED_COLOR)
+
+
+def _boundary_norm() -> BoundaryNorm:
+    return BoundaryNorm(list(_BOUNDARY_LEVELS), ncolors=len(_BOUNDARY_LEVELS) - 1)
+
+
+def _tick_positions(count: int, maximum: int) -> list[int]:
+    stride = max(1, ceil(count / maximum))
+    return list(range(0, count, stride))
+
+
+def _label_lattice_axes(
+    axis: Any,
+    angles: list[float],
+    lengths: list[float],
+    *,
+    y_label: str = "Initial pole angle (degrees, mesh rank)",
+) -> None:
+    columns = _tick_positions(len(lengths), 12)
+    axis.set_xticks(columns, labels=[f"{lengths[i]:.3g}" for i in columns])
+    axis.tick_params(axis="x", labelrotation=90, labelsize=7)
+    rows = _tick_positions(len(angles), 20)
+    axis.set_yticks(rows, labels=[f"{angles[i]:g}" for i in rows])
+    axis.tick_params(axis="y", labelsize=7)
+    axis.set_xlabel("Pole half-length (mesh rank)")
+    axis.set_ylabel(y_label)
+
+
+def _draw_lattice(
+    axis: Any,
+    surface: np.ndarray,
+    angles: list[float],
+    lengths: list[float],
+    *,
+    colormap: Any,
+    norm: Any = None,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    title: str = "",
+    contour: bool = False,
+    y_label: str = "Initial pole angle (degrees, mesh rank)",
+) -> Any:
+    image = axis.imshow(
+        surface,
+        origin="lower",
+        aspect="auto",
+        interpolation="nearest",
+        cmap=colormap,
+        norm=norm,
+        vmin=None if norm is not None else vmin,
+        vmax=None if norm is not None else vmax,
+    )
+    if contour and np.isfinite(surface).any():
+        crossing = _nearest_filled(surface)
+        if crossing.min() < 0.5 < crossing.max():
+            axis.contour(crossing, levels=[0.5], colors="k", linewidths=1.2)
+    _label_lattice_axes(axis, angles, lengths, y_label=y_label)
+    axis.set_title(title, fontsize=10)
+    return image
+
+
+def _row_colorbar(figure: Any, image: Any, axes: list[Any], label: str, **kwargs: Any):
+    return figure.colorbar(image, ax=axes, label=label, **kwargs)
+
+
+def _hide_unused(axes: Any, used: int) -> None:
+    for axis in list(axes)[used:]:
+        axis.set_visible(False)
+
+
+def _plot_boundary_rate(
+    policies: list[str],
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    metric: str,
+    label: str,
+    path: Path,
+) -> Path:
+    surfaces = [
+        _boundary_surface(
+            lookup, angles, lengths, lambda item, p=policy: item["policies"][p][metric]
+        )
+        for policy in policies
+    ]
+    pairs = [
+        (first, second) for second in range(1, len(policies)) for first in range(second)
+    ]
+    columns = max(len(policies), len(pairs), 1)
+    rows = 2 if pairs else 1
+    figure, axes = plt.subplots(
+        rows,
+        columns,
+        figsize=(4.6 * columns, 5.0 * rows),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    colormap = _boundary_colormap("RdYlBu", len(_BOUNDARY_LEVELS) - 1)
+    norm = _boundary_norm()
+    image = None
+    for column, (policy, surface) in enumerate(zip(policies, surfaces, strict=True)):
+        interior = int(np.sum((surface > 0.0) & (surface < 1.0)))
+        image = _draw_lattice(
+            axes[0, column],
+            surface,
+            angles,
+            lengths,
+            colormap=colormap,
+            norm=norm,
+            title=f"{_short_policy(policy)}\n{interior} interior cells",
+            contour=True,
+        )
+    _hide_unused(axes[0], len(policies))
+    _row_colorbar(
+        figure,
+        image,
+        [axis for axis in axes[0] if axis.get_visible()],
+        label,
+        ticks=list(_BOUNDARY_LEVELS),
+        spacing="uniform",
+    )
+    if pairs:
+        difference_map = _boundary_colormap("coolwarm")
+        for column, (first, second) in enumerate(pairs):
+            image = _draw_lattice(
+                axes[1, column],
+                surfaces[second] - surfaces[first],
+                angles,
+                lengths,
+                colormap=difference_map,
+                vmin=-1,
+                vmax=1,
+                title=(
+                    f"{_short_policy(policies[second])}"
+                    f" - {_short_policy(policies[first])}"
+                ),
             )
-            pairs.update(zip(line, line[1:], strict=False))
-    for first, second in pairs:
-        if (points[first] >= 0.5) != (points[second] >= 0.5):
-            axis.plot(
-                [first[1], second[1]],
-                [first[0], second[0]],
-                color="white",
-                linewidth=2.5,
-                zorder=0,
+        _hide_unused(axes[1], len(pairs))
+        _row_colorbar(
+            figure,
+            image,
+            [axis for axis in axes[1] if axis.get_visible()],
+            f"{label} difference",
+        )
+    figure.suptitle(
+        f"{label} on the adaptive angle/length lattice"
+        f" ({int(np.isfinite(surfaces[0]).sum())} of"
+        f" {len(angles) * len(lengths)} slots sampled;"
+        " gray = unsampled, black line = 0.5 contour interpolated across holes)"
+    )
+    _save_new(figure, path)
+    return path
+
+
+def _mirrored_angles(
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+) -> list[float]:
+    """Positive angles that have at least one exact negative counterpart."""
+
+    return [
+        angle
+        for angle in angles
+        if angle > 0
+        and any(
+            (angle, length) in lookup and (-angle, length) in lookup
+            for length in lengths
+        )
+    ]
+
+
+def _mirror_difference(
+    lookup: dict[tuple[float, float], Any],
+    positive_angles: list[float],
+    lengths: list[float],
+    policy: str,
+    metric: str,
+) -> np.ndarray:
+    surface = np.full((len(positive_angles), len(lengths)), np.nan)
+    for row, angle in enumerate(positive_angles):
+        for column, length in enumerate(lengths):
+            positive = lookup.get((angle, length))
+            negative = lookup.get((-angle, length))
+            if positive is None or negative is None:
+                continue
+            surface[row, column] = (
+                positive["policies"][policy][metric]
+                - negative["policies"][policy][metric]
             )
-            axis.plot(
-                [first[1], second[1]],
-                [first[0], second[0]],
-                color="black",
-                linewidth=0.8,
-                zorder=0,
+    return surface
+
+
+def _plot_boundary_asymmetry(
+    policies: list[str],
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    path: Path,
+) -> Path:
+    positive_angles = _mirrored_angles(lookup, angles, lengths)
+    pair_count = sum(
+        1
+        for angle in positive_angles
+        for length in lengths
+        if (angle, length) in lookup and (-angle, length) in lookup
+    )
+    figure, axes = plt.subplots(
+        len(_BOUNDARY_RATE_METRICS),
+        max(len(policies), 1),
+        figsize=(4.6 * max(len(policies), 1), 5.0 * len(_BOUNDARY_RATE_METRICS)),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    colormap = _boundary_colormap("coolwarm")
+    for row, (metric, label) in enumerate(_BOUNDARY_RATE_METRICS):
+        image = None
+        for column, policy in enumerate(policies):
+            axis = axes[row, column]
+            if not positive_angles:
+                axis.set_axis_off()
+                axis.text(0.5, 0.5, "no mirrored pairs", ha="center", va="center")
+                continue
+            surface = _mirror_difference(
+                lookup, positive_angles, lengths, policy, metric
             )
+            mean_absolute = (
+                float(np.nanmean(np.abs(surface)))
+                if np.isfinite(surface).any()
+                else float("nan")
+            )
+            image = _draw_lattice(
+                axis,
+                surface,
+                positive_angles,
+                lengths,
+                colormap=colormap,
+                vmin=-1,
+                vmax=1,
+                title=(
+                    f"{_short_policy(policy)}: {label}\n"
+                    f"mean |asymmetry| = {mean_absolute * 100:.2f} pp"
+                ),
+                y_label="|Initial pole angle| (degrees, mesh rank)",
+            )
+        _hide_unused(axes[row], len(policies))
+        if image is not None:
+            _row_colorbar(
+                figure,
+                image,
+                [axis for axis in axes[row] if axis.get_visible()],
+                f"{label}(+theta) - {label.lower()}(-theta)",
+            )
+    figure.suptitle(
+        "Mirror asymmetry across the sign of the initial angle"
+        f" ({pair_count} exact +/- pairs; red = better on the positive side)"
+    )
+    _save_new(figure, path)
+    return path
+
+
+def _dominant_cause(aggregate: dict[str, Any]) -> str:
+    counts = aggregate["failure_cause_counts"]
+    failures = {name: count for name, count in counts.items() if name != "none"}
+    if sum(failures.values()) == 0:
+        return "none"
+    return max(failures, key=lambda name: (failures[name], name))
+
+
+def _plot_boundary_gap_and_cause(
+    policies: list[str],
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    path: Path,
+) -> Path:
+    columns = max(len(policies), 1)
+    figure, axes = plt.subplots(
+        2,
+        columns,
+        figsize=(4.6 * columns, 10.0),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    gap_map = _boundary_colormap("Purples")
+    cause_map = ListedColormap(
+        [_BOUNDARY_CAUSE_COLORS[name] for name in _BOUNDARY_CAUSES]
+    ).with_extremes(bad=_UNSAMPLED_COLOR)
+    cause_norm = BoundaryNorm(
+        [index - 0.5 for index in range(len(_BOUNDARY_CAUSES) + 1)],
+        ncolors=len(_BOUNDARY_CAUSES),
+    )
+    gap_image = None
+    cause_image = None
+    for column, policy in enumerate(policies):
+        gap = _boundary_surface(
+            lookup,
+            angles,
+            lengths,
+            lambda item, p=policy: (
+                item["policies"][p]["success_rate"]
+                - item["policies"][p]["recovery_rate"]
+            ),
+        )
+        gap_image = _draw_lattice(
+            axes[0, column],
+            gap,
+            angles,
+            lengths,
+            colormap=gap_map,
+            vmin=0,
+            vmax=1,
+            title=f"{_short_policy(policy)}: survival - recovery",
+        )
+        causes = _boundary_surface(
+            lookup,
+            angles,
+            lengths,
+            lambda item, p=policy: float(
+                _BOUNDARY_CAUSES.index(_dominant_cause(item["policies"][p]))
+            ),
+        )
+        cause_image = _draw_lattice(
+            axes[1, column],
+            causes,
+            angles,
+            lengths,
+            colormap=cause_map,
+            norm=cause_norm,
+            title=f"{_short_policy(policy)}: dominant episode ending",
+        )
+    _hide_unused(axes[0], len(policies))
+    _hide_unused(axes[1], len(policies))
+    _row_colorbar(
+        figure,
+        gap_image,
+        [axis for axis in axes[0] if axis.get_visible()],
+        "Survival - recovery rate",
+    )
+    cause_bar = _row_colorbar(
+        figure,
+        cause_image,
+        [axis for axis in axes[1] if axis.get_visible()],
+        "Dominant episode ending",
+        ticks=list(range(len(_BOUNDARY_CAUSES))),
+    )
+    cause_bar.ax.set_yticklabels(_BOUNDARY_CAUSES)
+    handles = [
+        Patch(facecolor=_BOUNDARY_CAUSE_COLORS[name], edgecolor="black", label=name)
+        for name in _BOUNDARY_CAUSES
+    ]
+    handles.append(
+        Patch(facecolor=_UNSAMPLED_COLOR, edgecolor="black", label="unsampled")
+    )
+    figure.legend(
+        handles=handles,
+        loc="outside lower center",
+        ncol=len(handles),
+        frameon=False,
+    )
+    figure.suptitle("Recovery gap and dominant episode ending on the mesh lattice")
+    _save_new(figure, path)
+    return path
+
+
+def _straddles_half(interval: dict[str, float]) -> bool:
+    """True when a Wilson 95% interval cannot resolve which side of 0.5 a cell is."""
+
+    return bool(interval["lower"] < 0.5 < interval["upper"])
+
+
+def _plot_boundary_wilson(
+    policies: list[str],
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    path: Path,
+) -> Path:
+    columns = max(len(policies), 1)
+    figure, axes = plt.subplots(
+        len(_BOUNDARY_RATE_METRICS),
+        columns,
+        figsize=(4.6 * columns, 5.0 * len(_BOUNDARY_RATE_METRICS)),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    colormap = _boundary_colormap("RdYlBu", len(_BOUNDARY_LEVELS) - 1)
+    norm = _boundary_norm()
+    for row, (metric, label) in enumerate(_BOUNDARY_RATE_METRICS):
+        image = None
+        for column, policy in enumerate(policies):
+            surface = _boundary_surface(
+                lookup,
+                angles,
+                lengths,
+                lambda item, p=policy, m=metric: item["policies"][p][m],
+            )
+            straddle = _boundary_surface(
+                lookup,
+                angles,
+                lengths,
+                lambda item, p=policy, m=metric: float(
+                    _straddles_half(item["policies"][p][f"{m}_wilson_95"])
+                ),
+            )
+            count = int(np.nansum(straddle))
+            axis = axes[row, column]
+            image = _draw_lattice(
+                axis,
+                surface,
+                angles,
+                lengths,
+                colormap=colormap,
+                norm=norm,
+                title=(
+                    f"{_short_policy(policy)}: {label}\n"
+                    f"{count} unresolved cell{'' if count == 1 else 's'}"
+                    " (95% CI straddles 0.5)"
+                ),
+                contour=True,
+            )
+            for cell_row, cell_column in np.argwhere(straddle == 1.0):
+                axis.add_patch(
+                    Rectangle(
+                        (cell_column - 0.5, cell_row - 0.5),
+                        1,
+                        1,
+                        fill=False,
+                        hatch="///",
+                        edgecolor="black",
+                        linewidth=1.0,
+                    )
+                )
+        _hide_unused(axes[row], len(policies))
+        _row_colorbar(
+            figure,
+            image,
+            [axis for axis in axes[row] if axis.get_visible()],
+            label,
+            ticks=list(_BOUNDARY_LEVELS),
+            spacing="uniform",
+        )
+    figure.suptitle(
+        "Where should the next evaluations go? Hatched cells are the lattice slots"
+        " whose 95% Wilson interval still straddles 0.5"
+    )
+    _save_new(figure, path)
+    return path
+
+
+def _cell_edges(values: list[float], *, geometric: bool) -> np.ndarray:
+    work = (
+        np.log(np.asarray(values, dtype=float))
+        if geometric
+        else np.asarray(values, dtype=float)
+    )
+    if len(work) == 1:
+        edges = np.array([work[0] - 0.5, work[0] + 0.5])
+    else:
+        middles = (work[:-1] + work[1:]) / 2
+        edges = np.concatenate(
+            [
+                [work[0] - (middles[0] - work[0])],
+                middles,
+                [work[-1] + (work[-1] - middles[-1])],
+            ]
+        )
+    return np.exp(edges) if geometric else edges
+
+
+def _plot_boundary_physical_geometry(
+    policies: list[str],
+    lookup: dict[tuple[float, float], Any],
+    angles: list[float],
+    lengths: list[float],
+    path: Path,
+) -> Path:
+    """Companion figure keeping the true aspect ratio of the survivable region."""
+
+    columns = max(len(policies), 1)
+    figure, axes = plt.subplots(
+        len(_BOUNDARY_RATE_METRICS),
+        columns,
+        figsize=(4.6 * columns, 4.6 * len(_BOUNDARY_RATE_METRICS)),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    colormap = _boundary_colormap("RdYlBu", len(_BOUNDARY_LEVELS) - 1)
+    norm = _boundary_norm()
+    x_edges = _cell_edges(lengths, geometric=True)
+    y_edges = _cell_edges(angles, geometric=False)
+    for row, (metric, label) in enumerate(_BOUNDARY_RATE_METRICS):
+        mesh = None
+        for column, policy in enumerate(policies):
+            surface = _boundary_surface(
+                lookup,
+                angles,
+                lengths,
+                lambda item, p=policy, m=metric: item["policies"][p][m],
+            )
+            axis = axes[row, column]
+            mesh = axis.pcolormesh(
+                x_edges,
+                y_edges,
+                np.ma.masked_invalid(surface),
+                cmap=colormap,
+                norm=norm,
+                shading="flat",
+            )
+            axis.set_xscale("log")
+            axis.set_xlabel("Pole half-length (physical, log scale)")
+            axis.set_ylabel("Initial pole angle (degrees)")
+            axis.set_title(f"{_short_policy(policy)}: {label}", fontsize=10)
+        _hide_unused(axes[row], len(policies))
+        _row_colorbar(
+            figure,
+            mesh,
+            [axis for axis in axes[row] if axis.get_visible()],
+            label,
+            ticks=list(_BOUNDARY_LEVELS),
+            spacing="uniform",
+        )
+    figure.suptitle(
+        "Physical-geometry companion: real cell edges, geometric in length"
+        " (gray = unsampled)"
+    )
+    _save_new(figure, path)
+    return path
 
 
 def _plot_pendulum(summary: dict[str, Any], output_dir: Path) -> list[Path]:

@@ -138,6 +138,26 @@ def build_parser() -> argparse.ArgumentParser:
         default="both",
     )
     animate_sweep_parser.add_argument("--frame-stride", type=int, default=5)
+    animate_sweep_parser.add_argument(
+        "--condition",
+        action="append",
+        default=None,
+        metavar="CONDITION_ID",
+        help=(
+            "restrict the animation to these sweep conditions; repeatable and "
+            "comma-separated, kept in suite order"
+        ),
+    )
+    animate_sweep_parser.add_argument(
+        "--policy",
+        action="append",
+        default=None,
+        metavar="POLICY_ID",
+        help=(
+            "restrict the animation to these policies; repeatable and "
+            "comma-separated, kept in suite order"
+        ),
+    )
     animate_sweep_parser.set_defaults(handler=_run_animate_sweep)
 
     boundary_parser = subparsers.add_parser(
@@ -334,9 +354,24 @@ def _run_animate_sweep(args: argparse.Namespace) -> int:
         args.output,
         layout=args.layout,
         frame_stride=args.frame_stride,
+        condition_ids=_split_identifiers(args.condition, "--condition"),
+        policy_ids=_split_identifiers(args.policy, "--policy"),
     )
     _print_json({"animation_artifacts": [str(path) for path in paths]})
     return 0
+
+
+def _split_identifiers(values: list[str] | None, flag: str) -> list[str] | None:
+    """Flatten repeated and comma-separated identifier flags."""
+
+    if values is None:
+        return None
+    identifiers = [
+        item.strip() for value in values for item in value.split(",") if item.strip()
+    ]
+    if not identifiers:
+        raise ValueError(f"{flag} requires at least one identifier.")
+    return identifiers
 
 
 def _run_cartpole_symmetry(args: argparse.Namespace) -> int:

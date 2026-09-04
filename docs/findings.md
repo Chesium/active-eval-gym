@@ -514,8 +514,122 @@ These totals describe the adaptively selected condition set, not a deployment
 distribution. The machine-readable summary also includes per-cell success
 counts, recovery counts, and 95% Wilson intervals.
 
-![CartPole recovery-study survival boundary](figures/cartpole_boundary_survival.png)
+## Figures
 
-![CartPole recovery-study stable-recovery boundary](figures/cartpole_boundary_recovery.png)
+The adaptive mesh is a sparse subset of a lattice: 20 distinct initial angles by
+22 distinct half-lengths, of which 248 of 440 slots were sampled. The `_v2`
+figures below draw that lattice directly, one cell per slot, so that adaptively
+refined regions get the same visual weight as coarse ones and the boundary is
+readable as a colour step. Their axes are therefore *mesh rank*, not physical
+distance; `cartpole_boundary_physical_geometry_v2.png` is the undistorted
+companion. Mid gray means no condition was sampled at that slot, which is a
+different statement from a measured rate of zero.
 
-![CartPole recovery gap and failure causes](figures/cartpole_boundary_recovery_gap_failure_cause.png)
+Because 92 to 94 percent of cells sit at exactly 0 or 1, the rate panels use a
+discrete colour scale with extra resolution near the transition rather than a
+continuous ramp; only 16 to 27 cells per panel are strictly interior, and those
+cells are the entire boundary.
+
+The earlier scatter renderings (`cartpole_boundary_survival.png`,
+`cartpole_boundary_recovery.png`,
+`cartpole_boundary_recovery_gap_failure_cause.png`) remain in `docs/figures/`
+as the historical record of how this study was first read.
+
+![CartPole recovery-study survival boundary](figures/cartpole_boundary_survival_v2.png)
+
+![CartPole recovery-study stable-recovery boundary](figures/cartpole_boundary_recovery_v2.png)
+
+Survival and recovery on the mesh lattice. The top row is the per-policy rate
+with the 0.5 contour; the bottom row is the pairwise difference between
+policies, which is where the LQR-versus-PPO comparison actually lives.
+
+![CartPole recovery-study mirror asymmetry](figures/cartpole_boundary_signed_asymmetry_v2.png)
+
+Mirror asymmetry across the sign of the initial angle, over the 89 conditions
+with an exact positive/negative counterpart. This is the figure form of the
+asymmetry numbers reported above: PPO's asymmetry is a bright diagonal streak
+reaching a full 1.00 difference at `|theta| = 25, L = 0.75` and
+`|theta| = 20, L = 1.0`, while LQR and antisymmetrized PPO are near-blank.
+
+![CartPole recovery gap and failure causes](figures/cartpole_boundary_recovery_gap_failure_cause_v2.png)
+
+The survival-minus-recovery gap and the dominant episode ending. The gap panel
+is where "survived but never settled" shows up as a solid band for both learned
+policies.
+
+![CartPole boundary sampling uncertainty](figures/cartpole_boundary_wilson_uncertainty_v2.png)
+
+Hatched cells are the lattice slots whose 95% Wilson interval still straddles
+0.5 after 50 seeds: 2, 1 and 3 cells for survival and 1, 4 and 4 for recovery
+(LQR, PPO, antisymmetrized PPO). These are the conditions where the boundary is
+still statistically unresolved, and therefore the most direct answer this study
+offers to the question of where an outer evaluator should spend its next
+evaluations.
+
+![CartPole boundary in physical coordinates](figures/cartpole_boundary_physical_geometry_v2.png)
+
+The same rates in physical coordinates, with true cell edges and a log-scaled
+length axis, so the real aspect ratio of the survivable region stays on record.
+
+## Animations
+
+Three animations replay the saved boundary-study trajectories. They train
+nothing and re-simulate nothing: each frame is drawn from episodes already on
+disk, and every manifest records the SHA-256 of each source trajectory. All
+three run 50 paired seeds with no subsampling. Because `artifacts/` is
+gitignored, regenerate them with `active-eval-gym animate-sweep --evaluation
+artifacts/evaluations/cartpole-failure-boundary-v1/final --condition ... `.
+
+The copies embedded below are hosted externally at `assets.chesium.com` rather
+than tracked in the repository, so the GIFs add no weight to the git history.
+They are downscaled to 80% with a 64-colour palette for faster page loads; the
+full-resolution renders they were made from stay under the ignored
+`artifacts/animations/` tree.
+
+Each panel scales its own pole to its own length, since this study spans a 150x
+range in half-length; cart positions and the `+/- x_threshold` markers stay on
+one shared scale so panels remain comparable. The amber wedge is the `+/-5`
+degree recovery band and the amber bar is the trailing 100-step scoring window.
+Each policy chip reads live seeds, then the mean trailing-100-step RMS `|theta|`
+over those still-alive seeds.
+
+**A. Boundary crossing** (`artifacts/animations/che49-boundary-crossing-v1`) —
+half-length fixed at `0.5`, initial angle stepping through
+`-35, -30, -25, 0, +25, +30, +35`. At the final frame the `+/-35` panels are
+empty for every policy, and `-30` reads LQR 50/50, PPO **17/50**, antisymmetrized
+PPO 48/50, reproducing the 1.00 / 0.34 / 0.96 survival rates in the table above.
+A fractional success rate is directly legible as how much of the density cloud
+is left. One thing the numbers alone do not say: at `+/-35` the carts are pinned
+at `-/+2.4` when they die, so failure at that edge is cart-position, not the
+90-degree angle limit.
+
+![CartPole boundary crossing](https://assets.chesium.com/assets/cartpole_boundary_crossing-optimized.gif)
+
+**B. Signed asymmetry** (`artifacts/animations/che49-boundary-asymmetry-v1`) —
+`(theta = -25, L = 0.75)` against `(theta = +25, L = 0.75)`, PPO and
+antisymmetrized PPO only. Both are alive and overlapping at `t = 0.6` s; by
+`t = 1.2` s raw PPO has fanned out and is falling while antisymmetrized PPO
+swings back upright; by `t = 2.0` s PPO is 0/50 on the negative side and 50/50
+on the positive side, with antisymmetrized PPO 50/50 on both. That is the
+`+1.00` mirrored survival difference in one frame pair.
+
+![CartPole mirrored survival asymmetry](https://assets.chesium.com/assets/cartpole_boundary_asymmetry-optimized.gif)
+
+**C. Survival without recovery**
+(`artifacts/animations/che49-boundary-survival-without-recovery-v1`) —
+`(theta = +30, L = 0.387)` plus three companions, all at survival 1.00 and
+recovery 0.00 for the learned policies. At `t = 10` s every policy is 50/50
+alive, but LQR sits at 0.3 to 0.4 degrees inside the wedge while PPO and
+antisymmetrized PPO read 6.8/9.9, 20/23, 13/17 and 7.9/11 degrees, plainly
+outside it. This is the clearest statement of why survival alone is an
+inadequate metric for these policies.
+
+![CartPole survival without recovery](https://assets.chesium.com/assets/cartpole_boundary_survival_without_recovery-optimized.gif)
+
+Two honest limitations of the rendering. The recovery wedge is anchored at panel
+centre rather than at each moving cart's axle, because 150 per-run wedges would
+be unreadable; when carts sit off-centre, compare the pole's slope against the
+wedge edges and treat the numeric readout as the precise value. And the wedge is
+an instantaneous-angle reference while recovery is a trailing-RMS criterion, so
+a pole can momentarily sit inside the wedge while the readout exceeds 5 degrees
+- the sustained swinging is what the metric penalises.
