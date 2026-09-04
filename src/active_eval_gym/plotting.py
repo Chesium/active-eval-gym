@@ -1,6 +1,7 @@
 """Deterministic figures derived from saved sweep summaries."""
 
 import json
+from math import ceil
 from pathlib import Path
 from typing import Any
 
@@ -37,10 +38,7 @@ def plot_sweep(evaluation_dir: Path, output_dir: Path) -> list[Path]:
 def _plot_cartpole(summary: dict[str, Any], output_dir: Path) -> list[Path]:
     policies = summary["policy_ids"]
     angles = sorted(
-        {
-            item["parameters"]["delta_theta_deg"]
-            for item in summary["conditions"]
-        }
+        {item["parameters"]["delta_theta_deg"] for item in summary["conditions"]}
     )
     lengths = sorted({item["parameters"]["length"] for item in summary["conditions"]})
     lookup = _condition_lookup(summary)
@@ -58,28 +56,55 @@ def _plot_cartpole(summary: dict[str, Any], output_dir: Path) -> list[Path]:
                 ]
             )
         )
-    difference = surfaces[1] - surfaces[0]
-    figure, axes = plt.subplots(1, 3, figsize=(15, 5), constrained_layout=True)
-    titles = (_short_policy(policies[0]), _short_policy(policies[1]), "PPO - LQR")
-    for index, (axis, values, title) in enumerate(
-        zip(axes, (*surfaces, difference), titles, strict=True)
-    ):
-        limit = 1 if index < 2 else None
+    panels = [
+        (values, _short_policy(policy), False)
+        for policy, values in zip(policies, surfaces, strict=True)
+    ]
+    panels.extend(
+        (
+            surfaces[second] - surfaces[first],
+            f"{_short_policy(policies[second])} - {_short_policy(policies[first])}",
+            True,
+        )
+        for second in range(1, len(policies))
+        for first in range(second)
+    )
+    columns = min(3, len(panels))
+    rows = ceil(len(panels) / columns)
+    figure, axes = plt.subplots(
+        rows,
+        columns,
+        figsize=(5 * columns, 4.5 * rows),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    for axis, (values, title, is_difference) in zip(axes.flat, panels, strict=False):
         image = axis.imshow(
             values,
             origin="lower",
             aspect="auto",
-            vmin=0 if index < 2 else -1,
-            vmax=limit,
-            cmap="viridis" if index < 2 else "coolwarm",
+            vmin=-1 if is_difference else 0,
+            vmax=1,
+            cmap="coolwarm" if is_difference else "viridis",
         )
         axis.set_xticks(range(len(lengths)), labels=lengths)
         axis.set_yticks(range(len(angles)), labels=angles)
         axis.set_xlabel("Pole length")
         axis.set_ylabel("Initial angle offset (degrees)")
         axis.set_title(title)
-        figure.colorbar(image, ax=axis, label="Success rate")
-    surface_path = output_dir / "che49_cartpole_success_surface.png"
+        figure.colorbar(
+            image,
+            ax=axis,
+            label="Success-rate difference" if is_difference else "Success rate",
+        )
+    for axis in list(axes.flat)[len(panels) :]:
+        axis.set_visible(False)
+    surface_filename = (
+        "che49_cartpole_success_surface.png"
+        if len(policies) == 2
+        else "che49_cartpole_success_surface_three_policy.png"
+    )
+    surface_path = output_dir / surface_filename
     _save_new(figure, surface_path)
 
     metric_specs = [
@@ -132,7 +157,12 @@ def _plot_cartpole(summary: dict[str, Any], output_dir: Path) -> list[Path]:
             axis.grid(alpha=0.25)
             if row == 0 and column == 0:
                 axis.legend()
-    slice_path = output_dir / "che49_cartpole_nominal_slices.png"
+    slice_filename = (
+        "che49_cartpole_nominal_slices.png"
+        if len(policies) == 2
+        else "che49_cartpole_nominal_slices_three_policy.png"
+    )
+    slice_path = output_dir / slice_filename
     _save_new(figure, slice_path)
     return [surface_path, slice_path]
 
@@ -243,6 +273,9 @@ def _plot_cartpole_one_dimensional(
         axis.set_xlabel(x_label)
         axis.grid(alpha=0.25)
     axes[0, 0].legend()
+    if len(policies) > 2:
+        stem = Path(filename).stem
+        filename = f"{stem}_three_policy.png"
     path = output_dir / filename
     _save_new(figure, path)
     return [path]
@@ -273,9 +306,7 @@ def _plot_minigrid(summary: dict[str, Any], output_dir: Path) -> list[Path]:
             )
         ):
             axis = axes[row, direction]
-            image = axis.imshow(
-                values, origin="upper", vmin=0, vmax=vmax, cmap=cmap
-            )
+            image = axis.imshow(values, origin="upper", vmin=0, vmax=vmax, cmap=cmap)
             axis.set_xticks(range(6), labels=range(1, 7))
             axis.set_yticks(range(6), labels=range(1, 7))
             axis.set_xlabel("Start x")
@@ -300,6 +331,8 @@ def _condition_lookup(summary: dict[str, Any]) -> dict[tuple[float, float], Any]
 def _short_policy(policy_id: str) -> str:
     if "lqr" in policy_id:
         return "Quantized LQR"
+    if "antisymmetrized" in policy_id:
+        return "Antisymmetrized PPO"
     if "ppo" in policy_id:
         return "PPO"
     return policy_id

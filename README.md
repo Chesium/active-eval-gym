@@ -272,6 +272,50 @@ branch begins at `s`, the other begins at exactly `-s`, with equal plant
 parameters and complementary actions required by symmetry. Results from the
 local acceptance run are recorded in [`docs/findings.md`](docs/findings.md).
 
+The derived policy can also participate in the ordinary paired-sweep path. Its
+v2 config binds the transformation to the frozen source model hash and adds it as
+a third policy without creating or mutating a learned checkpoint:
+
+```bash
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/che49_cartpole_angle_length_v2.toml \
+  --artifact-root artifacts/policies \
+  --output artifacts/evaluations/che-49/che49-cartpole-angle-length-v2
+uv run active-eval-gym analyze-sweep \
+  --evaluation artifacts/evaluations/che-49/che49-cartpole-angle-length-v2
+uv run active-eval-gym plot-sweep \
+  --evaluation artifacts/evaluations/che-49/che49-cartpole-angle-length-v2 \
+  --output docs/figures
+```
+
+For three-policy angle-length suites, the success dashboard contains one surface
+per policy and all three pairwise success-rate differences. The slice dashboard
+overlays all three policies on the same axes. The original v1 suite and figures
+remain unchanged.
+
+The same derived policy is included in separately versioned reruns of the
+pole-angle-noise, action-delay, and action-dropout sweeps. Each reuses the exact
+v1 condition/seed grid, records 300 episodes, and preserves the two-policy v1
+artifacts and figures:
+
+```bash
+for name in pole_angle_noise action_delay action_dropout; do
+  evaluation="artifacts/evaluations/che-49/che49-cartpole-${name//_/-}-v2"
+  uv run active-eval-gym collect-sweep \
+    --suite "configs/eval/che49_cartpole_${name}_v2.toml" \
+    --artifact-root artifacts/policies \
+    --output "$evaluation"
+  uv run active-eval-gym analyze-sweep --evaluation "$evaluation"
+  uv run active-eval-gym plot-sweep \
+    --evaluation "$evaluation" \
+    --output docs/figures
+done
+```
+
+The three-policy one-dimensional dashboards use the
+`*_sweep_three_policy.png` suffix. Results and replay-integrity checks are
+recorded in [`docs/findings.md`](docs/findings.md).
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.

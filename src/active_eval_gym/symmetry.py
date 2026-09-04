@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import replace
 from math import radians
 from pathlib import Path
 from statistics import fmean
@@ -28,8 +27,10 @@ from active_eval_gym.metrics import (
 from active_eval_gym.models import EpisodeRecord, PolicyArtifactMetadata
 from active_eval_gym.policies.artifacts import load_policy_artifact
 from active_eval_gym.policies.sb3 import (
+    ANTISYMMETRIZATION_ID,
     AntisymmetrizedCartPolePPOPolicy,
     SB3Policy,
+    derive_antisymmetrized_cartpole_ppo,
 )
 from active_eval_gym.rollout import collect_episode
 from active_eval_gym.serialization import (
@@ -42,7 +43,7 @@ from active_eval_gym.serialization import (
 
 SYMMETRY_AUDIT_VERSION = "cartpole-policy-symmetry-audit-v1"
 SYMMETRY_STUDY_VERSION = "cartpole-symmetry-study-v1"
-SYMMETRIZATION = "antisymmetrized-binary-logit-margin-v1"
+SYMMETRIZATION = ANTISYMMETRIZATION_ID
 STATE_ORDER = (
     "cart_position",
     "cart_velocity",
@@ -91,9 +92,10 @@ def run_cartpole_symmetry_study(
 
     source_data = _load_source_evaluation(suite, source_evaluation, source_metadata)
     base_states = _seeded_nominal_states(source_metadata, suite.seeds)
-    derived_policy = AntisymmetrizedCartPolePPOPolicy(source_policy)
-    derived_metadata = _derived_metadata(
-        source_metadata, derived_policy_id=suite.derived_policy_id
+    derived_policy, derived_metadata = derive_antisymmetrized_cartpole_ppo(
+        source_policy,
+        source_metadata,
+        derived_policy_id=suite.derived_policy_id,
     )
 
     audit = _checkpoint_audit(
@@ -689,36 +691,6 @@ def _collect_causal_intervention(
     return summary
 
 
-def _derived_metadata(
-    source: PolicyArtifactMetadata, *, derived_policy_id: str
-) -> PolicyArtifactMetadata:
-    design = replace(
-        source.design_spec,
-        design_id=f"{source.design_spec.design_id}-antisymmetrized-v1",
-        policy_id=derived_policy_id,
-        policy_type="derived_fixed_policy",
-        algorithm="PPO-antisymmetrized-binary-logit-margin",
-        hyperparameters={
-            "transformation": SYMMETRIZATION,
-            "source_policy_id": source.policy_id,
-            "source_model_sha256": source.model_sha256,
-            "weights_changed": False,
-        },
-    )
-    return replace(
-        source,
-        policy_id=derived_policy_id,
-        design_spec=design,
-        artifact_format="derived-from-frozen-sb3-v1",
-        source_version={
-            "kind": "deterministic_inference_transformation",
-            "source_policy_id": source.policy_id,
-            "source_model_sha256": source.model_sha256,
-            "transformation": SYMMETRIZATION,
-        },
-    )
-
-
 def _artifact_identity(metadata: PolicyArtifactMetadata) -> dict[str, str]:
     return {
         "policy_id": metadata.policy_id,
@@ -739,4 +711,3 @@ def _slug_number(value: float) -> str:
     sign = "m" if value < 0 else "p"
     body = format(abs(float(value)), ".12g").replace(".", "p")
     return sign + body
-

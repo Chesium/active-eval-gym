@@ -22,6 +22,10 @@ from active_eval_gym.evaluate import make_artifact_environment
 from active_eval_gym.metrics import SWEEP_METRIC_VERSION, compute_saved_metrics
 from active_eval_gym.models import NominalEnvSpec
 from active_eval_gym.policies.artifacts import load_policy_artifact
+from active_eval_gym.policies.sb3 import (
+    SB3Policy,
+    derive_antisymmetrized_cartpole_ppo,
+)
 from active_eval_gym.rollout import collect_episode
 from active_eval_gym.serialization import (
     read_saved_episode,
@@ -104,8 +108,7 @@ def expand_sweep(
         _require_grid_keys(suite, {"agent_start_pos", "agent_start_dir"})
         if suite.grid["agent_start_pos"] != "all_valid_non_wall_non_goal":
             raise ValueError(
-                "MiniGrid agent_start_pos must be "
-                "'all_valid_non_wall_non_goal'."
+                "MiniGrid agent_start_pos must be 'all_valid_non_wall_non_goal'."
             )
         directions = _integer_list(suite.grid["agent_start_dir"], "agent_start_dir")
         if any(direction not in range(4) for direction in directions):
@@ -146,9 +149,16 @@ def collect_sweep(
     prepared: list[tuple[str, Any, Any]] = []
     nominal = None
     for policy_id in suite.policy_ids:
-        policy, metadata = load_policy_artifact(
-            artifact_root / policy_id, require_frozen=True
-        )
+        if policy_id in suite.derived_policies:
+            policy, metadata = _load_derived_sweep_policy(
+                policy_id,
+                suite.derived_policies[policy_id],
+                artifact_root=artifact_root,
+            )
+        else:
+            policy, metadata = load_policy_artifact(
+                artifact_root / policy_id, require_frozen=True
+            )
         if metadata.policy_id != policy_id:
             raise ValueError(
                 f"Expected artifact {policy_id!r}, loaded {metadata.policy_id!r}."
@@ -241,9 +251,7 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
     metric_version = suite_data.get("metric_version", SWEEP_METRIC_VERSION)
     analysis_dir = evaluation_dir / "analysis" / metric_version
     if analysis_dir.exists():
-        raise FileExistsError(
-            f"Refusing to overwrite metric analysis: {analysis_dir}."
-        )
+        raise FileExistsError(f"Refusing to overwrite metric analysis: {analysis_dir}.")
 
     records: list[dict[str, Any]] = []
     for condition in suite_record["conditions"]:
@@ -258,9 +266,7 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
                     / f"seed-{seed:03d}"
                 )
                 episode = read_saved_episode(episode_dir)
-                metrics = compute_saved_metrics(
-                    episode, metric_version=metric_version
-                )
+                metrics = compute_saved_metrics(episode, metric_version=metric_version)
                 records.append(
                     {
                         "condition_id": condition_id,
@@ -306,6 +312,14 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
             item["paired_difference"] = _paired_difference(
                 records, condition_id, suite_data["policy_ids"]
             )
+        elif len(suite_data["policy_ids"]) > 2:
+            baseline = suite_data["policy_ids"][0]
+            item["paired_differences"] = {
+                f"{policy_id}_minus_{baseline}": _paired_difference(
+                    records, condition_id, [baseline, policy_id]
+                )
+                for policy_id in suite_data["policy_ids"][1:]
+            }
         conditions.append(item)
 
     summary = {
@@ -339,8 +353,7 @@ def _validate_paired_environments(
             )
         if to_jsonable(episode.metadata.initial_state) != expected_initial:
             raise RuntimeError(
-                f"Initial-state mismatch for {policy_id}, "
-                f"{condition_id}, seed {seed}."
+                f"Initial-state mismatch for {policy_id}, {condition_id}, seed {seed}."
             )
         actual_randomness = _randomness_trace(episode)
         shared_length = min(len(expected_randomness), len(actual_randomness))
@@ -349,6 +362,38 @@ def _validate_paired_environments(
                 f"Perturbation-randomness mismatch for {policy_id}, "
                 f"{condition_id}, seed {seed}."
             )
+
+
+def _load_derived_sweep_policy(
+    policy_id: str,
+    spec: dict[str, Any],
+    *,
+    artifact_root: Path,
+) -> tuple[Any, Any]:
+    expected_keys = {"kind", "source_policy_id", "source_model_sha256"}
+    if set(spec) != expected_keys:
+        raise ValueError(
+            f"Derived policy {policy_id!r} requires keys {sorted(expected_keys)!r}."
+        )
+    if spec["kind"] != "antisymmetrized-cartpole-ppo-v1":
+        raise ValueError(f"Unsupported derived policy kind {spec['kind']!r}.")
+    source_policy_id = spec["source_policy_id"]
+    if not isinstance(source_policy_id, str) or not source_policy_id:
+        raise ValueError("Derived source_policy_id must be a non-empty string.")
+    source_policy, source_metadata = load_policy_artifact(
+        artifact_root / source_policy_id, require_frozen=True
+    )
+    if source_metadata.model_sha256 != spec["source_model_sha256"]:
+        raise ValueError(
+            f"Derived policy {policy_id!r} source model hash does not match."
+        )
+    if not isinstance(source_policy, SB3Policy):
+        raise TypeError("Antisymmetrization requires an SB3 PPO source policy.")
+    return derive_antisymmetrized_cartpole_ppo(
+        source_policy,
+        source_metadata,
+        derived_policy_id=policy_id,
+    )
 
 
 def _randomness_trace(episode: Any) -> list[dict[str, Any]]:
@@ -417,14 +462,12 @@ def _paired_difference(
     first = {
         record["seed"]: _flat_numeric_metrics(record["metrics"])
         for record in records
-        if record["condition_id"] == condition_id
-        and record["policy_id"] == first_id
+        if record["condition_id"] == condition_id and record["policy_id"] == first_id
     }
     second = {
         record["seed"]: _flat_numeric_metrics(record["metrics"])
         for record in records
-        if record["condition_id"] == condition_id
-        and record["policy_id"] == second_id
+        if record["condition_id"] == condition_id and record["policy_id"] == second_id
     }
     if first.keys() != second.keys():
         raise RuntimeError(f"Paired seeds differ for condition {condition_id}.")

@@ -1,0 +1,19 @@
+schema_version = 1
+suite_id = "che49-cartpole-angle-length-v2"
+environment_id = "CartPole-v1"
+perturbation_name = "cartpole-angle-length-v1"
+seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+policy_ids = [
+    "cartpole_lqr_nominal_quantized_v1",
+    "cartpole_ppo_nominal_v1",
+    "cartpole_ppo_nominal_v1_antisymmetrized_v1",
+]
+
+[derived_policies.cartpole_ppo_nominal_v1_antisymmetrized_v1]
+kind = "antisymmetrized-cartpole-ppo-v1"
+source_policy_id = "cartpole_ppo_nominal_v1"
+source_model_sha256 = "37c9bac10919b2d6bdc833fd5a3a920460d4b80f09392ef7fb758e4777a856e8"
+
+[grid]
+delta_theta_deg = [-8, -6, -4, -2, 0, 2, 4, 6, 8]
+length = [0.35, 0.425, 0.50, 0.575, 0.65]

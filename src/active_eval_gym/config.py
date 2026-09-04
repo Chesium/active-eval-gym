@@ -43,6 +43,7 @@ class SweepSuiteSpec:
     seeds: tuple[int, ...]
     policy_ids: tuple[str, ...]
     grid: dict[str, Any]
+    derived_policies: dict[str, dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -161,6 +162,14 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
     policy_ids = tuple(data.get("policy_ids", []))
     if not policy_ids or any(not isinstance(value, str) for value in policy_ids):
         raise ValueError("policy_ids must be a non-empty list of strings.")
+    raw_derived = data.get("derived_policies", {})
+    if not isinstance(raw_derived, dict) or any(
+        not isinstance(policy_id, str) or not isinstance(spec, dict)
+        for policy_id, spec in raw_derived.items()
+    ):
+        raise ValueError("derived_policies must be a table of policy tables.")
+    if any(policy_id not in policy_ids for policy_id in raw_derived):
+        raise ValueError("Every derived policy must appear in policy_ids.")
     return SweepSuiteSpec(
         schema_version=_required_int(data, "schema_version"),
         suite_id=_required_str(data, "suite_id"),
@@ -171,6 +180,9 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
         seeds=seeds,
         policy_ids=policy_ids,
         grid=dict(_required_table(data, "grid")),
+        derived_policies={
+            policy_id: dict(spec) for policy_id, spec in raw_derived.items()
+        },
     )
 
 

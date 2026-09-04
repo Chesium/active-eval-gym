@@ -118,6 +118,45 @@ success alone therefore hides substantial closed-loop behavior differences.
 
 ![CartPole nominal slices](figures/che49_cartpole_nominal_slices.png)
 
+### Three-policy angle × length rerun
+
+The separately versioned `che49-cartpole-angle-length-v2` suite reran the same
+45 conditions and seeds 0 through 19 with quantized LQR, the frozen PPO, and
+`cartpole_ppo_nominal_v1_antisymmetrized_v1`. It produced 2,700 new raw
+schema-v4 episodes. All trajectory digests verified. For each of the two
+unchanged policies, all 900 states, observations, actions, rewards, and episode
+endings reproduced the v1 scientific trace exactly; the serialized bytes differ
+because v1 predates the schema-v4 action and diagnostic fields.
+
+The third policy survived to the time limit in all 900 episodes:
+
+| Angle offset | LQR success | PPO success | Antisymmetrized PPO success | Antisymmetrized PPO mean length |
+| ---: | ---: | ---: | ---: | ---: |
+| -8 deg | 100% | 49% | 100% | 500.00 |
+| -6 deg | 100% | 83% | 100% | 500.00 |
+| -4 deg | 100% | 97% | 100% | 500.00 |
+| -2 through +6 deg | 100% | 100% | 100% | 500.00 |
+| +8 deg | 100% | 97% | 100% | 500.00 |
+
+At the nominal zero-offset, length-0.50 cell, antisymmetrization also changed the
+subterminal behavior substantially:
+
+| Policy | RMS pole angle | RMS cart position | Action-switch rate |
+| --- | ---: | ---: | ---: |
+| Quantized LQR | 0.00493 | 0.07169 | 0.64339 |
+| Frozen PPO | 0.06585 | 0.68143 | 0.90671 |
+| Antisymmetrized PPO | 0.00938 | 0.06405 | 0.74128 |
+
+Thus the intervention did more than move terminal failures outside the sampled
+grid: under nominal conditions it moved the learned controller much closer to
+LQR's pole- and cart-regulation regime, while retaining a distinct action-switch
+profile. This remains a diagnostic policy intervention, not a replacement frozen
+baseline or evidence about performance beyond the declared grid.
+
+![Three-policy CartPole success surfaces](figures/che49_cartpole_success_surface_three_policy.png)
+
+![Three-policy CartPole nominal slices](figures/che49_cartpole_nominal_slices_three_policy.png)
+
 ## Pendulum length sweep
 
 The frozen SAC policy degraded smoothly as the pole length increased:
@@ -199,6 +238,31 @@ state RMS pole angle was `0.02862` for LQR and `0.07697` radians for PPO.
 
 ![CartPole pole-angle-noise sweep](figures/che49_cartpole_pole_angle_noise_sweep.png)
 
+### Three-policy pole-angle-noise rerun
+
+The separately versioned `che49-cartpole-pole-angle-noise-v2` suite added the
+antisymmetrized PPO on the identical conditions and seeds. It produced 300 raw
+schema-v4 episodes, and all trajectory digests verified. The 100 LQR and 100
+frozen-PPO `trajectory.jsonl` files were byte-identical to v1, so the comparison
+adds a policy without changing the earlier experiment.
+
+| Noise standard deviation | LQR success | PPO success | Antisymmetrized PPO success | Antisymmetrized PPO RMS pole angle |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 deg | 100% | 100% | 100% | 0.00938 |
+| 0.5 deg | 100% | 100% | 100% | 0.01207 |
+| 1 deg | 100% | 100% | 100% | 0.01829 |
+| 2 deg | 100% | 100% | 100% | 0.02272 |
+| 4 deg | 100% | 95% | 100% | 0.03912 |
+
+At 4 degrees the intervention removed the one observed PPO failure and retained
+mean length 500. Its mean true-state RMS pole angle was `0.03912` radians,
+between LQR's `0.02862` and PPO's `0.07697`; its RMS cart position was `0.10827`,
+compared with `0.11793` and `0.68821`. On this finite sample, enforcing actor
+symmetry therefore improved robustness to symmetric observation noise as well as
+to the signed initial-angle perturbation.
+
+![Three-policy CartPole pole-angle-noise sweep](figures/che49_cartpole_pole_angle_noise_sweep_three_policy.png)
+
 ## Action delay and dropout
 
 Delay produced the sharpest policy separation. LQR retained 100% success through
@@ -220,6 +284,47 @@ the held action does not create a mismatch.
 ![CartPole action-delay sweep](figures/che49_cartpole_action_delay_sweep.png)
 
 ![CartPole action-dropout sweep](figures/che49_cartpole_action_dropout_sweep.png)
+
+### Three-policy action-channel reruns
+
+The versioned action-delay-v2 and action-dropout-v2 suites each added the same
+hash-bound antisymmetrized PPO, again producing 300 raw schema-v4 episodes per
+suite. All hashes verified, and all 400 unchanged-policy trajectory files were
+byte-identical to their v1 counterparts.
+
+| Delay | LQR success | PPO success | Antisymmetrized PPO success | PPO mean length | Antisymmetrized mean length |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 steps | 100% | 100% | 100% | 500.00 | 500.00 |
+| 1 step | 100% | 95% | 100% | 485.65 | 500.00 |
+| 2 steps | 100% | 0% | 35% | 100.00 | 414.85 |
+| 3 steps | 100% | 0% | 0% | 44.95 | 204.90 |
+| 4 steps | 100% | 0% | 0% | 18.45 | 115.95 |
+
+Antisymmetrization shifted the sampled PPO delay boundary outward: it retained
+100% success at one step and 35% at two steps, where the source PPO had no
+successes. It did not recover LQR's robustness, but even at three and four steps
+it extended mean survival substantially.
+
+| Dropout probability | LQR success | PPO success | Antisymmetrized PPO success | Antisymmetrized mean length |
+| ---: | ---: | ---: | ---: | ---: |
+| 0.00 | 100% | 100% | 100% | 500.00 |
+| 0.05 | 100% | 90% | 100% | 500.00 |
+| 0.10 | 95% | 65% | 95% | 494.85 |
+| 0.20 | 90% | 40% | 45% | 411.80 |
+| 0.40 | 20% | 0% | 5% | 137.50 |
+
+For dropout, the intervention matched LQR's observed success through probability
+`0.10`, then provided only a small advantage over PPO at `0.20` and `0.40` and
+remained well below LQR. Its RMS pole angle nevertheless stayed below PPO's at
+every nonzero level. These results suggest that repairing the actor's reflection
+symmetry removes one source of brittleness but does not supply the feedback
+memory or robustness margin needed for severe action-channel faults. RMS values
+for failed conditions must be interpreted with episode length because they are
+computed over unequal, failure-truncated horizons.
+
+![Three-policy CartPole action-delay sweep](figures/che49_cartpole_action_delay_sweep_three_policy.png)
+
+![Three-policy CartPole action-dropout sweep](figures/che49_cartpole_action_dropout_sweep_three_policy.png)
 
 ## Follow-up active-evaluation questions
 

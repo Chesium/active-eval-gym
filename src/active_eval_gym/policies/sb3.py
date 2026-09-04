@@ -1,5 +1,6 @@
 """Stable-Baselines3 training and frozen inference adapters."""
 
+from dataclasses import replace
 from pathlib import Path
 from statistics import fmean, pstdev
 from typing import Any
@@ -14,10 +15,15 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 
 from active_eval_gym.envs.factory import make_environment
 from active_eval_gym.envs.specs import apply_observation_adapter
-from active_eval_gym.models import PolicyAction, PolicyDesignSpec
+from active_eval_gym.models import (
+    PolicyAction,
+    PolicyArtifactMetadata,
+    PolicyDesignSpec,
+)
 
 ALGORITHMS = {"DQN": DQN, "SAC": SAC, "PPO": PPO}
 SCHEDULE_PARAMETERS = ("learning_rate", "clip_range")
+ANTISYMMETRIZATION_ID = "antisymmetrized-binary-logit-margin-v1"
 
 
 def linear_schedule(initial_value: float):
@@ -130,13 +136,55 @@ class AntisymmetrizedCartPolePPOPolicy:
         return PolicyAction(
             action=1 if margin > 0.0 else 0,
             diagnostics={
-                "intervention": "antisymmetrized-binary-logit-margin-v1",
+                "intervention": ANTISYMMETRIZATION_ID,
                 "source_logit_margin": float(margins[0]),
                 "reflected_source_logit_margin": float(margins[1]),
                 "antisymmetrized_logit_margin": margin,
                 "action_1_probability": probability_right,
             },
         )
+
+
+def derive_antisymmetrized_cartpole_ppo(
+    source_policy: SB3Policy,
+    source_metadata: PolicyArtifactMetadata,
+    *,
+    derived_policy_id: str,
+) -> tuple[AntisymmetrizedCartPolePPOPolicy, PolicyArtifactMetadata]:
+    """Give the inference-only transformation an explicit derived identity."""
+
+    if not derived_policy_id or derived_policy_id == source_metadata.policy_id:
+        raise ValueError("The derived policy ID must be non-empty and distinct.")
+    if source_metadata.design_spec.algorithm != "PPO":
+        raise ValueError("Antisymmetrization requires a PPO source artifact.")
+    if source_metadata.design_spec.environment.environment_id != "CartPole-v1":
+        raise ValueError("Antisymmetrization requires a CartPole-v1 source artifact.")
+    design = replace(
+        source_metadata.design_spec,
+        design_id=f"{source_metadata.design_spec.design_id}-antisymmetrized-v1",
+        policy_id=derived_policy_id,
+        policy_type="derived_fixed_policy",
+        algorithm="PPO-antisymmetrized-binary-logit-margin",
+        hyperparameters={
+            "transformation": ANTISYMMETRIZATION_ID,
+            "source_policy_id": source_metadata.policy_id,
+            "source_model_sha256": source_metadata.model_sha256,
+            "weights_changed": False,
+        },
+    )
+    metadata = replace(
+        source_metadata,
+        policy_id=derived_policy_id,
+        design_spec=design,
+        artifact_format="derived-from-frozen-sb3-v1",
+        source_version={
+            "kind": "deterministic_inference_transformation",
+            "source_policy_id": source_metadata.policy_id,
+            "source_model_sha256": source_metadata.model_sha256,
+            "transformation": ANTISYMMETRIZATION_ID,
+        },
+    )
+    return AntisymmetrizedCartPolePPOPolicy(source_policy), metadata
 
 
 def train_sb3_policy(spec: PolicyDesignSpec, model_path: Path) -> dict[str, Any]:
