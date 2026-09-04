@@ -139,6 +139,46 @@ uv run active-eval-gym render-policy \
 See [the policy design notes](docs/policies.md) for equations, wrappers, artifact
 contracts, and the fixed-policy invariant.
 
+## Mandatory CHE-49 perturbation sweeps
+
+CHE-49 reuses the four frozen nominal-v2 artifacts without rebuilding or
+training them. Its tracked sampling strategies cover the paired CartPole
+angle-by-length grid, the Pendulum length sweep, and every valid MiniGrid start
+pose. Collection writes raw schema-v3 trajectories first; analysis later reads
+and hash-verifies those files without loading a policy or environment.
+
+Run one collector per config, following this pattern:
+
+```bash
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/che49_cartpole_angle_length_v1.toml \
+  --artifact-root artifacts/policies \
+  --output artifacts/evaluations/che-49/che49-cartpole-angle-length-v1
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/che49_pendulum_length_v1.toml \
+  --artifact-root artifacts/policies \
+  --output artifacts/evaluations/che-49/che49-pendulum-length-v1
+uv run active-eval-gym collect-sweep \
+  --suite configs/eval/che49_minigrid_start_pose_v1.toml \
+  --artifact-root artifacts/policies \
+  --output artifacts/evaluations/che-49/che49-minigrid-start-pose-v1
+```
+
+For each evaluation directory, derive episode-summary-v2 metrics and plots:
+
+```bash
+uv run active-eval-gym analyze-sweep --evaluation EVALUATION_DIRECTORY
+uv run active-eval-gym plot-sweep \
+  --evaluation EVALUATION_DIRECTORY \
+  --output artifacts/figures/che-49
+```
+
+The full run contains 2,040 episode bundles: 1,800 paired CartPole episodes,
+100 Pendulum episodes, and 140 MiniGrid episodes. Commands refuse to overwrite
+collection, metric-version, or figure outputs. The checked-in figures are in
+[`docs/figures`](docs/figures), and observed results are summarized in
+[`docs/findings.md`](docs/findings.md).
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.
@@ -147,8 +187,10 @@ contracts, and the fixed-policy invariant.
 
 The original constant-zero policy remains useful for rollout smoke tests. The
 policy zoo adds a quantized LQR and learned DQN, SAC, and PPO policies, all
-evaluated through the same raw-trajectory path. Non-nominal perturbation sweeps,
-failure-surface plots, oracle LQR, and optional PID remain outside CHE-48.
+evaluated through the same raw-trajectory path. CHE-49 adds only the mandatory
+angle, physical-length, and MiniGrid start-pose perturbations; evaluation
+thresholds, simulator numerics, policy adaptation, and optional perturbations
+remain out of scope.
 
 ## Development
 

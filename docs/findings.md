@@ -80,3 +80,83 @@ The exact gate records and checkpoints live under the ignored local
 `artifacts/policies/` tree. Because each manifest records a dirty source state,
 these hashes identify this local acceptance run, not a portable checked-in binary
 release.
+
+# CHE-49 mandatory perturbation findings
+
+The mandatory CHE-49 run collected 2,040 raw schema-v3 episodes from the frozen
+`nominal-v2` artifacts. All trajectory digests verified before analysis. The
+policy model hashes still match the CHE-48 table above, so none of the sweeps
+changed or replaced a controller. These grid results are descriptive diagnostic
+sampling, not estimates under a declared deployment distribution.
+
+## CartPole angle × length surface
+
+The quantized nominal-model LQR survived to the 500-step time limit on all
+900 condition-seed pairs. PPO survived on 826 of 900 pairs (91.78%). Its
+failures were highly asymmetric in the seeded angle offset:
+
+| Angle offset | LQR success | PPO success | PPO mean length |
+| ---: | ---: | ---: | ---: |
+| -8 deg | 100% | 49% | 288.34 |
+| -6 deg | 100% | 83% | 430.51 |
+| -4 deg | 100% | 97% | 488.11 |
+| -2 through +6 deg | 100% | 100% | 500.00 |
+| +8 deg | 100% | 97% | 487.30 |
+
+The weakest PPO cells were `-8 deg` at lengths `0.35` and `0.50`, both with
+40% success. Increasing length to `0.65` raised success at `-8 deg` to 70%, so
+the two perturbation axes interact rather than producing a single monotone
+distance-from-nominal effect.
+
+Even where both policies achieved nominal success, their trajectories differed.
+At zero offset and length `0.50`, LQR versus PPO mean RMS pole angle was
+`0.00493` versus `0.06585` radians, mean RMS cart position was `0.0717` versus
+`0.6814`, and mean action-switch rate was `0.643` versus `0.907`. Terminal
+success alone therefore hides substantial closed-loop behavior differences.
+
+![CartPole success surfaces](figures/che49_cartpole_success_surface.png)
+
+![CartPole nominal slices](figures/che49_cartpole_nominal_slices.png)
+
+## Pendulum length sweep
+
+The frozen SAC policy degraded smoothly as the pole length increased:
+
+| Length | Mean return | RMS angular error | RMS torque |
+| ---: | ---: | ---: | ---: |
+| 0.70 | -94.04 | 0.487 | 0.557 |
+| 0.85 | -109.23 | 0.544 | 0.556 |
+| 1.00 | -129.25 | 0.603 | 0.579 |
+| 1.15 | -163.31 | 0.695 | 0.658 |
+| 1.30 | -212.41 | 0.804 | 0.790 |
+
+The continuous trajectory metrics reveal degradation without inventing a binary
+Pendulum success threshold: longer plants have worse return and angular tracking,
+with torque usage rising most clearly beyond the nominal length.
+
+![Pendulum length sweep](figures/che49_pendulum_length_sweep.png)
+
+## MiniGrid start-pose map
+
+The frozen partial-image PPO reached the goal from 76 of 140 start
+position-orientation pairs (54.29%). Every direction failed from the 16-cell
+interior block `x in 2..5, y in 2..5`, while every tested direction succeeded
+from the remaining 19 boundary-ring cells. Failed runs exhausted all 256 actions.
+Successful runs took 1–24 actions, but path efficiency ranged from `0.053` to
+`1.0`, showing that goal completion alone also conceals inefficient navigation.
+Initial direction barely changed aggregate successful-run length (means
+12.37–12.47 actions).
+
+![MiniGrid start-pose map](figures/che49_minigrid_start_pose_map.png)
+
+## Active-evaluation questions
+
+1. With only 20 additional CartPole evaluations, should an evaluator concentrate
+   on PPO's asymmetric boundary near negative angle offsets, or sample policy
+   disagreement against the uniformly successful LQR?
+2. Should a useful early-warning metric target terminal failure, trajectory
+   degradation such as RMS state error, or the disagreement between those
+   signals?
+3. For MiniGrid, can an active evaluator infer the sharp interior failure region
+   efficiently from sparse start-pose queries while maintaining a fixed target
+   distribution over cells and directions?

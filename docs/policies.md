@@ -89,12 +89,15 @@ not select or mutate the final checkpoint.
 wrapper/observation contract, initial-state distribution, and time limit. A
 mismatch causes construction to fail before rollout.
 
-Episode metadata schema v2 embeds the full design and artifact metadata, nominal
-environment, explicit no-op perturbation, resolved environment, evaluation seed,
-deterministic flag, package versions, and realized initial state. Schema-v1 files
-remain valid historical artifacts and are not migrated. Raw `trajectory.jsonl`
-files remain separate from versioned `metrics.json`, whose source hash identifies
-the exact trajectory used.
+Episode metadata schema v3 embeds the same full provenance as schema v2 and adds
+interpretable environment state to the reset and every transition. This matters
+for MiniGrid, where the policy-facing partial image does not reveal global agent
+position. New raw bundles also include `trajectory.sha256`. Historical schemas
+remain valid artifacts and are not migrated.
+
+CHE-49 analysis reads and verifies those raw bundles without constructing an
+environment or loading a policy. Its `episode-summary-v2` outputs live under a
+metric-version directory, leaving raw trajectories and earlier metrics untouched.
 
 ## Quality gates and reproduction
 
