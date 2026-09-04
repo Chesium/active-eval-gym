@@ -15,6 +15,24 @@ can be computed without rerunning an episode.
 
 ## What the sandbox has found
 
+**Setup**
+
+- **Environment** — [Gymnasium `CartPole-v1` at its nominal plant](configs/envs/cartpole_v1_nominal.toml): gravity `9.8`,
+  cart mass `1.0`, pole mass `0.1`, half-length `0.5`, force `10.0` N, `0.02` s
+  step, 500-step time limit.
+- **Policies** — three, all frozen before any sweep: a [**quantized LQR**](src/active_eval_gym/policies/lqr.py#64) designed
+  from the nominal linearized model, a [**PPO**](src/active_eval_gym/policies/sb3.py) trained on the nominal environment,
+  and an [**antisymmetrized PPO**](src/active_eval_gym/policies/sb3.py#110) that wraps that same frozen actor and acts on
+  `0.5 * (d(s) - d(-s))`, making its decision margin odd by construction without
+  changing a single weight.
+- **Perturbations** — initial pole-angle offset and pole half-length are the two
+  flagship axes, crossed into a 2-D surface; pole mass, force magnitude,
+  pole-angle observation noise, action delay and action dropout run as separate,
+  separately labelled families.
+- **Protocol** — paired seeds and identical resolved environments across policies,
+  raw trajectories kept separate from versioned derived metrics, and the LQR gain
+  never recomputed when the plant changes.
+
 Full write-up (agent's output) in [`docs/findings.md`](docs/findings.md).
 
 Every result below comes
@@ -71,6 +89,32 @@ sampled. Gray is unsampled, the black line is the 0.5 contour, and the bottom ro
 is the policy-versus-policy difference.
 
 ![CartPole survival boundary](docs/figures/cartpole_boundary_survival_v2.png)
+
+### Action delay separates the policies most sharply
+
+LQR holds 100% success through four delayed steps, though its RMS pole angle
+climbs from `0.005` to `0.093` rad — degradation the binary outcome never shows.
+PPO falls off a cliff between one and two steps, from 95% to 0%.
+Antisymmetrization pushes that cliff outward, to 100% at one step and 35% at two.
+
+![Three-policy CartPole action-delay sweep](docs/figures/che49_cartpole_action_delay_sweep_three_policy.png)
+
+### Action dropout degrades everything monotonically
+
+No cliff here: at dropout probability `0.10 / 0.20 / 0.40`, LQR scores
+`95 / 90 / 20%` and PPO `65 / 40 / 0%`. Antisymmetrization matches LQR through
+`0.10` but buys little beyond it, so repairing the actor's reflection symmetry
+does not supply the robustness margin a severe action-channel fault demands.
+
+![Three-policy CartPole action-dropout sweep](docs/figures/che49_cartpole_action_dropout_sweep_three_policy.png)
+
+### Observation noise is the mildest axis
+
+LQR stays at 100% throughout. PPO holds to 2 degrees, then slips to 95% at
+4 degrees — the single failure the antisymmetrized variant removes, landing its
+true-state RMS pole angle between the other two.
+
+![Three-policy CartPole pole-angle-noise sweep](docs/figures/che49_cartpole_pole_angle_noise_sweep_three_policy.png)
 
 ## Five-minute quickstart
 
