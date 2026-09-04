@@ -1,0 +1,13 @@
+schema_version = 1
+suite_id = "che49-cartpole-pole-angle-noise-v1"
+environment_id = "CartPole-v1"
+perturbation_name = "cartpole-pole-angle-noise-v1"
+metric_version = "episode-summary-v3"
+seeds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+policy_ids = [
+    "cartpole_lqr_nominal_quantized_v1",
+    "cartpole_ppo_nominal_v1",
+]
+
+[grid]
+pole_angle_noise_std_deg = [0, 0.5, 1, 2, 4]

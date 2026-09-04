@@ -39,6 +39,7 @@ class SweepSuiteSpec:
     suite_id: str
     environment_id: str
     perturbation_name: str
+    metric_version: str
     seeds: tuple[int, ...]
     policy_ids: tuple[str, ...]
     grid: dict[str, Any]
@@ -145,6 +146,8 @@ def load_sweep_suite(path: Path) -> SweepSuiteSpec:
         suite_id=_required_str(data, "suite_id"),
         environment_id=_required_str(data, "environment_id"),
         perturbation_name=_required_str(data, "perturbation_name"),
+        metric_version=_optional_str(data.get("metric_version"), "metric_version")
+        or "episode-summary-v2",
         seeds=seeds,
         policy_ids=policy_ids,
         grid=dict(_required_table(data, "grid")),

@@ -14,12 +14,19 @@ from matplotlib import pyplot as plt  # noqa: E402
 def plot_sweep(evaluation_dir: Path, output_dir: Path) -> list[Path]:
     """Render the appropriate checked-in figure set for one sweep."""
 
-    summary_path = evaluation_dir / "analysis" / "episode-summary-v2" / "summary.json"
+    suite_record = json.loads((evaluation_dir / "suite.json").read_text())
+    suite = suite_record["suite"]
+    metric_version = suite.get("metric_version", "episode-summary-v2")
+    summary_path = evaluation_dir / "analysis" / metric_version / "summary.json"
     summary = json.loads(summary_path.read_text())
     output_dir.mkdir(parents=True, exist_ok=True)
     env_id = summary["environment_id"]
     if env_id == "CartPole-v1":
-        return _plot_cartpole(summary, output_dir)
+        if suite["perturbation_name"] == "cartpole-angle-length-v1":
+            return _plot_cartpole(summary, output_dir)
+        return _plot_cartpole_one_dimensional(
+            summary, output_dir, suite["perturbation_name"]
+        )
     if env_id == "Pendulum-v1":
         return _plot_pendulum(summary, output_dir)
     if env_id == "MiniGrid-Empty-8x8-v0":
@@ -157,6 +164,86 @@ def _plot_pendulum(summary: dict[str, Any], output_dir: Path) -> list[Path]:
         axis.set_xlabel("Pendulum length")
         axis.grid(alpha=0.25)
     path = output_dir / "che49_pendulum_length_sweep.png"
+    _save_new(figure, path)
+    return [path]
+
+
+def _plot_cartpole_one_dimensional(
+    summary: dict[str, Any], output_dir: Path, perturbation_name: str
+) -> list[Path]:
+    specifications = {
+        "cartpole-mass-v1": (
+            "masspole",
+            "Pole mass",
+            "che49_cartpole_mass_sweep.png",
+        ),
+        "cartpole-pole-angle-noise-v1": (
+            "pole_angle_noise_std_deg",
+            "Pole-angle noise SD (degrees)",
+            "che49_cartpole_pole_angle_noise_sweep.png",
+        ),
+        "cartpole-force-magnitude-v1": (
+            "force_mag",
+            "Force magnitude (N)",
+            "che49_cartpole_force_magnitude_sweep.png",
+        ),
+        "cartpole-action-delay-v1": (
+            "delay_steps",
+            "Action delay (steps)",
+            "che49_cartpole_action_delay_sweep.png",
+        ),
+        "cartpole-action-dropout-v1": (
+            "dropout_probability",
+            "Action-dropout probability",
+            "che49_cartpole_action_dropout_sweep.png",
+        ),
+    }
+    try:
+        parameter, x_label, filename = specifications[perturbation_name]
+    except KeyError as error:
+        raise ValueError(
+            f"Unsupported CartPole plot perturbation {perturbation_name!r}."
+        ) from error
+    policies = summary["policy_ids"]
+    conditions = sorted(
+        summary["conditions"], key=lambda item: item["parameters"][parameter]
+    )
+    x_values = [item["parameters"][parameter] for item in conditions]
+    metric_specs = [
+        ("success_rate", "Success rate"),
+        ("episode_length", "Episode length"),
+        ("rms_pole_angle_radians", "RMS pole angle (rad)"),
+        ("max_abs_pole_angle_radians", "Max |pole angle| (rad)"),
+        ("rms_cart_position", "RMS cart position"),
+        ("action_switch_rate", "Applied-action switch rate"),
+    ]
+    figure, axes = plt.subplots(2, 3, figsize=(15, 8), constrained_layout=True)
+    for axis, (metric, title) in zip(axes.flat, metric_specs, strict=True):
+        for policy in policies:
+            aggregates = [item["policies"][policy] for item in conditions]
+            if metric == "success_rate":
+                means = [item[metric] for item in aggregates]
+                errors = [0.0] * len(means)
+            elif metric == "episode_length":
+                means = [item[metric]["mean"] for item in aggregates]
+                errors = [item[metric]["standard_deviation"] for item in aggregates]
+            else:
+                values = [item["environment_metrics"][metric] for item in aggregates]
+                means = [item["mean"] for item in values]
+                errors = [item["standard_deviation"] for item in values]
+            axis.errorbar(
+                x_values,
+                means,
+                yerr=errors,
+                marker="o",
+                capsize=2,
+                label=_short_policy(policy),
+            )
+        axis.set_title(title)
+        axis.set_xlabel(x_label)
+        axis.grid(alpha=0.25)
+    axes[0, 0].legend()
+    path = output_dir / filename
     _save_new(figure, path)
     return [path]
 

@@ -8,7 +8,12 @@ from typing import Any
 
 from active_eval_gym.config import SweepSuiteSpec
 from active_eval_gym.envs.perturbations import (
+    CARTPOLE_ACTION_DELAY,
+    CARTPOLE_ACTION_DROPOUT,
     CARTPOLE_ANGLE_LENGTH,
+    CARTPOLE_FORCE_MAGNITUDE,
+    CARTPOLE_MASS,
+    CARTPOLE_POLE_ANGLE_NOISE,
     MINIGRID_START_POSE,
     PENDULUM_LENGTH,
     PerturbationSpec,
@@ -58,6 +63,33 @@ def expand_sweep(
             )
             for angle in _number_list(suite.grid["delta_theta_deg"], "delta_theta_deg")
             for length in _number_list(suite.grid["length"], "length")
+        )
+    scalar_cartpole_sweeps = {
+        CARTPOLE_MASS: ("masspole", "mass"),
+        CARTPOLE_POLE_ANGLE_NOISE: (
+            "pole_angle_noise_std_deg",
+            "noise-deg",
+        ),
+        CARTPOLE_FORCE_MAGNITUDE: ("force_mag", "force"),
+        CARTPOLE_ACTION_DELAY: ("delay_steps", "delay"),
+        CARTPOLE_ACTION_DROPOUT: ("dropout_probability", "dropout"),
+    }
+    if suite.perturbation_name in scalar_cartpole_sweeps:
+        parameter, label = scalar_cartpole_sweeps[suite.perturbation_name]
+        _require_grid_keys(suite, {parameter})
+        values = (
+            _integer_list(suite.grid[parameter], parameter)
+            if parameter == "delay_steps"
+            else _number_list(suite.grid[parameter], parameter)
+        )
+        return tuple(
+            SweepCondition(
+                condition_id=f"{label}-{_slug_number(value)}",
+                perturbation=PerturbationSpec(
+                    suite.perturbation_name, {parameter: value}
+                ),
+            )
+            for value in values
         )
     if suite.perturbation_name == PENDULUM_LENGTH:
         _require_grid_keys(suite, {"l"})
@@ -206,7 +238,8 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
 
     suite_record = json.loads((evaluation_dir / "suite.json").read_text())
     suite_data = suite_record["suite"]
-    analysis_dir = evaluation_dir / "analysis" / SWEEP_METRIC_VERSION
+    metric_version = suite_data.get("metric_version", SWEEP_METRIC_VERSION)
+    analysis_dir = evaluation_dir / "analysis" / metric_version
     if analysis_dir.exists():
         raise FileExistsError(
             f"Refusing to overwrite metric analysis: {analysis_dir}."
@@ -225,7 +258,9 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
                     / f"seed-{seed:03d}"
                 )
                 episode = read_saved_episode(episode_dir)
-                metrics = compute_saved_metrics(episode)
+                metrics = compute_saved_metrics(
+                    episode, metric_version=metric_version
+                )
                 records.append(
                     {
                         "condition_id": condition_id,
@@ -275,7 +310,8 @@ def analyze_sweep(evaluation_dir: Path) -> dict[str, Any]:
 
     summary = {
         "schema_version": 1,
-        "metric_version": SWEEP_METRIC_VERSION,
+        "metric_version": metric_version,
+        "perturbation_name": suite_data.get("perturbation_name", "unknown"),
         "suite_id": suite_data["suite_id"],
         "environment_id": suite_data["environment_id"],
         "policy_ids": suite_data["policy_ids"],
@@ -294,6 +330,7 @@ def _validate_paired_environments(
         return
     expected_resolved = to_jsonable(paired[0][1])
     expected_initial = to_jsonable(paired[0][2].metadata.initial_state)
+    expected_randomness = _randomness_trace(paired[0][2])
     for policy_id, resolved, episode in paired[1:]:
         if to_jsonable(resolved) != expected_resolved:
             raise RuntimeError(
@@ -305,6 +342,24 @@ def _validate_paired_environments(
                 f"Initial-state mismatch for {policy_id}, "
                 f"{condition_id}, seed {seed}."
             )
+        actual_randomness = _randomness_trace(episode)
+        shared_length = min(len(expected_randomness), len(actual_randomness))
+        if expected_randomness[:shared_length] != actual_randomness[:shared_length]:
+            raise RuntimeError(
+                f"Perturbation-randomness mismatch for {policy_id}, "
+                f"{condition_id}, seed {seed}."
+            )
+
+
+def _randomness_trace(episode: Any) -> list[dict[str, Any]]:
+    records = [episode.reset.perturbation_diagnostics]
+    records.extend(step.perturbation_diagnostics for step in episode.transitions)
+    keys = ("pole_angle_noise_radians", "random_draw", "dropout_event")
+    return [
+        {key: record[key] for key in keys if key in record}
+        for record in records
+        if any(key in record for key in keys)
+    ]
 
 
 def _aggregate(metrics: list[dict[str, Any]]) -> dict[str, Any]:

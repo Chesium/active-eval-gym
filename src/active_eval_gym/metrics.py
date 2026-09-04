@@ -8,6 +8,7 @@ from active_eval_gym.models import EpisodeRecord
 
 METRIC_VERSION = "episode-summary-v1"
 SWEEP_METRIC_VERSION = "episode-summary-v2"
+INTERVENTION_METRIC_VERSION = "episode-summary-v3"
 
 
 @dataclass(frozen=True)
@@ -80,8 +81,13 @@ def compute_metrics(
     )
 
 
-def compute_saved_metrics(episode: Any) -> SweepEpisodeMetrics:
-    """Compute v2 metrics solely from a hash-verified saved raw episode."""
+def compute_saved_metrics(
+    episode: Any, *, metric_version: str = SWEEP_METRIC_VERSION
+) -> SweepEpisodeMetrics:
+    """Compute selected metrics solely from a hash-verified saved raw episode."""
+
+    if metric_version not in (SWEEP_METRIC_VERSION, INTERVENTION_METRIC_VERSION):
+        raise ValueError(f"Unsupported sweep metric version {metric_version!r}.")
 
     transitions = episode.transitions
     if not transitions:
@@ -101,7 +107,7 @@ def compute_saved_metrics(episode: Any) -> SweepEpisodeMetrics:
     env_id = episode.metadata["resolved_environment"]["environment_id"]
     if env_id == "CartPole-v1":
         task_success: bool | None = truncated and not terminated
-        environment_metrics = _cartpole_metrics(episode)
+        environment_metrics = _cartpole_metrics(episode, metric_version)
     elif env_id == "Pendulum-v1":
         task_success = None
         environment_metrics = _pendulum_metrics(episode)
@@ -112,8 +118,10 @@ def compute_saved_metrics(episode: Any) -> SweepEpisodeMetrics:
         raise ValueError(f"Unsupported metrics environment {env_id!r}.")
 
     return SweepEpisodeMetrics(
-        schema_version=2,
-        metric_version=SWEEP_METRIC_VERSION,
+        schema_version=(
+            3 if metric_version == INTERVENTION_METRIC_VERSION else 2
+        ),
+        metric_version=metric_version,
         source_trajectory_sha256=episode.trajectory_sha256,
         episode_return=fsum(float(row["reward"]) for row in transitions),
         episode_length=len(transitions),
@@ -125,23 +133,45 @@ def compute_saved_metrics(episode: Any) -> SweepEpisodeMetrics:
     )
 
 
-def _cartpole_metrics(episode: Any) -> dict[str, float]:
+def _cartpole_metrics(episode: Any, metric_version: str) -> dict[str, Any]:
     states = [episode.reset["environment_state"]]
     states.extend(row["environment_state"] for row in episode.transitions)
     angles = [float(state["pole_angle"]) for state in states]
     positions = [float(state["cart_position"]) for state in states]
-    actions = [int(row["action"]) for row in episode.transitions]
-    switches = sum(
-        first != second for first, second in zip(actions, actions[1:], strict=False)
-    )
-    return {
+    requested_actions = [int(row["action"]) for row in episode.transitions]
+    result: dict[str, Any] = {
         "rms_pole_angle_radians": _rms(angles),
         "max_abs_pole_angle_radians": max(abs(value) for value in angles),
         "rms_cart_position": _rms(positions),
-        "action_switch_rate": (
-            0.0 if len(actions) < 2 else switches / (len(actions) - 1)
-        ),
     }
+    if metric_version == SWEEP_METRIC_VERSION:
+        result["action_switch_rate"] = _action_switch_rate(requested_actions)
+        return result
+
+    environment_actions = [
+        int(row.get("environment_action", row["action"]))
+        for row in episode.transitions
+    ]
+    result.update(
+        {
+            "action_switch_rate": _action_switch_rate(environment_actions),
+            "requested_action_switch_rate": _action_switch_rate(
+                requested_actions
+            ),
+            "requested_applied_action_mismatch_rate": fsum(
+                requested != applied
+                for requested, applied in zip(
+                    requested_actions, environment_actions, strict=True
+                )
+            )
+            / len(requested_actions),
+            "rms_pole_angle_observation_error_radians": _rms(
+                _observation_noise_trace(episode)
+            ),
+            "realized_dropout_rate": _realized_dropout_rate(episode),
+        }
+    )
+    return result
 
 
 def _pendulum_metrics(episode: Any) -> dict[str, float]:
@@ -196,6 +226,35 @@ def _minigrid_metrics(episode: Any, success: bool) -> dict[str, Any]:
 
 def _rms(values: list[float]) -> float:
     return sqrt(fsum(value * value for value in values) / len(values))
+
+
+def _action_switch_rate(actions: list[int]) -> float:
+    if len(actions) < 2:
+        return 0.0
+    switches = sum(
+        first != second for first, second in zip(actions, actions[1:], strict=False)
+    )
+    return switches / (len(actions) - 1)
+
+
+def _observation_noise_trace(episode: Any) -> list[float]:
+    diagnostics = [episode.reset.get("perturbation_diagnostics", {})]
+    diagnostics.extend(
+        row.get("perturbation_diagnostics", {}) for row in episode.transitions
+    )
+    return [
+        float(item.get("pole_angle_noise_radians", 0.0)) for item in diagnostics
+    ]
+
+
+def _realized_dropout_rate(episode: Any) -> float | None:
+    events = [
+        bool(row.get("perturbation_diagnostics", {}).get("dropout_event"))
+        for row in episode.transitions
+        if row.get("perturbation_diagnostics", {}).get("kind") == "action_dropout"
+        and row.get("perturbation_diagnostics", {}).get("random_draw") is not None
+    ]
+    return None if not events else fsum(events) / len(events)
 
 
 def _scalar_action(action: Any) -> float:
