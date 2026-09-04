@@ -160,3 +160,75 @@ Initial direction barely changed aggregate successful-run length (means
 3. For MiniGrid, can an active evaluator infer the sharp interior failure region
    efficiently from sparse start-pose queries while maintaining a fixed target
    distribution over cells and directions?
+
+# CHE-49 secondary and stretch CartPole findings
+
+The five independent follow-up suites added 1,000 raw schema-v4 episodes: five
+conditions, 20 paired seeds, and two frozen policies per suite. Analysis used
+`episode-summary-v3`; all trajectory hashes and paired-environment checks passed.
+The nominal condition in every suite reproduced the no-op states, observations,
+requested and delivered actions, rewards, and episode endings. Model hashes still
+match the CHE-48 table above.
+
+## Pole mass and force magnitude
+
+Both controllers survived all 500 steps in every mass and force episode. Across
+pole masses `0.05` to `0.15`, mean LQR RMS pole angle stayed between `0.00488`
+and `0.00494` radians; PPO stayed between `0.06434` and `0.06764`. This sampled
+mass range therefore did not separate the policies on success or materially on
+state regulation.
+
+Force magnitude also left success at 100%, but it changed how the fixed policies
+used the binary actuator. From 5 N to 15 N, LQR mean action-switch rate fell from
+`0.744` to `0.598`, while PPO rose from `0.832` to `0.911` after peaking at
+`0.917` at 12.5 N. A terminal-only metric would miss that systematic change in
+closed-loop behavior.
+
+![CartPole pole-mass sweep](figures/che49_cartpole_mass_sweep.png)
+
+![CartPole force-magnitude sweep](figures/che49_cartpole_force_magnitude_sweep.png)
+
+## Pole-angle observation noise
+
+The realized RMS observation errors were `0`, `0.00869`, `0.01737`, `0.03475`,
+and approximately `0.06949` radians for the five requested standard deviations,
+and paired LQR/PPO streams matched through the shorter trajectory. LQR retained
+100% success at every level. PPO retained 100% through 2 degrees, then reached
+95% success and mean length `479.25` at 4 degrees. At that endpoint mean true-
+state RMS pole angle was `0.02862` for LQR and `0.07697` radians for PPO.
+
+![CartPole pole-angle-noise sweep](figures/che49_cartpole_pole_angle_noise_sweep.png)
+
+## Action delay and dropout
+
+Delay produced the sharpest policy separation. LQR retained 100% success through
+four delayed steps, although its mean RMS pole angle rose from `0.00493` to
+`0.09322` radians. PPO fell to 95% success at one step and 0% at two through four
+steps; its mean episode lengths at those failing conditions were `100.00`,
+`44.95`, and `18.45`. Thus the continuous state metric warns of LQR degradation
+even where its binary outcome remains unchanged, while PPO crosses a terminal
+failure boundary between one and two delayed steps.
+
+Dropout degraded both controllers monotonically in the sampled range. At
+probabilities `0`, `0.05`, `0.10`, `0.20`, and `0.40`, LQR success was 100%,
+100%, 95%, 90%, and 20%; PPO success was 100%, 90%, 65%, 40%, and 0%. At the
+0.40 endpoint, mean episode length was `253.85` for LQR and `101.75` for PPO.
+Realized dropout rates tracked the requested probabilities, while requested/
+delivered mismatches were lower because dropping a request that already equals
+the held action does not create a mismatch.
+
+![CartPole action-delay sweep](figures/che49_cartpole_action_delay_sweep.png)
+
+![CartPole action-dropout sweep](figures/che49_cartpole_action_dropout_sweep.png)
+
+## Follow-up active-evaluation questions
+
+1. Can an evaluator identify PPO's delay boundary near one to two steps with
+   fewer samples than a uniform sweep while still detecting LQR's subterminal
+   state degradation?
+2. Should intervention severity be represented by requested delay/dropout
+   parameters, realized random events, or requested/applied action mismatch when
+   those measures disagree?
+3. Given the flat success surfaces for mass and force, when should an evaluator
+   stop probing an axis and redirect budget toward observation or action-channel
+   perturbations?

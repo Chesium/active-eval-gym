@@ -179,6 +179,33 @@ collection, metric-version, or figure outputs. The checked-in figures are in
 [`docs/figures`](docs/figures), and observed results are summarized in
 [`docs/findings.md`](docs/findings.md).
 
+## CHE-49 secondary and stretch CartPole sweeps
+
+Five independent diagnostic suites reuse the same frozen CartPole LQR and PPO
+artifacts. Each varies one axis over five conditions and paired seeds 0 through
+19, for 200 episodes per suite and 1,000 episodes in total. The mass and force
+suites perturb simulator dynamics; the noise, delay, and dropout suites exercise
+the observation and action interfaces. They do not cross these axes with one
+another or with the mandatory angle-by-length surface.
+
+Collect each suite with:
+
+```bash
+for name in mass pole_angle_noise force_magnitude action_delay action_dropout; do
+  uv run active-eval-gym collect-sweep \
+    --suite "configs/eval/che49_cartpole_${name}_v1.toml" \
+    --artifact-root artifacts/policies \
+    --output "artifacts/evaluations/che-49/che49-cartpole-${name//_/-}-v1"
+done
+```
+
+Then run `analyze-sweep` and `plot-sweep` on each evaluation directory as above.
+These suites write raw schema-v4 episodes and `episode-summary-v3` analysis.
+Schema v4 retains the policy-requested `action`, adds the delivered
+`environment_action`, and records deterministic observation-noise or action-
+intervention diagnostics. Their five checked-in dashboards and measured results
+are included in [`docs/findings.md`](docs/findings.md).
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.
@@ -187,10 +214,11 @@ collection, metric-version, or figure outputs. The checked-in figures are in
 
 The original constant-zero policy remains useful for rollout smoke tests. The
 policy zoo adds a quantized LQR and learned DQN, SAC, and PPO policies, all
-evaluated through the same raw-trajectory path. CHE-49 adds only the mandatory
-angle, physical-length, and MiniGrid start-pose perturbations; evaluation
-thresholds, simulator numerics, policy adaptation, and optional perturbations
-remain out of scope.
+evaluated through the same raw-trajectory path. CHE-49 covers the mandatory
+angle, physical-length, and MiniGrid start-pose perturbations plus isolated
+CartPole mass, force, observation-noise, action-delay, and action-dropout
+diagnostics. Evaluation thresholds, simulator numerics, policy adaptation, and
+crossed stretch perturbations remain out of scope.
 
 ## Development
 

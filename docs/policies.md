@@ -92,12 +92,25 @@ mismatch causes construction to fail before rollout.
 Episode metadata schema v3 embeds the same full provenance as schema v2 and adds
 interpretable environment state to the reset and every transition. This matters
 for MiniGrid, where the policy-facing partial image does not reveal global agent
-position. New raw bundles also include `trajectory.sha256`. Historical schemas
+position. Schema v4 preserves `action` as the policy request, adds
+`environment_action` as the action delivered to Gym, and records reset/transition
+perturbation diagnostics. It also records the NumPy version used by stochastic
+perturbations. New raw bundles include `trajectory.sha256`; historical schemas
 remain valid artifacts and are not migrated.
 
 CHE-49 analysis reads and verifies those raw bundles without constructing an
 environment or loading a policy. Its `episode-summary-v2` outputs live under a
 metric-version directory, leaving raw trajectories and earlier metrics untouched.
+The secondary mass and stretch suites use `episode-summary-v3`: CartPole state
+metrics remain based on true simulator state, action-switch rate uses delivered
+actions, and separate requested-switch, requested/applied mismatch, realized-
+dropout, and pole-angle observation-error metrics expose interface interventions.
+
+Pole-angle noise and action dropout use dedicated NumPy generators derived from
+the episode seed and fixed perturbation-specific stream IDs. This keeps their
+random streams reproducible and independent of policy implementation. Paired
+validation requires equal resolved environments and initial true state, then
+compares stochastic draws across LQR and PPO through the shorter trajectory.
 
 ## Quality gates and reproduction
 
