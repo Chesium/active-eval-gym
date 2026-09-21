@@ -5,7 +5,7 @@
 % amsmath, amssymb, natbib, graphicx, url, algorithm2e are loaded by the class.
 \usepackage{times}
 
-\title[Boundary-Guided Training of Closed-Loop Controllers]{From Evaluation to
+\title[Boundary-Guided Training of Closed-Loop Controllers]{ESE6180 Project Proposal: (tentative title) From Evaluation to
 Improvement: Boundary-Guided Training of Closed-Loop Controllers}
 
 \author{%
@@ -42,11 +42,11 @@ Evaluating a frozen controller across operating conditions maps where it works,
 not just how well. On CartPole with the pole-angle cutoff relaxed to $90^\circ$,
 call an episode a \emph{recovery} if it survives $500$ steps with final-100-step
 RMS pole angle at most $5^\circ$. An adaptive sweep of initial pole angles and
-half-lengths ($248$ conditions, $50$ seeds, $37{,}200$ episodes, no retraining)
+half-lengths using \href{https://github.com/Chesium/active-eval-gym}{this experiment repository}
 gives Figure~\ref{fig:regions}: quantized LQR and PPO have recovery regions
-differing in shape, not only size, and survival and recovery disagree, since
-antisymmetrized PPO often survives from $\pm25^\circ$ without settling inside the
-band. We ask whether evaluating that boundary can guide training that
+differing in shape, not only size, and survival and recovery disagree,
+% since antisymmetrized PPO often survives from $\pm25^\circ$ without settling inside the band.
+We ask whether evaluating that boundary can guide training that
 \emph{expands} the acceptable region while limiting degradation elsewhere, which
 signal---threshold proximity, intermediate difficulty, uncertainty, or
 improvability---marks a useful training condition, and what assumptions permit a
@@ -101,7 +101,7 @@ comparison under a fixed, certified protocol. \textbf{Control guarantees.}
 Lyapunov analysis; their stability certificates differ from our finite-horizon
 recovery probabilities.
 
-\section{Goals}
+\section{Goals (tentative)}
 
 \textbf{Stage 1 (course foundation).} Build the evaluator: certify a condition
 only when a confidence sequence puts its failure rate strictly on one side of
@@ -132,6 +132,6 @@ Whether repeated rounds are required or a single $\pi_0\to\pi_1$ update suffices
 and which level-set notion is primary, stay open; $\alpha$, $\delta$, budgets,
 seeds, reward, and mixture weights will be fixed and recorded beforehand.
 
-\bibliography{../references}
+\bibliography{references.bib}
 
 \end{document}

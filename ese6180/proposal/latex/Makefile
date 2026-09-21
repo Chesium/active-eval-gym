@@ -10,7 +10,7 @@ TEX := proposal
 
 all: $(TEX).pdf
 
-$(TEX).pdf: $(TEX).tex ../references.bib figures/cartpole_recovery_regions.png
+$(TEX).pdf: $(TEX).tex ./references.bib figures/cartpole_recovery_regions.png
 	pdflatex -interaction=nonstopmode $(TEX).tex
 	bibtex $(TEX)
 	pdflatex -interaction=nonstopmode $(TEX).tex
