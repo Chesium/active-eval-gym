@@ -9,8 +9,8 @@ for traceability; the later LaTeX version must explain the setup without them.
 **Agreed scope:** Active certification is the main study. The primary objective
 is coverage of conditions certified acceptable at a fixed rollout budget.
 CartPole recovery is the primary outcome. Linear-system cost sensitivity is a
-separate, limited supporting result. Keep failure tolerance \(\alpha\) and
-certification error budget \(\delta\) symbolic for now.
+separate, limited supporting result. Keep failure tolerance $\alpha$ and
+certification error budget $\delta$ symbolic for now.
 Keep both GP acquisition designs as candidates, and retain boundary-guided
 retraining as an explicitly optional stretch.
 
@@ -66,50 +66,50 @@ accurately tracing a boundary.
 
 ## Formulation and feedback
 
-Fix a controller \(\pi\), horizon \(H\), and finite candidate domain
-\(\mathcal Z=\{z_1,\ldots,z_m\}\). A closed-loop trajectory
-\(\tau_\pi(z,\xi)\) depends on the operating condition \(z\) and episode
-randomness \(\xi\sim P_\xi(\cdot\mid z)\). Define the fixed binary metric
+Fix a controller $\pi$, horizon $H$, and finite candidate domain
+$\mathcal Z=\{z_1,\ldots,z_m\}$. A closed-loop trajectory
+$\tau_\pi(z,\xi)$ depends on the operating condition $z$ and episode
+randomness $\xi\sim P_\xi(\cdot\mid z)$. Define the fixed binary metric
 
-\[
+$$
 Y_\pi(z,\xi)=\mathbf 1\{\text{trajectory fails the recovery requirement}\},
 \qquad p_\pi(z)=\mathbb E_\xi[Y_\pi(z,\xi)].
-\]
+$$
 
 The target is
 
-\[
+$$
 S_\pi=\{z\in\mathcal Z:p_\pi(z)\le\alpha\}.
-\]
+$$
 
-The failure tolerance \(\alpha\) concerns controller performance; the error
-budget \(\delta\) below concerns the evaluator's conclusions.
+The failure tolerance $\alpha$ concerns controller performance; the error
+budget $\delta$ below concerns the evaluator's conclusions.
 
-At round \(t\), the evaluator selects \(z_t\) using previous observations and
+At round $t$, the evaluator selects $z_t$ using previous observations and
 collects one rollout. Its statistical model requires
 
-\[
+$$
 \Pr(Y_t=1\mid\mathcal F_{t-1},z_t)=p_\pi(z_t),
-\]
+$$
 
-where \(\mathcal F_{t-1}\) is the evaluator's history. Fresh independent
+where $\mathcal F_{t-1}$ is the evaluator's history. Fresh independent
 rollouts at selected conditions provide a simple sufficient implementation.
 Time steps within a trajectory are not independent evaluation samples. The
 policy, metric, and conditional randomness law remain fixed within a campaign.
 
-The output comprises certified acceptable conditions \(S_t\), certified
-unacceptable conditions \(F_t\), and unresolved conditions
-\(R_t=\mathcal Z\setminus(S_t\cup F_t)\). The intended guarantee is
+The output comprises certified acceptable conditions $S_t$, certified
+unacceptable conditions $F_t$, and unresolved conditions
+$R_t=\mathcal Z\setminus(S_t\cup F_t)$. The intended guarantee is
 
-\[
+$$
 \Pr\!\left[
   \forall t\ge0:\quad S_t\subseteq S_\pi
   \ \text{and}\ F_t\subseteq\mathcal Z\setminus S_\pi
 \right]\ge1-\delta.
-\]
+$$
 
-At budget \(N\), the primary score is \(C_N=|S_N|/m\). The secondary resolved
-fraction is \((|S_N|+|F_N|)/m\). These describe a fixed, equally weighted grid,
+At budget $N$, the primary score is $C_N=|S_N|/m$. The secondary resolved
+fraction is $(|S_N|+|F_N|)/m$. These describe a fixed, equally weighted grid,
 not physical volume or deployment reliability. Fix the grid before comparative
 campaigns; any different weighting needs its own declared measure.
 
@@ -128,11 +128,11 @@ while that controller remains fixed.
 
 ### Sequential certification
 
-Maintain a confidence sequence \([L_n(z),U_n(z)]\) from the first \(n\) direct
+Maintain a confidence sequence $[L_n(z),U_n(z)]$ from the first $n$ direct
 rollout outcomes at each condition. Allocate error across conditions to obtain
 coverage simultaneously over conditions and local sample counts. With
-\(n_t(z)\) samples, label a condition acceptable if \(U_{n_t(z)}(z)\le\alpha\),
-unacceptable if \(L_{n_t(z)}(z)>\alpha\), and unresolved otherwise.
+$n_t(z)$ samples, label a condition acceptable if $U_{n_t(z)}(z)\le\alpha$,
+unacceptable if $L_{n_t(z)}(z)>\alpha$, and unresolved otherwise.
 
 Derive an elementary time-uniform Hoeffding construction and use a Bernoulli
 mixture confidence sequence for the main experiments, fixing its parameters in
@@ -161,7 +161,7 @@ about the rollout distribution can invalidate it.
 | Bernoulli-GP-guided allocation | Test whether spatial predictions improve acceptable certification |
 
 For the third strategy, use the sampling component of the modified MOSS-anytime
-method in Cho et al. [6], with recovery rewards \(1-Y_t\), retaining the common
+method in Cho et al. [6], with recovery rewards $1-Y_t$, retaining the common
 certifier. This adaptation isolates allocation effects; the original
 full-algorithm optimality theorem will not automatically be claimed for it.
 
@@ -196,32 +196,32 @@ at the threshold may remain unresolved indefinitely.
 
 Analyze a separate deterministic linear closed-loop system
 
-\[
+$$
 x_{k+1}=Gx_k,\qquad G=A-BK,
-\]
+$$
 
-with fixed \(K\), state-cost matrix \(Q\succeq0\), and finite-horizon cost
+with fixed $K$, state-cost matrix $Q\succeq0$, and finite-horizon cost
 
-\[
+$$
 J_H(x)=\sum_{k=0}^{H-1}x_k^\top Qx_k=x^\top P_Hx,\qquad
 P_H=\sum_{k=0}^{H-1}(G^k)^\top QG^k.
-\]
+$$
 
-On \(\|x\|_2,\|x'\|_2\le r\), derive
+On $\|x\|_2,\|x'\|_2\le r$, derive
 
-\[
+$$
 |J_H(x)-J_H(x')|\le2r\|P_H\|_2\,\|x-x'\|_2.
-\]
+$$
 
-Thus \(J_H(x)+2r\|P_H\|_2\|x-x'\|_2\le h\) suffices to establish
-\(J_H(x')\le h\). Study how the bound changes with horizon and transient
+Thus $J_H(x)+2r\|P_H\|_2\|x-x'\|_2\le h$ suffices to establish
+$J_H(x')\le h$. Study how the bound changes with horizon and transient
 amplification, and compare bound-based coverage with the analytical cost
 sublevel set. Known matrices provide a validation reference; simulation is not
 needed to solve that known quadratic problem.
 
 The finite-horizon identity does not require stability. A bound
-\(\|G^k\|_2\le c\rho^k\), \(\rho<1\), gives an interpretable bound on
-\(\|P_H\|_2\). Stable eigenvalues alone do not imply Euclidean contraction or
+$\|G^k\|_2\le c\rho^k$, $\rho<1$, gives an interpretable bound on
+$\|P_H\|_2$. Stable eigenvalues alone do not imply Euclidean contraction or
 exclude large transients.
 
 This supporting result explains structural generalization for a continuous
@@ -233,8 +233,8 @@ assumptions near the failure threshold and is outside the agreed core.
 ## Experiments and validation
 
 **Primary task.** Reuse the explicitly modified CartPole recovery task: a
-\(90^\circ\) pole-angle termination cutoff, 500-step horizon, and recovery
-defined as surviving with final-100-step RMS pole angle at most \(5^\circ\).
+$90^\circ$ pole-angle termination cutoff, 500-step horizon, and recovery
+defined as surviving with final-100-step RMS pole angle at most $5^\circ$.
 Terminated trajectories are recovery failures. Retain cart-position termination.
 Survival under these same modified dynamics is a secondary diagnostic.
 Standard CartPole survival, if included, is a separate experiment.
@@ -377,7 +377,7 @@ matching entries for later LaTeX conversion.
 
 ## Open decisions and LaTeX conversion
 
-- **Numerical protocol:** \(\alpha,\delta\), grid, budgets, campaign count,
+- **Numerical protocol:** $\alpha,\delta$, grid, budgets, campaign count,
   reference precision, and coverage targets remain unspecified intentionally.
 - **Acquisition:** choose between look-ahead certificate gain and simple
   surrogate ranking, then settle the formula and exploration schedule.
