@@ -1,6 +1,7 @@
-% Selected references for brief.md, in its numbered order.
-% Metadata checked against primary paper/publisher/author pages.
-% Optional background from proposal-design-notes.md is deliberately excluded.
+% Core references for brief.md, in numbered order.
+% Course foundation (1--3), training-condition selection (4--6),
+% and control guarantees (7). Earlier evaluator-specific sources are
+% retained as background links in discussions/proposal-design-notes.md.
 
 @inproceedings{gotovos2013active,
   author = {Gotovos, Alkis and Casati, Nathalie and Hitz, Gregory and Krause, Andreas},
@@ -8,19 +9,6 @@
   booktitle = {Proceedings of the Twenty-Third International Joint Conference on Artificial Intelligence},
   year = {2013},
   url = {https://people.csail.mit.edu/alkisg/files/gotovos13active.pdf}
-}
-
-@inproceedings{zanette2019robust,
-  author = {Zanette, Andrea and Zhang, Junzi and Kochenderfer, Mykel J.},
-  title = {Robust Super-Level Set Estimation Using {Gaussian} Processes},
-  booktitle = {Machine Learning and Knowledge Discovery in Databases},
-  series = {Lecture Notes in Computer Science},
-  volume = {11052},
-  pages = {276--291},
-  year = {2019},
-  note = {ECML PKDD 2018},
-  doi = {10.1007/978-3-030-10928-8_17},
-  url = {https://arxiv.org/abs/1811.09977}
 }
 
 @inproceedings{letham2022lookahead,
@@ -32,17 +20,6 @@
   pages = {8493--8513},
   year = {2022},
   url = {https://proceedings.mlr.press/v151/letham22a.html}
-}
-
-@inproceedings{locatelli2016thresholding,
-  author = {Locatelli, Andrea and Gutzeit, Maurilio and Carpentier, Alexandra},
-  title = {An Optimal Algorithm for the Thresholding Bandit Problem},
-  booktitle = {Proceedings of the 33rd International Conference on Machine Learning},
-  series = {Proceedings of Machine Learning Research},
-  volume = {48},
-  pages = {1690--1698},
-  year = {2016},
-  url = {https://proceedings.mlr.press/v48/locatelli16.html}
 }
 
 @article{howard2021timeuniform,
@@ -57,35 +34,43 @@
   url = {https://arxiv.org/abs/1810.08240}
 }
 
-@inproceedings{cho2025reward,
-  author = {Cho, Brian M. and Meier, Dominik and Gan, Kyra and Kallus, Nathan},
-  title = {Reward Maximization for Pure Exploration: Minimax Optimal Good Arm Identification for Nonparametric Multi-Armed Bandits},
-  booktitle = {Proceedings of the 28th International Conference on Artificial Intelligence and Statistics},
+@inproceedings{florensa2017reverse,
+  author = {Florensa, Carlos and Held, David and Wulfmeier, Markus and Zhang, Michael and Abbeel, Pieter},
+  title = {Reverse Curriculum Generation for Reinforcement Learning},
+  booktitle = {Proceedings of the 1st Annual Conference on Robot Learning},
   series = {Proceedings of Machine Learning Research},
-  volume = {258},
-  pages = {2251--2259},
-  year = {2025},
-  url = {https://proceedings.mlr.press/v258/cho25a.html}
+  volume = {78},
+  pages = {482--495},
+  year = {2017},
+  url = {https://proceedings.mlr.press/v78/florensa17a.html}
 }
 
-@inproceedings{raghavan2026trajectory,
-  author = {Raghavan, Aneesh and Johansson, Karl Henrik},
-  title = {Trajectory-Level Experimental Design for Fast Safety Parameter Estimation of Unknown Environments by Autonomous Systems},
-  booktitle = {Proceedings of the 8th Annual Learning for Dynamics and Control Conference},
+@inproceedings{jiang2021prioritized,
+  author = {Jiang, Minqi and Grefenstette, Edward and Rockt{\"a}schel, Tim},
+  title = {Prioritized Level Replay},
+  booktitle = {Proceedings of the 38th International Conference on Machine Learning},
   series = {Proceedings of Machine Learning Research},
-  volume = {331},
-  pages = {589--600},
-  year = {2026},
-  url = {https://proceedings.mlr.press/v331/raghavan26b.html}
+  volume = {139},
+  pages = {4940--4950},
+  year = {2021},
+  url = {https://proceedings.mlr.press/v139/jiang21b.html}
 }
 
-@misc{dietrich2026importance,
-  author = {Dietrich, Elizabeth and Krasowski, Hanna and Flovik, Vegard and Arcak, Murat},
-  title = {Importance Sampling for Statistical Certification of Viable Initial Sets},
-  year = {2026},
-  eprint = {2604.02939},
-  archivePrefix = {arXiv},
-  primaryClass = {eess.SY},
-  note = {Preprint, version 2},
-  url = {https://arxiv.org/abs/2604.02939v2}
+@inproceedings{rutherford2024noregrets,
+  author = {Rutherford, Alex and Beukman, Michael and Willi, Timon and Lacerda, Bruno and Hawes, Nick and Foerster, Jakob},
+  title = {No Regrets: Investigating and Improving Regret Approximations for Curriculum Discovery},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume = {37},
+  year = {2024},
+  doi = {10.52202/079017-0512},
+  url = {https://papers.nips.cc/paper_files/paper/2024/hash/1d0ed12c3fda52f2c241a0cebcf739a6-Abstract-Conference.html}
+}
+
+@inproceedings{berkenkamp2017safe,
+  author = {Berkenkamp, Felix and Turchetta, Matteo and Schoellig, Angela P. and Krause, Andreas},
+  title = {Safe Model-based Reinforcement Learning with Stability Guarantees},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume = {30},
+  year = {2017},
+  url = {https://proceedings.neurips.cc/paper/2017/hash/766ebcd59621e305170616ba3d3dac32-Abstract.html}
 }
