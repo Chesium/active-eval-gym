@@ -1,0 +1,82 @@
+source: https://nikolaimatni.github.io/courses/ese6180-fall2026/project.html
+
+ESE 6180-001, Fall 2026 – Final Project
+The final project structure and evaluation criteria are inspired by CS6789 at Cornell.
+
+Important Dates
+Final Project Presentations: Please ensure that you will be able to attend the final three classes of the semester (11/24, 12/01, 12/03) in person for final project presentations.
+
+Additional Tentative due dates:
+
+Project proposal: 09/30
+
+Midterm report: 11/25
+
+Final report: 12/09
+
+Grading
+Project proposal: 10%
+
+Midterm report: 15%
+
+Final report: 25%
+
+Final Presentation: 10%
+
+Reports
+Report Format: we will use L4DC (PMLR) format. You must use the L4DC LaTex format.
+
+Project proposal:
+
+Your proposal should be 2 pages maximum (not including references), and should include title, team members, abstract, related works, problem formulation and goals.
+
+Be sure to clearly identify the feedback loop in your problem formulation, and what is uniquely ‘‘L4DC’’ about your proposed work.
+
+For groups of 2, the project proposal should also clearly outline what each team member will be doing. Both team members are expected to contribute equally to all aspects of the project, i.e., it is not appropriate for one teammate to do all of the technical work, and another teammate to only work on writing up the report.
+
+Midterm Report:
+
+Your report should be 4 pages maximum (not including references). Your midterm report should build on your project proposal, and outline your solution approach, current progress and preliminary results, as well as highlight challenges that you are facing.
+
+Be sure to clearly identify the feedback loop in your problem formulation, and what is uniquely ‘‘L4DC’’ about your proposed work and solution approaches.
+
+For groups of 2, the midterm report should clearly delineate what each team member has done so far, and what each team member will be doing to finish the project.
+
+Final Report: Your report should be 10 pages maximum (not including references and supplementary material). Your final report will be evaluated by the following criteria:
+
+Merit: Is your problem formulation and solution strategy well-motivated? Can you justify the complexity-level of your approach?
+
+Technical depth: Is your project technically challenging? Did you write your own code, or did you use a available software packages? While it is ok for a project to lean more towards theory or implementation, the sum of theoretical + implementation efforts should remain consant (i.e., if you use existing software packages rather than write your own code, the theoretical component of your project should be more ambitious).
+
+Presentation: Are your solution approach, assumptions, results, and interpretations of experimental/theoretical outcomes clearly explained and/or justified? Is the report clearly and written? Are the mathematical arguments rigorous and easy to follow? Are graphs/visualizations clear?
+
+Be sure to clearly identify the feedback loop in your problem formulation, and what is uniquely ‘‘L4DC’’ about your results.
+
+For groups of 2, the final report should clearly delineate what each team member has contributed.
+
+Final Presentation: Details on the final presentation format will be provided later in the semester once the number of groups is finalized. Your final presentation will be evaluated by how clearly the criteria used to evaluate the final report (merit, technical depth, results) are communicated.
+
+Project Ideas
+Students are encouraged to idnetify projects which align well with their existing research interests, and to discuss project ideas with the instructor and/or TA prior to submitting their initial proposal.
+
+Studying existing “L4DC” theory papers and producing pedagogically accessible and/or simplified proofs is also a good option for the course project. Numerical experiments used to verify conclusions or test conjectures are encouraged.
+
+Some possible project ideas include:
+
+Action chunking in imitation learning: conduct a survey on results explaining why action chunking is useful in robot learning, see arXiv:2507.09061, arXiv:2608.02547, and references therein. Can you reconcile these with the results we’ve seen in class?
+
+Data augmentation in imitation learning: conduct a survey on results explaining why data augmentation is useful in robot learning; see arXiv:2507.09061, arXiv:1703.09327, and references therein. Can you reconcile these with the results we’ve seen in class/
+
+Asymptotic vs. non-asymptotic linear system identification guarantees: conduct a survey of known results in linear system identification in both the asymptotic and non-asymptotic sense, present the key techniques used in both settings, and compare/contrast the methods and results; see arXiv:2209.05423, arXiv:2309.03873, and references therein. Can you argue for one approach over another?
+
+Active learning in control: conduct a survey of active learning techniques in control, see arXiv:2002.00495, arXiv:2404.09030, and references therein. Can you think of other applications of the techniques developed in these papers?
+
+Imitation learning in discrete and continuous spaces: conduct a survey of results and techniques used to provide guarantees for imitation learning in discrete and continuous spaces, see Foster's IL tutorial and references therein. Can you synthesize the broad set of results into a cohesive theoretical framework?
+
+Flow matching and diffusion models: flow matching and diffusion models are trained in a way that is very similar to the framework presented in class for our two case studies. Can you use the techniques we’ve developed in class to provide generalization guarantees for flow matching or diffusion models?
+
+Learning non-smooth dynamics or controllers: many interesting tasks in robotics require contact to be made and broken, resulting in non-smooth dynamics or policies. This is in tension with the results we’ve seen in class, which require some notion of smoothness/Lipschitz-ness. One approach to overcome this challenge is to use implicit representations to capture these sharp functions in a smooth way. Conduct a survey of these techniques, and provide a closed-loop generalization guarantee for one such method. See Bianchini et al., Florence et al., Amos and Kolter, and references therein.
+
+Observation-based control: the results we’ve seen in class assume access to full system state. Many real-world systems instead only have access to the world through high-dimensional observations (e.g., RGB images, depth images, point clouds). Under what assumptions can you provide guarantees for these systems? See arXiv:2206.06553, Dean et al., arXiv:2010.03799 and references therein.
+
+Compounding error: Applying learned policies iteratively can amplify mistakes - an effect known as compounding error. Survey methods used to mitigate the effects of compounding error e.g. Ross and Bagnell, Venkatraman et al., arXiv:2603.23465
