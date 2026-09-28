@@ -2,7 +2,11 @@
 
 Two-page project proposal (excluding references) in the L4DC (PMLR) format
 required by the [course project description](../../resources/ESE6180-26Fall-Final-Project-Description.txt).
-Content is the compressed form of [`../brief.md`](../brief.md).
+The draft develops [`../brief.md`](../brief.md) and incorporates the
+[September 22 review](../discussions/v1-comments/comments-2026-09-22.md).
+The LaTeX is the current submission draft; the expanded brief predates this
+revision. See [revision notes](../discussions/v2-revision-notes.md) for the
+comment mapping, selected foundation, and remaining research choices.
 
 ## Layout
 
@@ -11,22 +15,25 @@ Content is the compressed form of [`../brief.md`](../brief.md).
 | `proposal.tex` | The proposal source. |
 | `l4dc2026.cls` | L4DC 2026 class, copied unmodified from the provided template. |
 | `template/` | The unmodified upstream sample (`.tex`, `.bib`) kept for reference. |
-| `figures/cartpole_recovery_regions.png` | Figure 1, the preliminary recovery-rate panels. |
-| `figures/make_recovery_regions.py` | Regenerates Figure 1 from stored evaluation data. |
+| `references.bib` | Local bibliography for this standalone draft. |
+| `figures/cartpole_recovery_regions.png` | Supporting preliminary panels, omitted from the two-page draft. |
+| `figures/make_recovery_regions.py` | Regenerates the supporting panels from stored evaluation data. |
 | `proposal.pdf` | Built output. |
 
-The bibliography is `../references.bib`, shared with `brief.md`; there is no
-second copy here.
+The draft uses its local `references.bib`, including the two Fujinami papers
+suggested in review. The older `../references.bib` accompanies the expanded brief.
+The source, local bibliography, and class can be copied together to Overleaf;
+the proposal build does not depend on evaluation artifacts or figure files.
 
 ## Build
 
 ```sh
 make            # pdflatex -> bibtex -> pdflatex x2
 make clean      # drop .aux/.bbl/.blg/.log/.out
-make figure     # regenerate Figure 1 (needs the repo .venv and artifacts/)
+make figure     # regenerate supporting panels (needs the repo .venv and artifacts/)
 ```
 
-Figure 1 is rendered by `figures/make_recovery_regions.py`, which reads
+The supporting figure is rendered by `figures/make_recovery_regions.py`, which reads
 `artifacts/evaluations/cartpole-failure-boundary-v1/final/analysis/episode-summary-v4/summary.json`
 and reuses the helpers in `src/active_eval_gym/plotting.py`, so the panels stay
 consistent with the `_v2` figures in `docs/findings.md`. The `artifacts/` tree is
@@ -62,6 +69,13 @@ is needed.
   course's required elements (title, team member, abstract, related work, problem
   formulation, goals) are all present; keywords are not among them. Re-add it if
   you would rather cut a sentence elsewhere.
-- Per the scope decisions taken while drafting: both open scope questions are left
-  explicitly open in the text, and both candidate level-set notions for the
-  Stage-3 theorem are presented without committing to an order.
+- The proposal body occupies two pages; references start on a separate third
+  page. The preliminary figure remains supporting material so the body can
+  explain the control, evaluation, and improvement loops at the class's normal
+  font size and margins.
+- The chosen linear foundation is a finite-horizon quadratic-cost example and
+  direct sensitivity/preservation proof. Reproducing the cited infinite-horizon
+  LQR guarantees is not a required deliverable.
+- Whether repeated retraining rounds are mandatory and which level-set notion
+  the ambitious theorem targets remain explicitly open. The foundation and main
+  research, including theoretical investigation, are required stages.

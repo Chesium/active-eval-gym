@@ -6,15 +6,15 @@
 
 TEX := proposal
 
-.PHONY: all clean distclean
+.PHONY: all figure clean distclean
 
 all: $(TEX).pdf
 
-$(TEX).pdf: $(TEX).tex ./references.bib figures/cartpole_recovery_regions.png
-	pdflatex -interaction=nonstopmode $(TEX).tex
+$(TEX).pdf: $(TEX).tex references.bib l4dc2026.cls
+	pdflatex -halt-on-error -interaction=nonstopmode $(TEX).tex
 	bibtex $(TEX)
-	pdflatex -interaction=nonstopmode $(TEX).tex
-	pdflatex -interaction=nonstopmode $(TEX).tex
+	pdflatex -halt-on-error -interaction=nonstopmode $(TEX).tex
+	pdflatex -halt-on-error -interaction=nonstopmode $(TEX).tex
 
 # Regenerate the preliminary-results figure from the stored evaluation summary.
 # The script resolves repository paths itself, so it runs from anywhere.

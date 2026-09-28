@@ -1,0 +1,498 @@
+{
+  "schema_version": "1.3",
+  "tool_version": "1.6.0-extension",
+  "report_language": "en",
+  "project": {
+    "id": "6ab0a43b833a3baaf06e2382",
+    "title": "active-eval-gym"
+  },
+  "pulled_at": "2026-09-22T17:16:30.103Z",
+  "summary": {
+    "thread_count": 9,
+    "open_count": 9,
+    "resolved_count": 0,
+    "tracked_change_count": 0,
+    "stale_anchor_count": 0,
+    "file_count": 1,
+    "reviewer_count": 1
+  },
+  "threads": {
+    "6ab161d558d70d7cdd000001": {
+      "id": "6ab161d558d70d7cdd000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 1,
+      "messages": [
+        {
+          "id": "6ab161d5d784f5147b696937",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Main feedback (1/3): Devote efforts to clarify the abstract. An important thing to carry with you is to remember that the audience is missing a lot of the context that we have, and getting a feel for what needs to be included so they can understand our idea is one of the hardest things about technical writing! Clarifying the abstract will help make the \"angle\" of the story clear, and that will help you contextualize everything follows! \n\nWhat is the story? Well, we want to learn a parametrically robust controller for (in the end) nonlinear systems like Cartpole (and beyond!). To do this, we want to iteratively adjust our training distribution in order to promote greater robustness in the learned policy, via the proxy of level-set-based domain randomization.",
+          "timestamp": "2026-09-21T16:56:53.299000+00:00",
+          "edited_at": "2026-09-21T17:04:33.077000+00:00"
+        },
+        {
+          "id": "6ab1637498cfc3de21090774",
+          "role": "reply",
+          "reply_index": 0,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "One such story: @[5f6e41173e579e0001f11b71]\n\n0a) General setting: effective control for closed-loop / feedback systems is important across science and engineering disciplines. However, many systems are complex, nonlinear, and even potentially lack model-based representations. How do we construct effective controllers for these settings? \n0b) One popular answer is to learn from data (ML / RL / etc). However, the robustness and safety of these policy synthesis methods is often unclear, due to the randomness in the draw of data, and the minimal structural assumptions on the control logic (e.g., when the policy is a neural network). \n1) Thus, our Goal: robust / safe / stable controller learned from data / simulation\n2a) Problem 1: how to validate that a controller has these properties? [\"Open-loop\" Evaluation]\n2b) Problem 2: how to learn a policy which better displays these properties? [\"Closed-loop Evaluation\"]\n3) Idea: use evidence derived from rigorous evaluation (the 'open-loop proxy') to guide the data collection (the closed-loop data collection process)! ",
+          "timestamp": "2026-09-21T17:03:48.872000+00:00",
+          "edited_at": "2026-09-21T17:04:01.844000+00:00"
+        }
+      ]
+    },
+    "6ab164002c252244e9000001": {
+      "id": "6ab164002c252244e9000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab1640000d6b0d80e9e5ac0",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "See previous comments for good material for the Motivation. \n\nLet's then put the Problem Formulation in its own section, so that we can be very precise about what we're proposing to do! ",
+          "timestamp": "2026-09-21T17:06:08.133000+00:00",
+          "edited_at": "2026-09-21T17:06:50.345000+00:00"
+        }
+      ]
+    },
+    "6ab164621e922b0398000001": {
+      "id": "6ab164621e922b0398000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab16463b15deb2cb70b9672",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is really great info for a 'running example' or 'test problem' subsection ",
+          "timestamp": "2026-09-21T17:07:47.015000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6ab165d64111fa4aff000001": {
+      "id": "6ab165d64111fa4aff000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab165d6b15deb2cb70b96d5",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is a really good scaffolding of the idea, and works better as a list (e.g., \\begin{itemize}). Let's add some context for the reader: \n\\item \\textbf{Control} -- the low-level feedback loop of the robot policy operating on in the physical environment\n\\item \\textbf{Evaluation} -- the mid-level feedback loop to estimate the performance level set of the current robot policy to guide collection of training data\n\\item \\textbf{Improvement} -- the high-level process to close the joint policy synthesis -- evaluation feedback loop. \n\nThis example of adding context helps with clarifying the technical notation ",
+          "timestamp": "2026-09-21T17:13:58.974000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6ab16668b17acf4ada000001": {
+      "id": "6ab16668b17acf4ada000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 1,
+      "messages": [
+        {
+          "id": "6ab16668b15deb2cb70b96fb",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Technical notation is always tricky, especially when there are multiple contexts to consider. Let's move this to a separate subsection that comes after we explain the idea of the feedback loop. Then, the reader will be more easily able to map the idea to the notation. For the purposes of the proposal, this might work better as another itemize, so that it matches the low-, mid-, and high-level structure of the feedback loop idea",
+          "timestamp": "2026-09-21T17:16:24.130000+00:00",
+          "edited_at": null
+        },
+        {
+          "id": "6ab166ecb15deb2cb70b9718",
+          "role": "reply",
+          "reply_index": 0,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "To clarify what I mean: we know that $k$ is the iteration number of the 'high-level' feedback loop, whereas $H$ is the horizon of the low-level policy rollout. But a reader won't know that immediately. Similarly, we know that 'condition' means both system parameters (mass, length, etc) and random ICs (like initial angle), but the reader won't! ",
+          "timestamp": "2026-09-21T17:18:36.582000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6ab1689637ef8501fc000001": {
+      "id": "6ab1689637ef8501fc000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab16896b15deb2cb70b977b",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "One nice trick for material like this is to pose \"Research Questions\" as a means of organizing our hypotheses. These can be relatively open-ended, especially for the proposal. \n\nFor example, I think an accurate interpretation of what the current text is proposing is something like (\"RQ\" means \"Research Question\"): \nRQ1: Using standard RL approaches for policy synthesis (e.g., PPO), can we increase  parametric robustness through targeted adaptation of the training distribution? [Empirical]\n\nWhat other questions might we want to ask? (One hint: propose a question that would end with \"[Theoretical]\" instead of \"[Empirical]\"). There are many good answers here!",
+          "timestamp": "2026-09-21T17:25:42.754000+00:00",
+          "edited_at": "2026-09-21T17:26:17.344000+00:00"
+        }
+      ]
+    },
+    "6ab168ff5830ea5415000001": {
+      "id": "6ab168ff5830ea5415000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab168ff98cfc3de210908fa",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "An idea: given the above comments about the low-, mid-, and high-level feedback loops, maybe we eventually organize the related work similarly!",
+          "timestamp": "2026-09-21T17:27:27.783000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6ab1697994b31126bb000001": {
+      "id": "6ab1697994b31126bb000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 1,
+      "messages": [
+        {
+          "id": "6ab169795bb4ee47502f8ea9",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "One other concrete idea for the course foundation is to apply this logic to learning linear systems (as opposed to the nonlinear cartpole). What if we simplified to x_{t+1} = A(z)x_t + B(z)u_t? ",
+          "timestamp": "2026-09-21T17:29:29.459000+00:00",
+          "edited_at": null
+        },
+        {
+          "id": "6ab169d098cfc3de21090927",
+          "role": "reply",
+          "reply_index": 0,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This will be very closely related to Tesshu Fujinami's recent works: \n\n1) https://arxiv.org/pdf/2503.24371\n2) https://arxiv.org/pdf/2609.16300",
+          "timestamp": "2026-09-21T17:30:56.560000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6ab16aa709cdeb3ce0000001": {
+      "id": "6ab16aa709cdeb3ce0000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6ab16aa7b15deb2cb70b9800",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "During the ideation / drafting process, having bullet-point-like sentences is fine. However, linking back to the general challenge of meeting the audience where they are, remember that bullet points that make sense to you are even less likely to make sense to the audience, because they rely even more strongly on implicit context. So, some of these sentences are unlikely to make sense to Nik, for example. ",
+          "timestamp": "2026-09-21T17:34:31.843000+00:00",
+          "edited_at": null
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "doc_id": null,
+      "comment_count": 9,
+      "change_count": 0,
+      "comment_short_ids": [
+        "C001",
+        "C002",
+        "C003",
+        "C004",
+        "C005",
+        "C006",
+        "C007",
+        "C008",
+        "C009"
+      ],
+      "change_short_ids": []
+    }
+  ],
+  "comments": [
+    {
+      "short_id": "C001",
+      "thread_id": "6ab161d558d70d7cdd000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 30,
+      "col": 0,
+      "offset": 1055,
+      "nearest_heading": "Abstract",
+      "enclosing_float": null,
+      "anchored_text": "\\begin{abstract}%\nA frozen controller's failures across operating conditions form a map of where it\nworks. We propose to investigate whether training near an estimated performance\nboundary expands that region while limiting regression where the controller was\nalready acceptable. We certify the region of a frozen policy, feed that estimate\ninto the choice of training conditions, and re-certify on fresh data. Monotonic\nimprovement is the ambitious target, not an assumption.%\n\\end{abstract}",
+      "stale": false,
+      "created_at": "2026-09-21T16:56:53.299000+00:00",
+      "last_activity_at": "2026-09-21T17:03:48.872000+00:00",
+      "reply_count": 1,
+      "context": {
+        "line": 30,
+        "before": "r. \\makeatletter \\g@addto@macro\\ps@jmlrtps{\\def\\@oddhead{}\\let\\@evenhead\\@oddhead} \\makeatother \\newcommand{\\Zset}{\\mathcal{Z}} \\begin{document} \\maketitle",
+        "anchor": "\\begin{abstract}% A frozen controller's failures across operating conditions form a map of where it works. We propose to investigate whether training near an estimated performance boundary expands that region while limiting regression where the controller was already acceptable. We certify the region of a frozen policy, feed that estimate into the choice of training conditions, and re-certify on fresh data. Monotonic improvement is the ambitious target, not an assumption.% \\end{abstract}",
+        "after": "\\section{Motivation, Problem Formulation, and Feedback Loops} Evaluating a frozen controller across operating conditions maps where it works, not just how we",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C002",
+      "thread_id": "6ab164002c252244e9000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 39,
+      "col": 0,
+      "offset": 1549,
+      "nearest_heading": "Motivation, Problem Formulation, and Feedback Loops",
+      "enclosing_float": null,
+      "anchored_text": "\\section{Motivation, Problem Formulation, and Feedback Loops}",
+      "stale": false,
+      "created_at": "2026-09-21T17:06:08.133000+00:00",
+      "last_activity_at": "2026-09-21T17:06:08.133000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 39,
+        "before": "timate into the choice of training conditions, and re-certify on fresh data. Monotonic improvement is the ambitious target, not an assumption.% \\end{abstract}",
+        "anchor": "\\section{Motivation, Problem Formulation, and Feedback Loops}",
+        "after": "Evaluating a frozen controller across operating conditions maps where it works, not just how well. On CartPole with the pole-angle cutoff relaxed to $90^\\circ",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C003",
+      "thread_id": "6ab164621e922b0398000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 41,
+      "col": 0,
+      "offset": 1612,
+      "nearest_heading": "Motivation, Problem Formulation, and Feedback Loops",
+      "enclosing_float": null,
+      "anchored_text": "Evaluating a frozen controller across operating conditions maps where it works,\nnot just how well. On CartPole with the pole-angle cutoff relaxed to $90^\\circ$,\ncall an episode a \\emph{recovery} if it survives $500$ steps with final-100-step\nRMS pole angle at most $5^\\circ$. An adaptive sweep of initial pole angles and\nhalf-lengths using \\href{https://github.com/Chesium/active-eval-gym}{this experiment repository}",
+      "stale": false,
+      "created_at": "2026-09-21T17:07:47.015000+00:00",
+      "last_activity_at": "2026-09-21T17:07:47.015000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 41,
+        "before": "n fresh data. Monotonic improvement is the ambitious target, not an assumption.% \\end{abstract} \\section{Motivation, Problem Formulation, and Feedback Loops}",
+        "anchor": "Evaluating a frozen controller across operating conditions maps where it works, not just how well. On CartPole with the pole-angle cutoff relaxed to $90^\\circ$, call an episode a \\emph{recovery} if it survives $500$ steps with final-100-step RMS pole angle at most $5^\\circ$. An adaptive sweep of initial pole angles and half-lengths using \\href{https://github.com/Chesium/active-eval-gym}{this experiment repository}",
+        "after": "gives Figure~\\ref{fig:regions}: quantized LQR and PPO have recovery regions differing in shape, not only size, and survival and recovery disagree, % since anti",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C004",
+      "thread_id": "6ab16668b17acf4ada000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 56,
+      "col": 0,
+      "offset": 2675,
+      "nearest_heading": "Motivation, Problem Formulation, and Feedback Loops",
+      "enclosing_float": null,
+      "anchored_text": "At iteration $k$, freeze $\\pi_k$. For a condition $z\\in\\Zset$, horizon $H$, and\ndeclared episode randomness $\\xi\\sim P_\\xi(\\cdot\\mid z)$, let\n$p_k(z)=\\Pr_\\xi[\\tau_{\\pi_k}(z,\\xi)\\text{ fails recovery}]$; under tolerance\n$\\alpha$ the acceptable region is $S_k=\\{z:p_k(z)\\le\\alpha\\}$. With a measure\n$\\mu$ fixed in advance, $V_k=\\mu(S_k)$, $g_k=\\mu(S_{k+1}\\setminus S_k)$, and\n$\\ell_k=\\mu(S_k\\setminus S_{k+1})$ satisfy $V_{k+1}-V_k=g_k-\\ell_k$.",
+      "stale": false,
+      "created_at": "2026-09-21T17:16:24.130000+00:00",
+      "last_activity_at": "2026-09-21T17:18:36.582000+00:00",
+      "reply_count": 1,
+      "context": {
+        "line": 56,
+        "before": "eful training condition, and what assumptions permit a guarantee. Informative \\emph{evaluation} conditions need not be informative \\emph{training} conditions.",
+        "anchor": "At iteration $k$, freeze $\\pi_k$. For a condition $z\\in\\Zset$, horizon $H$, and declared episode randomness $\\xi\\sim P_\\xi(\\cdot\\mid z)$, let $p_k(z)=\\Pr_\\xi[\\tau_{\\pi_k}(z,\\xi)\\text{ fails recovery}]$; under tolerance $\\alpha$ the acceptable region is $S_k=\\{z:p_k(z)\\le\\alpha\\}$. With a measure $\\mu$ fixed in advance, $V_k=\\mu(S_k)$, $g_k=\\mu(S_{k+1}\\setminus S_k)$, and $\\ell_k=\\mu(S_k\\setminus S_{k+1})$ satisfy $V_{k+1}-V_k=g_k-\\ell_k$.",
+        "after": "Three loops nest---\\textbf{control:} observation $\\to$ action $\\to$ next observation; \\textbf{evaluation:} condition selection $\\to$ frozen rollout $\\to$ updat",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C005",
+      "thread_id": "6ab165d64111fa4aff000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 61,
+      "col": 69,
+      "offset": 3118,
+      "nearest_heading": "Motivation, Problem Formulation, and Feedback Loops",
+      "enclosing_float": null,
+      "anchored_text": "Three loops\nnest---\\textbf{control:} observation $\\to$ action $\\to$ next observation;\n\\textbf{evaluation:} condition selection $\\to$ frozen rollout $\\to$ updated\nevidence $\\to$ next condition; and \\textbf{improvement}, studied here:",
+      "stale": false,
+      "created_at": "2026-09-21T17:13:58.974000+00:00",
+      "last_activity_at": "2026-09-21T17:13:58.974000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 61,
+        "before": "ith a measure $\\mu$ fixed in advance, $V_k=\\mu(S_k)$, $g_k=\\mu(S_{k+1}\\setminus S_k)$, and $\\ell_k=\\mu(S_k\\setminus S_{k+1})$ satisfy $V_{k+1}-V_k=g_k-\\ell_k$.",
+        "anchor": "Three loops nest---\\textbf{control:} observation $\\to$ action $\\to$ next observation; \\textbf{evaluation:} condition selection $\\to$ frozen rollout $\\to$ updated evidence $\\to$ next condition; and \\textbf{improvement}, studied here:",
+        "after": "\\[ \\pi_k \\;\\longrightarrow\\; \\widehat{p}_k,\\ \\widehat{S}_k \\;\\longrightarrow\\; q_k=(1-\\lambda)q_{\\mathrm{base}}+\\lambda q_{\\mathrm{target},k} \\;\\lo",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C006",
+      "thread_id": "6ab1689637ef8501fc000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 71,
+      "col": 0,
+      "offset": 3591,
+      "nearest_heading": "Motivation, Problem Formulation, and Feedback Loops",
+      "enclosing_float": null,
+      "anchored_text": "Closing it moves the target from $p_k$ to $p_{k+1}$; policies change only in a\nseparate training phase, so each $\\widehat{p}_k$ describes one closed-loop\nsystem. What is distinctively L4DC is that the estimated quantity is a\nclosed-loop property of a learned controller over initial conditions and plant\nparameters, not a reward, and that the object to certify and grow is a region,\nnot a scalar.",
+      "stale": false,
+      "created_at": "2026-09-21T17:25:42.754000+00:00",
+      "last_activity_at": "2026-09-21T17:25:42.754000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 71,
+        "before": "ow\\; q_k=(1-\\lambda)q_{\\mathrm{base}}+\\lambda q_{\\mathrm{target},k} \\;\\longrightarrow\\; \\mathrm{Train}(\\pi_k,q_k) \\;\\longrightarrow\\; \\pi_{k+1}. \\]",
+        "anchor": "Closing it moves the target from $p_k$ to $p_{k+1}$; policies change only in a separate training phase, so each $\\widehat{p}_k$ describes one closed-loop system. What is distinctively L4DC is that the estimated quantity is a closed-loop property of a learned controller over initial conditions and plant parameters, not a reward, and that the object to certify and grow is a region, not a scalar.",
+        "after": "\\begin{figure}[t] \\centering \\includegraphics[width=0.76\\textwidth]{figures/cartpole_recovery_regions.png} \\caption{Preliminary recovery rate for three \\emph{",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C007",
+      "thread_id": "6ab168ff5830ea5415000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 90,
+      "col": 0,
+      "offset": 4448,
+      "nearest_heading": "Related Work",
+      "enclosing_float": null,
+      "anchored_text": "\\textbf{Evaluation.} \\citet{gotovos2013active} and \\citet{letham2022lookahead}",
+      "stale": false,
+      "created_at": "2026-09-21T17:27:27.783000+00:00",
+      "last_activity_at": "2026-09-21T17:27:27.783000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 90,
+        "before": "5$ contour). Over $92\\%$ of cells are exactly $0$ or $1$: the interior cells are the whole boundary.} \\label{fig:regions} \\end{figure} \\section{Related Work}",
+        "anchor": "\\textbf{Evaluation.} \\citet{gotovos2013active} and \\citet{letham2022lookahead}",
+        "after": "develop adaptive level-set estimation, the latter for Bernoulli observations like ours; \\citet{howard2021timeuniform} supply time-uniform confidence sequences,",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C008",
+      "thread_id": "6ab1697994b31126bb000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 106,
+      "col": 0,
+      "offset": 5434,
+      "nearest_heading": "Goals (tentative)",
+      "enclosing_float": null,
+      "anchored_text": "\\textbf{Stage 1 (course foundation).} Build the evaluator: certify a condition\nonly when a confidence sequence puts its failure rate strictly on one side of\n$\\alpha$, and split ",
+      "stale": false,
+      "created_at": "2026-09-21T17:29:29.459000+00:00",
+      "last_activity_at": "2026-09-21T17:30:56.560000+00:00",
+      "reply_count": 1,
+      "context": {
+        "line": 106,
+        "before": "safe-region expansion via Lyapunov analysis; their stability certificates differ from our finite-horizon recovery probabilities. \\section{Goals (tentative)}",
+        "anchor": "\\textbf{Stage 1 (course foundation).} Build the evaluator: certify a condition only when a confidence sequence puts its failure rate strictly on one side of $\\alpha$, and split",
+        "after": "$\\sum_k\\delta_k\\le\\delta$ so all certified sets hold with probability $1-\\delta$ (proved by Hoeffding and a union bound). For $x_{j+1}=(A-BK)x_j$ and $J_{H,K}(x",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C009",
+      "thread_id": "6ab16aa709cdeb3ce0000001",
+      "doc_id": "6ab0a441a9711d39d770b879",
+      "pathname": "<unknown-6ab0a441a9711d39d770b879>",
+      "line": 118,
+      "col": 49,
+      "offset": 6275,
+      "nearest_heading": "Goals (tentative)",
+      "enclosing_float": null,
+      "anchored_text": "e-difficulty scored by\n$\\widehat{p}_k(1-\\widehat{p}_k)$---holding $q_{\\mathrm{base}}$, $\\lambda$, the\nobjective, and the optimizer fixed. Starting with initial-angle variation, then\nthe angle--length domain of Figure~\\ref{fig:regions}, we report $g_k$, $\\ell_k$,\nnet coverage, maps of \\emph{where} change occurs, seed variation, and total cost.\nEach updated policy is re-certified on fresh data, separating certificate growth\nfrom retraining. A negative result is a real outcome.\n\n\\textbf{Stage 3 (ambitious target).} Bound performance drift by update size,\nhorizon, and closed-loop amplification; construct examples where improving\nselected conditions degrades others; and find a restricted controller class and\nupdate admitting a sufficient condition for expansion. Both the continuous-cost\nsublevel set and the level set $S_k$ are candidates. \\textbf{Open decisions.}\nWhether repeated rounds are required or a single $\\pi_0\\to\\pi_1$ update suffices,\nand which level-set notion is primary, stay open; $\\alpha$, $\\delta$, budgets,\nseeds, reward, and mixture weights will be fixed and recorded beforehand.",
+      "stale": false,
+      "created_at": "2026-09-21T17:34:31.843000+00:00",
+      "last_activity_at": "2026-09-21T17:34:31.843000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 118,
+        "before": "PPO checkpoint, branch into matched training runs under three selection rules---uniform, boundary-guided over a band at the estimated boundary, and intermediat",
+        "anchor": "e-difficulty scored by $\\widehat{p}_k(1-\\widehat{p}_k)$---holding $q_{\\mathrm{base}}$, $\\lambda$, the objective, and the optimizer fixed. Starting with initial-angle variation, then the angle--length domain of Figure~\\ref{fig:regions}, we report $g_k$, $\\ell_k$, net coverage, maps of \\emph{where} change occurs, seed variation, and total cost. Each updated policy is re-certified on fresh data, separating certificate growth from retraining. A negative result is a real outcome. \\textbf{Stage 3 (ambitious target).} Bound performance drift by update size, horizon, and closed-loop amplification; construct examples where improving selected conditions degrades others; and find a restricted controller class and update admitting a sufficient condition for expansion. Both the continuous-cost sublevel set and the level set $S_k$ are candidates. \\textbf{Open decisions.} Whether repeated rounds are required or a single $\\pi_0\\to\\pi_1$ update suffices, and which level-set notion is primary, stay open; $\\alpha$, $\\delta$, budgets, seeds, reward, and mixture weights will be fixed and recorded beforehand.",
+        "after": "\\bibliography{references.bib} \\end{document}",
+        "truncated_before": true,
+        "truncated_after": false
+      }
+    }
+  ],
+  "tracked_changes": [],
+  "orphan_thread_ids": []
+}
