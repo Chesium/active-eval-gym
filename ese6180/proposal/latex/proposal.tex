@@ -5,7 +5,7 @@
 % amsmath, amssymb, natbib, graphicx, url, algorithm2e are loaded by the class.
 \usepackage{times}
 
-\title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization for Robust Controller Learning}
+\title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization:\newline Certificate Margins and Controller Updates}
 
 \author{%
  \Name{Shimin Chen} \Email{cshimin@engineering.upenn.edu}\\
@@ -20,121 +20,130 @@
 \g@addto@macro\ps@jmlrtps{\def\@oddhead{}\let\@evenhead\@oddhead}
 \makeatother
 
-\newcommand{\Zset}{\mathcal{Z}}
-
 \begin{document}
 
 \maketitle
 
 \begin{abstract}%
-Controllers learned in simulation can perform unevenly across plant parameters
-and initial conditions. We propose to adapt training distributions using estimates
-of where a controller meets a performance requirement. Each round evaluates a
-frozen controller, targets training near its performance boundary, and evaluates
-the update on fresh data. Linear systems and statistical certification provide
-the course foundation. CartPole experiments and analysis of improvement and
-regression form the main research, supporting an ambitious goal: conditions for
-preserving or expanding acceptable regions under restricted controller updates.%
+Evaluation-guided domain randomization targets training conditions using a
+controller's observed weaknesses, but improvement on selected conditions can
+cause regression elsewhere. We propose a theory-focused study of a small
+linear-system family: specialize trajectory-based certificate learning to
+quadratic Lyapunov candidates, then analyze one controller update constrained
+by a verified decrease margin. Cost-sensitivity bounds and counterexamples will
+separate stability preservation from performance-coverage improvement. Small
+numerical experiments support the analysis; cost-region expansion or a local
+nonlinear extension is an ambitious additional outcome.%
 \end{abstract}
 
 \section{Motivation}
 
-Learning from simulation helps control nonlinear systems when direct design is
-difficult. Domain randomization trains across varying conditions, but its
-distribution affects where a controller performs well. We investigate whether
-evaluation can guide this distribution to improve coverage of a specified
-operating domain, connecting data selection for controller learning to closed-loop
-robustness analysis.
+Domain randomization trains a shared controller across varying plants and
+initial conditions. Evaluation can identify conditions near a performance
+threshold and guide subsequent training, but proximity to that threshold need
+not imply useful training signal. We study what can be certified before an
+update and preserved afterward. The L4DC connection is the interaction between
+statistical generalization of learned certificates and feedback-dependent
+trajectory changes when the controller is updated.
 
 \section{Problem Formulation}
 
-The proposed method connects three feedback loops:
-\begin{itemize}
-\item \textbf{Control:} the policy observes the system and applies actions,
-      producing a closed-loop trajectory in each environment.
-\item \textbf{Evaluation:} adaptively selected rollouts of a frozen policy
-      estimate its performance level set and inform training-condition selection.
-\item \textbf{Improvement:} the estimate guides the next training distribution;
-      the updated policy is frozen and evaluated again.
-\end{itemize}
+Consider a known finite plant family with full-state feedback,
+$x_{t+1}=A(\theta)x_t+B(\theta)u_t$, $u_t=-Kx_t$, and
+$G_K(\theta)=A(\theta)-B(\theta)K$. The shared gain $K$ is frozen during
+evaluation; $\theta$ stays fixed within each trajectory. The initial model is
+deterministic, continuous-action, and unconstrained. Known matrices permit
+exact verification alongside certificate fitting from sampled transitions.
+The retention family must admit a common quadratic certificate; this is an
+explicit restriction beyond individual plant stability.
 
-At outer round $k$, freeze policy $\pi_k$; $t=0,\ldots,H-1$ indexes rollout
-time. A condition $z=(\theta,s)\in\Zset$ specifies plant parameters $\theta$
-and initial-state distribution $x_0\sim\nu_s$; remaining randomness has a
-declared conditional law. For failure tolerance $\alpha$, let $p_k(z)$ be the
-task-failure probability and $S_k=\{z:p_k(z)\le\alpha\}$ the acceptable region.
-Under a fixed reference
-probability measure $\mu$, coverage is $V_k=\mu(S_k)$. Gains
-$g_k=\mu(S_{k+1}\setminus S_k)$ and losses $\ell_k=\mu(S_k\setminus S_{k+1})$
-satisfy $V_{k+1}-V_k=g_k-\ell_k$. Training distribution $q_k$ adapts to
-evaluation evidence; $\mu$ stays fixed. Certificates require direct rollout
-evidence and apply only to the declared evaluation grid.
+The method connects three feedback loops: \textbf{control} maps states to
+actions and next states; \textbf{evaluation} maps chosen conditions to
+trajectory-based certificate and cost evidence; \textbf{improvement} uses that
+evidence to choose a training distribution, proposes an update, checks its
+margin, and freezes the accepted controller for fresh evaluation.
 
-\textbf{RQ1 (empirical).} Does targeting training near the estimated reliability
-boundary improve acceptable coverage compared with uniform and
-intermediate-difficulty sampling, under matched budgets?
-\textbf{RQ2 (theoretical).} Which assumptions on a parameterized system family,
-controller updates, and performance margins bound regression or permit
-acceptable-region expansion?
+For fixed $Q,R\succeq0$, let
+$J_{H,K}(\theta,x)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t)
+=x^\top P_H(K,\theta)x$, with $x_0=x$.
+Define $S_K^J=\{(\theta,x):\|x\|_2\le r,\ J_{H,K}(\theta,x)\le h\}$.
+Coverage is $\mu(S_K^J)$ under a fixed reference probability measure $\mu$;
+the training distribution $q$ may change. Net coverage change equals gained
+mass minus lost mass. The cost matrix $P_H$ is distinct from a Lyapunov
+candidate $P$, and finite-horizon acceptability does not establish stability.
 
-\textbf{Test problems.} A small linear family
-$x_{t+1}=A(\theta)x_t+B(\theta)u_t$, with $u_t=-Kx_t$, supports interpretable
-analysis. CartPole tests nonlinear policy learning over initial angle and pole
-half-length. With its angle termination cutoff relaxed to $90^\circ$, recovery
-requires survival for $500$ steps and final-100-step RMS angle at most $5^\circ$.
-Other termination rules are retained. Recovery certificates concern finite-horizon
-performance, not asymptotic stability.
+\textbf{Research questions.}
+What generalizes when a quadratic certificate is fitted to trajectories of a
+frozen controller? Which verified margins survive an evaluation-guided update?
+When can targeted training reduce its objective yet lose acceptable coverage?
 
 \section{Goals and Approach}
 
 \textbf{Stage 1: Course foundation.}
-We will learn a linear controller under a fixed domain-randomization distribution
-and derive a finite-horizon quadratic-cost sensitivity bound. Writing
-$J_{H,K}(\theta,x)=x^\top P_H(K,\theta)x$, for $\|x\|_2\le r$ an update satisfies
-$|J_{H,K'}-J_{H,K}|\le r^2\|P_H(K',\theta)-P_H(K,\theta)\|_2=:b(\theta)$.
-Thus $J_{H,K}\le h-b(\theta)$ ensures preservation below cost threshold $h$.
-In parallel, we will implement
-level-set estimation and time-uniform confidence bounds: certify a grid condition
-acceptable when its failure-probability upper bound is at most $\alpha$.
-Fresh conditionally independent episodes and error allocation across conditions,
-methods, and rounds yield simultaneous validity with error budget $\delta$.
-Certified acceptable coverage at a fixed rollout budget assesses this evaluator.
+We will adapt the certificate-learning viewpoint of \citet{boffi2021learning}
+to discrete time and $V_P(x)=x^\top Px$, with fixed
+$0<aI\preceq P\preceq bI$. For a frozen $K$, draw independent plant/initial-state
+pairs from a fixed distribution and collect $H$ transitions each. A bounded
+margin loss measures violations of
+$V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2$, $\eta>0$.
+A finite-cover argument will give a uniform generalization bound over the
+certificate class, treating whole trajectories as independent samples.
+This connects Chapter 5's learning tools with Chapter 3's Lyapunov theory,
+without claiming the source paper's strongest rate.
+The statistical conclusion concerns violation risk under the sampled law,
+not all-state stability. Separately, known matrices verify
+$G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta_\theta I$, $\eta_\theta>0$,
+on every retained plant. Failed verification is reported.
 
-\textbf{Stage 2: Main research.}
-We will use the resulting evaluation evidence to adapt
-$q_k=(1-\lambda)q_{\mathrm{base}}+\lambda q_{\mathrm{target},k}$.
-Matched PPO branches from a common checkpoint compare uniform targets,
-conditions near $\widehat p_k=\alpha$, and intermediate difficulty scored by
-$\widehat p_k(1-\widehat p_k)$. The latter favors mixed outcomes rather than threshold proximity. We hold the
-background mixture, training objective, optimizer, and budgets fixed and collect
-fresh on-policy training trajectories. Fresh reference evaluations assess gains,
-losses, and net coverage with uncertainty, seed variation, and total cost,
-separating performance improvement from certificate growth. The linear family
-supports analysis of these tradeoffs, including counterexamples to unconditional
-improvement.
+\textbf{Stage 2: Main theoretical investigation.}
+Hold verified $P$ fixed. For $K'=K+\Delta K$, write $G=G_K(\theta)$ and
+$d_\theta=\|B(\theta)\Delta K\|_2$. Expanding the quadratic form gives the
+sufficient preservation test
+\[
+2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2<\eta_\theta.
+\]
+We will connect this test to one concrete update: evaluate old costs on a fixed
+grid, mix a target near $J_{H,K}=h$ with fixed background sampling, and take an
+exact-gradient step for $F_q(K)=\mathbb E_q J_{H,K}$. Hold $q$ fixed during
+backtracking and require training descent and a positive retained margin on
+every retention plant; a capped unsuccessful search leaves $K$ unchanged.
+This preserves verified stability, not the cost-acceptable set.
+We will also derive an explicit bound
+$\|P_H(K',\theta)-P_H(K,\theta)\|_2\le L_H(\theta)\|\Delta K\|_2$,
+including the changed input penalty. With
+$b_J(\theta)=r^2L_H(\theta)\|\Delta K\|_2$, losses lie in
+$h-b_J(\theta)<J_{H,K}\le h$.
+A targeted-gradient counterexample will show that training descent and stability
+can coexist with reduced coverage. These elementary results and their limits,
+rather than a general PPO theorem, form the required analysis.
 
-\textbf{Stage 3: Ambitious theoretical outcome.}
-Building on the sensitivity result, we will seek restricted updates whose
-performance drift and margins ensure preservation or net expansion.
-Both cost and failure-probability level sets remain candidate targets;
-transferring cost bounds to probabilities requires additional assumptions.
-Whether repeated rounds are required remains open. The foundation and main
-study remain deliverables without an expansion theorem.
+\textbf{Stage 3: Ambitious extension.}
+Seek net expansion of $S_K^J$ under a specified update by establishing gains
+that outweigh losses. Alternatively, study a local nonlinear extension with
+an explicit remainder bound and invariant neighborhood. Choose one extension;
+Stages 1--2 remain deliverables without it. One outer update is sufficient.
+
+\textbf{Supporting experiments.}
+Small linear examples will compare exact and bounded drift, certificate
+verification, and gains/losses for uniform versus cost-boundary targets under
+the same update restriction. CartPole is an optional nonlinear illustration:
+with a $90^\circ$ angle cutoff and other termination rules retained, recovery
+requires 500-step survival and final-100-step RMS angle at most $5^\circ$.
+Its discrete actions and large-angle behavior do not inherit the linear theorem.
+Recovery claims require fresh episodes and simultaneous bounds
+\citep{howard2021timeuniform}. Retain raw trajectories, configurations, and seeds.
 
 \section{Related Work}
 
-\textbf{Control and synthesis.} \citet{fujinami2025domain} analyze policy gradient
-for domain-randomized LQR under bounded heterogeneity; \citet{fujinami2026history}
-extend this to history-dependent controllers with a memory-expansion curriculum.
-Their average-cost analysis motivates our linear study.
-\textbf{Evaluation.} \citet{gotovos2013active} study active level-set estimation;
-\citet{letham2022lookahead} address Bernoulli observations; and
-\citet{howard2021timeuniform} develop confidence sequences.
-\textbf{Improvement.} Reverse curricula \citep{florensa2017reverse}, prioritized
-level replay \citep{jiang2021prioritized}, and sampling for learnability
-\citep{rutherford2024noregrets} motivate our training-condition comparisons.
-Lyapunov-based safe-region expansion
-\citep{berkenkamp2017safe} concerns stability, distinct from our recovery criterion.
+\citet{boffi2021learning} study certificate generalization;
+\citet{zhang2022adversarially} extend this to robust certificates under incremental
+stability assumptions. Domain-randomized LQR \citep{fujinami2025domain}
+motivates shared-gain learning. Reverse curricula \citep{florensa2017reverse}
+precede performance-guided sampling, while \citet{berkenkamp2017safe} study
+Lyapunov-based safe-region expansion. These results motivate our analysis but
+do not imply coverage expansion for the proposed update.
+
+\noindent\textit{AI assistance:} Codex assisted with drafting and preliminary derivations.
 
 \clearpage
 \bibliography{references.bib}

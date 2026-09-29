@@ -2,11 +2,10 @@
 
 Two-page project proposal (excluding references) in the L4DC (PMLR) format
 required by the [course project description](../../resources/ESE6180-26Fall-Final-Project-Description.txt).
-The draft develops [`../brief.md`](../brief.md) and incorporates the
-[September 22 review](../discussions/v1-comments/comments-2026-09-22.md).
-The LaTeX is the current submission draft; the expanded brief predates this
-revision. See [revision notes](../discussions/v2-revision-notes.md) for the
-comment mapping, selected foundation, and remaining research choices.
+The draft summarizes the [v3 brief](../brief.md): quadratic certificate learning,
+one controller update constrained by a verified decrease margin, and supporting
+experiments. See the [v3 revision notes](../discussions/v3-revisin-notes.md) for
+scope and checks; [v2 notes](../discussions/v2-revision-notes.md) are historical.
 
 ## Layout
 
@@ -20,10 +19,14 @@ comment mapping, selected foundation, and remaining research choices.
 | `figures/make_recovery_regions.py` | Regenerates the supporting panels from stored evaluation data. |
 | `proposal.pdf` | Built output. |
 
-The draft uses its local `references.bib`, including the two Fujinami papers
-suggested in review. The older `../references.bib` accompanies the expanded brief.
-The source, local bibliography, and class can be copied together to Overleaf;
-the proposal build does not depend on evaluation artifacts or figure files.
+The draft uses its local `references.bib`, including the Boffi and Zhang
+certificate-learning papers. `proposal-overleaf.zip` contains `proposal.tex`,
+`references.bib`, and `l4dc2026.cls`; upload it as a new Overleaf project and
+select `proposal.tex` as the main document. The build does not depend on
+repository artifacts, literature PDFs, or figures.
+
+The [email draft](../discussions/email-prof-matni-v3.md) includes an Overleaf-link
+placeholder for replacement after upload. No email has been sent.
 
 ## Build
 
@@ -73,9 +76,9 @@ is needed.
   page. The preliminary figure remains supporting material so the body can
   explain the control, evaluation, and improvement loops at the class's normal
   font size and margins.
-- The chosen linear foundation is a finite-horizon quadratic-cost example and
-  direct sensitivity/preservation proof. Reproducing the cited infinite-horizon
-  LQR guarantees is not a required deliverable.
-- Whether repeated retraining rounds are mandatory and which level-set notion
-  the ambitious theorem targets remain explicitly open. The foundation and main
-  research, including theoretical investigation, are required stages.
+- The foundation is a discrete-time quadratic specialization of certificate
+  learning. The required main analysis connects verified decrease margins to
+  one restricted gain update and examines cost regression. Expansion or a
+  local nonlinear extension is optional; repeated PPO rounds are not required.
+- A brief AI-assistance statement records drafting and preliminary-derivation
+  assistance, following the syllabus guidance.

@@ -1,12 +1,21 @@
-# Understanding the linear foundation and its bridge to retraining
+# Understanding certificate learning and its bridge to retraining
 
-This note explains the revised [proposal](../latex/proposal.tex), assuming basic linear algebra and feedback control. It follows the progression **Course foundation → Main research → Ambitious theoretical outcome**:
+This note explains the [v3 brief](../brief.md), assuming basic linear algebra
+and feedback control. The [LaTeX draft](../latex/proposal.tex) now summarizes
+this scope in two pages plus references. The [v3 revision notes](v3-revisin-notes.md) record the current scope:
 
-- **Course foundation:** learn a shared linear controller across a small family of plants, derive a finite-horizon performance bound, and build an evaluator with statistical certificates.
-- **Main research:** use evaluation to adapt the training distribution, investigate gains and regressions analytically, and compare training-condition rules in CartPole experiments.
-- **Ambitious theoretical outcome:** identify assumptions under which a specified controller update preserves acceptable conditions or increases their coverage.
+- **Course foundation:** specialize trajectory-based certificate learning to a
+  frozen linear closed loop and quadratic candidates, with a generalization proof.
+- **Main theoretical investigation:** analyze one restricted controller update,
+  preserve verified decrease margins, and explain possible cost regression.
+- **Ambitious extension:** establish cost-region expansion under a specified
+  mechanism, or justify a local nonlinear extension.
 
-The selected foundation is a **finite-horizon quadratic-cost example and direct sensitivity/preservation proof**. Reproducing an infinite-horizon domain-randomized LQR convergence theorem is not required. The [revision notes](v2-revision-notes.md) record this decision and the remaining choices. The older [brief](../brief.md) and [design notes](proposal-design-notes.md) provide background; their fixed-plant derivations need the extensions below to match the current proposal.
+Sections 1–4 explain the theoretical core. Sections 5–11 retain the finite-cost
+examples from v2 as supporting analysis. CartPole and reading guidance follow.
+Experiments support the theory; a broad PPO comparison is no longer the main
+required deliverable. An expansion theorem remains optional, but the restricted
+preservation result is part of the main analysis.
 
 The textbook background is João P. Hespanha, *Linear Systems Theory*, second edition (2018), available as a [local PDF](../literature/Linear-Systems-2e.pdf). Reading pointers appear at the end. The calculations and examples below are explanations for this project, not claims of new textbook theorems or completed experiments.
 
@@ -55,7 +64,165 @@ For these calculations, assume full-state feedback and deterministic dynamics wi
 
 Unlike the old fixed-plant example, this formulation can evaluate different plant parameters. However, each trajectory calculation still holds a particular $\theta$ fixed. A theorem comparing neighboring plant parameters would require a separate bound on how their matrices differ.
 
-## 3. Turn a trajectory into a quadratic cost
+## 3. Learn a certificate before claiming it is valid everywhere
+
+The preferred foundation now follows the learning viewpoint in
+[Boffi et al.](../literature/boffi21a-learning-stability-certificates.pdf), with
+an explicit discrete-time adaptation. The policy and the certificate are two
+different learned objects:
+
+- $K$ chooses actions and therefore changes trajectories.
+- $P$ describes a candidate certificate $V_P(x)=x^\top Px$. Fitting $P$ while
+  $K$ is frozen changes our description of the system, not its behavior.
+
+A Lyapunov candidate is like a generalized energy. Positive definiteness makes
+it positive away from zero. A decrease inequality makes the energy fall along
+the actual dynamics. Neither the name “energy” nor a good fit is sufficient;
+the inequality is the part that proves the property.
+
+For a fixed linear closed loop, the desired inequality is
+
+$$
+V_P(G_K(\theta)x)-V_P(x)\le-\eta\|x\|^2.
+$$
+
+Because $x$ is arbitrary, this is equivalent to
+
+$$
+G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta I.
+$$
+
+A state trajectory supplies pairs $(x_t,x_{t+1})$. One can fit $P$ by asking for
+small violations of the decrease inequality on these pairs, while requiring
+$aI\preceq P\preceq bI$ with fixed $0<a<b$. The lower bound makes $P$ positive
+definite; the upper bound prevents improving the numerical margin merely by
+multiplying the whole certificate by an arbitrarily large number.
+
+The learning question is whether the fitted candidate behaves similarly on new
+trajectories. Freeze $K$, sample independent plants/initial states from fixed
+$D_0$, and regard a whole trajectory as one sample. A trajectory loss records the
+worst violation across its steps. The [design notes](proposal-design-notes.md)
+normalize decrease by $\|x_t\|^2$ for nonzero states and clip a margin loss to
+$[0,1]$. At zero, the linear system stays at zero and the decrease condition
+holds automatically. This avoids imposing a fixed nonzero absolute decrease
+at the equilibrium.
+
+The proof has three ingredients from Chapter 5:
+
+1. Symmetric $P$ has $n(n+1)/2$ parameters in a bounded set.
+2. Nearby matrices have similar bounded trajectory losses; the notes derive
+   the Lipschitz constant explicitly.
+3. Cover the matrix class by finitely many representatives, apply Hoeffding and
+   a union bound, and account for the approximation error.
+
+The resulting bound is uniform over the candidate class, so it can be applied
+to the $P$ selected using those data. A confidence interval for a fixed candidate
+would not automatically allow that data-dependent selection. The elementary
+rate is roughly $\sqrt{d\log N/N}$ with constants and margin terms stated in
+the notes; it does not reproduce the sharper source-paper rate.
+
+**A small probability of a sampled trajectory violating the certificate is
+still not a proof that every state converges to zero.** This is why the first
+analytical experiment also uses known matrices as an exact verification oracle.
+For each plant, calculate
+
+$$
+\eta_\theta=\lambda_{\min}(P-G_K(\theta)^\top PG_K(\theta)).
+$$
+
+A positive value proves decrease at every state for that plant. In exact
+arithmetic it yields
+
+$$
+\|x_t\|^2\le(b/a)(1-\eta_\theta/b)^t\|x_0\|^2,
+$$
+
+and every ellipsoid $\{x:x^\top Px\le c\}$ is invariant. These conclusions
+follow from the verified matrix inequality, not from the statistical bound.
+Floating-point checks require numerical tolerances and are reported as such.
+
+This also explains two distinct uses of data: fitting a candidate is learning;
+checking whether it meets the intended conditions is verification. If fitting
+succeeds but verification fails, that is evidence about the method's limits.
+It does not prove the controller is unstable, and must not be hidden.
+
+For a family, using one $P$ for every retained plant is a simplifying restriction.
+Several individually stable matrices may have no common quadratic certificate.
+The first family should admit one, with this assumption stated openly.
+
+## 4. Use the decrease margin to constrain one controller update
+
+Suppose the old $P$ is verified and $K'=K+\Delta K$. Then
+
+$$
+G'=G+E,\qquad E=-B(\theta)\Delta K.
+$$
+
+Hold $P$ fixed during this comparison. Expanding gives
+
+$$
+G'^\top PG'-P=(G^\top PG-P)+G^\top PE+E^\top PG+E^\top PE.
+$$
+
+The first term supplies the old decrease. The other terms describe how much
+of it the update could consume. With $d_\theta=\|B(\theta)\Delta K\|_2$, their
+combined quadratic form is bounded above by
+
+$$
+\left(2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2\right)\|x\|^2.
+$$
+
+Thus an explicit sufficient condition is
+
+$$
+2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2<\eta_\theta.
+$$
+
+The inequality says that the worst permitted increase is smaller than the old
+verified decrease. It uses the update size and known matrices; it does not
+require a new general theorem about PPO. Enforce it on every predeclared
+retention plant and retain a positive fraction of each old margin.
+
+The update can be made concrete: use old cost evaluations to select $q$, hold
+$q$ fixed, compute an exact gradient of a finite weighted cost objective, and
+backtrack the step until both the margin condition and a training-descent test
+pass. A zero gradient or a capped unsuccessful search gives a recorded no-op.
+Strict old margins and a nonzero descent direction ensure a sufficiently small
+step works in the ideal uncapped search, but do not ensure a useful progress
+rate. The design notes give the Armijo condition and assumptions.
+
+The background mixture keeps broad training exposure; the margin check is what
+supplies the guarantee. A small neural-network parameter change does not imply
+this matrix bound for a different policy class.
+
+**The preserved property is stability under the old certificate.** Its invariant
+ellipsoids remain invariant on retained plants. Their size does not automatically
+increase, and the cost threshold used for evaluation need not remain satisfied.
+In an unconstrained stable linear system the true region of attraction is already
+all of state space, so expanding a bounded certificate ellipsoid is not evidence
+of enlarging that true region. A meaningful additional target is finite-cost
+coverage or a region satisfying separately specified constraints.
+
+A useful counterexample makes the distinction tangible. Take scalar plants
+$\theta\in\{0,1\}$ with $x^+=\theta x+u$, $u=-Kx$, $x_0=1$, and cost
+$J_{2,K}=1+(\theta-K)^2$. With threshold $1.25$ and $K=0.5$, both plants pass.
+Training only on the upper boundary plant gives gradient $-1$; a step $0.2$
+produces $K'=0.7$. Its cost improves from $1.25$ to $1.09$, while the other
+plant's cost becomes $1.49$. Equal-weight coverage falls from $1$ to $1/2$.
+Yet $P=1$ remains valid: the smallest decrease margin changes from $0.75$ to
+$0.51$, and the perturbation bound consumes only $0.24$. Even retaining half
+the old margin accepts the step.
+
+This disproves an unconditional implication from training descent and stability
+to cost-coverage improvement. It does not refute every boundary rule: sampling
+both boundary plants equally gives zero gradient here. Which boundary conditions
+are emphasized is part of the mechanism that must be analyzed.
+
+The remaining sections retain the finite-cost calculations and examples. They
+explain regression and possible expansion, alongside the certificate theorem;
+they are not substitutes for the learning/verification distinction above.
+
+## 5. Turn a trajectory into a quadratic cost
 
 For fixed symmetric weights $Q\succeq0$ and $R\succeq0$, define
 
@@ -100,7 +267,7 @@ $$
 
 Computing this cost evaluates a given controller. Choosing a good $K$ is an additional optimization problem. With nonzero $R$, an update changes **both** the dynamics matrix $G_K$ and stage-cost matrix $W_K$; an update-size bound must account for both.
 
-## 4. Learn a controller, then evaluate its acceptable region
+## 6. Learn a controller, then evaluate its acceptable region
 
 For a fixed training distribution $q$ on conditions $z=(\theta,s)$, one possible linear training objective is
 
@@ -109,7 +276,7 @@ F_q(K)=\mathbb E_{(\theta,s)\sim q}\,
        \mathbb E_{x\sim\nu_s}[J_{H,K}(\theta,x)].
 $$
 
-A small analytical experiment can minimize a finite-sample approximation using gradients through the matrix formula. The foundation first keeps $q$ fixed. In the main research, evaluation informs a new $q_k$ before the next update. This defines a manageable controller-learning example, not a claim of global convergence or a requirement to reproduce an infinite-horizon algorithm.
+A small analytical experiment can optimize a finite weighted sum using gradients through the matrix formula. Stage 1 holds the controller fixed while learning its certificate. Stage 2 uses evaluation to choose $q$, then holds that distribution fixed during one gain update. This defines a manageable controller-learning example, not a claim of global convergence or a requirement to reproduce an infinite-horizon algorithm.
 
 Training minimizes an average cost, but the evaluation question can be whether individual conditions meet a threshold. On a plant domain $\Theta$ and initial-state domain $D=\{x:\|x\|_2\le r\}$, define
 
@@ -125,7 +292,7 @@ The full region over $(\theta,x)$ is a collection of these plant-specific slices
 
 Membership is a finite-horizon performance statement. It does not by itself prove invariance, absence of other constraint violations, or asymptotic stability.
 
-## 5. A useful warm-up: vary the initial state
+## 7. A useful warm-up: vary the initial state
 
 Hold $K$ and $\theta$ fixed and abbreviate $P_H(K,\theta)$ to $P$. The Euclidean matrix norm obeys
 
@@ -149,7 +316,7 @@ $$
 
 The last line assumes $x,x'\in D$. This Lipschitz bound says that cost changes by at most a constant times initial-state distance. If the old cost is $h-m$ and $L=2r\|P_H(K,\theta)\|_2$, then $L\|x'-x\|_2\le m$ guarantees acceptability at $x'$. For instance, margin $m=2$ and $L=4$ protect a radius of $0.5$ within $D$.
 
-This is sufficient, not necessary. With known matrices, directly evaluating the new start is exact; the bound explains how performance margins can justify generalization. It holds at one plant parameter and does not establish continuity in $\theta$. The controller-update bound below is the result emphasized in the revised proposal.
+This is sufficient, not necessary. With known matrices, directly evaluating the new start is exact; the bound explains how performance margins can justify generalization. It holds at one plant parameter and does not establish continuity in $\theta$. The cost-update bound below complements the certificate-margin result in Section 4.
 
 Horizon and transient amplification affect both bounds because
 
@@ -176,7 +343,7 @@ $$
 
 The prefactor allows transient growth. These constants need not be uniform across plants. The finite-horizon results themselves require no stability assumption; unstable dynamics may simply make the bounds very large.
 
-## 6. The foundation result: change the shared controller
+## 8. A baseline cost result: change the shared controller
 
 Compare $K$ with $K'$ at the **same** plant parameter and initial state. Hold $A(\theta),B(\theta),Q,R,H,h,r$ fixed and set
 
@@ -227,7 +394,7 @@ A single bound across plants is $\bar b=\sup_{\theta\in\Theta}b(\theta)$, **prov
 
 If $b(\theta)>h$, the guaranteed set at that plant is empty; if $b(\theta)=h$, only zero-cost starts qualify. Even a correct bound can be uninformative. It can be computed after a proposed update, but does not by itself choose a useful update or prove that boundary-guided training works.
 
-## 7. Keep the ellipse example as a fixed-plant illustration
+## 9. Keep the ellipse example as a fixed-plant illustration
 
 The existing figure remains useful as one slice of the family, with $R=0$. Set
 
@@ -269,7 +436,7 @@ Both ellipses fit inside $D$. Their geometric areas are approximately $3.1416$ a
 
 This illustrates interference from shared controller parameters; it is not a PPO experiment or a parameter-randomization experiment. The existing [figure source](figures/linear-control-retraining.py) reproduces the displayed costs and plot.
 
-## 8. A small example connects plant variation to training
+## 10. A small example connects plant variation to training
 
 Now vary the plant itself:
 
@@ -305,7 +472,7 @@ Suppose $q$ puts equal mass at $\theta=0.9$ and $1.1$, near the old upper cost b
 
 The choices above are illustrative, not a newly selected experiment protocol. This deterministic cost boundary is also different from a Bernoulli reliability boundary. The example makes the research question concrete: which targeting rules and update restrictions produce useful improvements under the fixed reference measure?
 
-## 9. What additional theory would connect targeting to expansion?
+## 11. Cost drift and the optional expansion question
 
 The direct bound compares given controllers. A stronger analysis should connect performance change to the update mechanism and explain gains as well as losses.
 
@@ -355,7 +522,7 @@ $$
 E=T\cap\{(\theta,x):h<J_{H,K}(\theta,x)\le h+a\}
 $$
 
-becomes acceptable. With the loss band from Section 6 and a fixed reference probability measure $\mu$ on this domain,
+becomes acceptable. With the loss band from Section 8 and a fixed reference probability measure $\mu$ on this domain,
 
 $$
 \mu(S_{K'}^J)-\mu(S_K^J)
@@ -366,9 +533,9 @@ Thus $\mu(E)>\mu(B_{\rm loss})$ suffices for **net coverage expansion**. It does
 
 A stronger condition, $P_H(K',\theta)\preceq P_H(K,\theta)$ for every plant, guarantees that cost never increases, hence $S_K^J\subseteq S_{K'}^J$. It does not alone ensure strict expansion. Neither the ellipse example nor arbitrary boundary sampling satisfies this condition automatically.
 
-These calculations explain why counterexamples and update analysis belong to the **main research**. A proved useful preservation or expansion condition for a restricted mechanism is the **ambitious outcome**.
+These calculations explain why counterexamples and update analysis belong to the **main research**. The certificate-preservation condition in Section 4 is required main analysis. Expansion under an actual selection/update mechanism remains the **ambitious extension**.
 
-## 10. Connect the linear example to the CartPole evaluator
+## 12. Use CartPole as a supporting illustration
 
 The CartPole study uses
 
@@ -379,7 +546,7 @@ $$
 
 A condition includes plant parameters and an initial-state distribution. Recovery requires survival for $500$ steps with final-100-step RMS angle at most $5^\circ$, using the relaxed $90^\circ$ angle termination cutoff and retaining other termination rules. This differs from the linear example in several ways:
 
-| Linear foundation | CartPole research |
+| Linear analytical model | Supporting CartPole illustration |
 | --- | --- |
 | Known family $A(\theta),B(\theta)$ and continuous linear feedback | Nonlinear dynamics and discrete-action learned policies |
 | Exact cost at each $(\theta,x)$ | Conditional failure probability at $z=(\theta,s)$ |
@@ -391,7 +558,7 @@ In outer round $k$, the evaluator uses time-uniform bounds for each grid conditi
 
 The evaluator is assessed by **certified acceptable coverage at a fixed rollout budget**. Controller improvement is assessed under the fixed reference measure, with gains, regressions, and uncertainty reported. A larger certified set can reflect more evaluation data rather than a better policy, so differences between certificates alone do not identify true gains and losses.
 
-For training, compare
+If the optional PPO illustration is run, compare uniform and reliability-boundary targets first; intermediate difficulty is an optional third comparator. The mixture is
 
 $$
 q_k=(1-\lambda)q_{\rm base}+\lambda q_{{\rm target},k}
@@ -411,7 +578,7 @@ $$
 
 An outcome can change classification only near the old threshold. To make the probability change small, one needs control of the mass near that threshold. The deterministic linear proof does not establish these assumptions for CartPole recovery, which also includes termination. Likewise, a small neural-network parameter update does not automatically bound closed-loop trajectory change.
 
-The extension to $A(\theta),B(\theta)$ addresses plant variation **within the linear family**. It does not justify a linear approximation across large CartPole angles or quantized actions. Continuous-cost and failure-probability level sets remain candidate targets for the ambitious theorem, without a newly selected priority.
+The extension to $A(\theta),B(\theta)$ addresses plant variation **within the linear family**. It does not justify a linear approximation across large CartPole angles or quantized actions. The first expansion target is the continuous-cost set; a failure-probability theorem is deferred. A nonlinear extension would need a remainder bound and an invariant neighborhood. At zero state the implemented two-force action rule still applies a nonzero force, so even the equilibrium assumption must be reconsidered.
 
 ### Why finite-horizon acceptability differs from stability
 
@@ -428,9 +595,9 @@ G_K(\theta)^\top P_HG_K(\theta)-P_H
 =(G_K(\theta)^H)^\top W_KG_K(\theta)^H-W_K,
 $$
 
-which need not be negative semidefinite. Finite-horizon cost sublevel sets therefore do not automatically certify stability or invariance. The infinite-horizon connection is background, not an added project requirement.
+which need not be negative semidefinite. Finite-horizon cost sublevel sets therefore do not automatically certify stability or invariance. The certificate in Sections 3–4 can be verified directly without equating it to a cost matrix or reproducing an infinite-horizon optimization theorem.
 
-## 11. Reading path, deliverables, and remaining choices
+## 13. Reading path, deliverables, and remaining choices
 
 The textbook supplies the following background. Page references use printed pages; add 19 for this local PDF's viewer page number.
 
@@ -449,6 +616,35 @@ The revised proposal's closest controller-learning references are:
 
 For evaluation and improvement, the [proposal bibliography](../latex/references.bib) includes Gotovos and Letham on level-set estimation and Howard on confidence sequences. The local [Florensa paper](../literature/florensa17a.pdf) explains performance-guided start-state curricula, the [Rutherford paper](../literature/2408.15099v3.pdf) motivates the mixed-success score, and the [Berkenkamp paper](../literature/1705.08551v3.pdf) illustrates the additional structure needed for Lyapunov-based safe-region arguments. These are complementary connections, not interchangeable guarantees.
 
-A concrete foundation deliverable is a small shared-controller learning example, the direct preservation proof, and a statistical evaluation procedure. The main research then studies targeted training through analytical tradeoffs and matched CartPole experiments. A positive expansion theorem is an ambitious outcome; a well-supported negative result still contributes to the main study.
+The preferred foundation paper is now [Boffi et al., Learning Stability
+Certificates from Data](../literature/boffi21a-learning-stability-certificates.pdf).
+Read Sections 3–4 for the statistical formulation and compare its continuous-time
+assumptions with our discrete-time adaptation. Its quadratic class is already
+analyzed; using quadratics is a pedagogical restriction, not a novelty claim.
+[Zhang et al.](../literature/zhang22a-adversarially-robust-stability-certificates.pdf)
+is optional robustness context, not a second required reproduction.
 
-The exact linear family, weights, horizon, optimizer, budgets, seeds, reward design, and mixture weight remain experiment-design choices. The two GP acquisition designs remain candidates, not a requirement to implement both. Failure tolerance $\alpha$ and error budget $\delta$ remain symbolic. Whether repeated outer rounds are mandatory, and which level-set notion the ambitious theorem targets, remain explicitly open. The illustrative numbers above do not settle those choices.
+| Course resource | Use in this project |
+| --- | --- |
+| [Chapter 2](../../resources/ch2%20Two%20Motivating%20Problems.pdf), §§2.2–2.4 | Policy changes, feedback, and trajectory differences |
+| [Chapter 3](../../resources/ch3%20Dynamics,%20Stability,%20and%20Basic%20Lyapunov%20Theory-1.pdf), Theorem 3.10 and Example 3.12 | Discrete-time decrease and quadratic verification |
+| [Chapter 5](../../resources/ch5%20Empirical%20Risk%20Minimization%20for%20Nonlinear%20Predictors.pdf), uniform convergence and §5.6 | Generalization, one trajectory per independent sample |
+
+Chapter 5's predictor loss is evaluated on trajectories of a fixed underlying
+system. Controller updates change the trajectories themselves. Our Stage 1 holds
+$K$ fixed while fitting $P$; Stage 2 handles the changed controller with an
+explicit perturbation argument. Chapter 4's system identification is not silently
+claimed by learning a gain with known matrices.
+
+Minimum deliverables are an accessible certificate-generalization proof,
+verified-margin update analysis, a cost-regression bound, counterexamples, and
+small numerical checks. The [design notes](proposal-design-notes.md) spell out
+the proof assumptions and the gradient/backtracking mechanism. The scalar and
+ellipse numbers above remain illustrations, not selected experimental outcomes.
+
+The finite family, gain, certificate bounds, sample law, horizon, loss margin,
+retention plants, cost threshold, step rule, and budgets must be fixed before
+experiments. One outer update is sufficient for the minimum study. If CartPole
+is used, its failure tolerance and statistical budget remain symbolic until
+protocol design. Professor feedback should focus on the choice of foundation
+paper and whether this restricted theoretical contribution has suitable depth.

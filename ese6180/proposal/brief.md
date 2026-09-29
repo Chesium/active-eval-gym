@@ -1,480 +1,339 @@
-# From Evaluation to Improvement: Boundary-Guided Training of Closed-Loop Controllers
+# Evaluation-Guided Domain Randomization: Certificate Margins and Controller Updates
 
 **Team member:** Shimin Chen
 
-**Status:** Expanded working brief for the ESE6180 proposal. This will be
-compressed into a self-contained two-page L4DC LaTeX proposal. Repository links
-currently provide traceability; they are not prerequisites for the eventual reader.
+**Status:** v3 working proposal for feedback from Prof. Matni. This brief and the
+[design notes](discussions/proposal-design-notes.md) supersede the v2 scope. The
+[LaTeX submission draft](latex/proposal.tex) and its PDF now summarize this scope
+in two pages, with references on a separate page. The [v3 revision record](discussions/v3-revisin-notes.md)
+explains the changes. The paper choice below is a working recommendation, not
+an endorsement already received from the professor.
 
 ## Project progression and commitments
 
-**Course foundation → Main research → Ambitious theoretical outcome**
+**Course foundation → Main theoretical investigation → Ambitious extension**
 
-| Stage | Purpose | Planned commitment |
+| Stage | Required or optional outcome | Supporting evidence |
 | --- | --- | --- |
-| **1. Course foundation** | Establish a dependable connection to learning, feedback, and control theory | A sound level-set evaluation/certification procedure, an accessible proof, and a linear closed-loop sensitivity result |
-| **2. Main research** | Investigate boundary-guided retraining as the central research question | Controlled retraining experiments and theoretical exploration of expansion, regression, and training-condition selection |
-| **3. Ambitious theoretical outcome** | Explain when boundary-guided updates can preserve or expand an acceptable region | Seek sufficient conditions or a restricted-system guarantee; a general monotonic-expansion theorem is not promised |
+| **1. Course foundation** | Specialize certificate learning to a frozen, discrete-time linear closed loop and a bounded quadratic certificate class; give an accessible generalization proof | Compare a candidate fitted from trajectories with exact matrix verification |
+| **2. Main investigation** | Analyze one evaluation-guided update: prove a sufficient certificate-preservation condition and exhibit improvement/regression tradeoffs for a specified update rule | Small analytical examples and numerical checks of margin, update size, and conservatism |
+| **3. Ambitious extension** | Seek cost-region expansion under an actual restricted update, or a justified local nonlinear extension; choose one after Stages 1–2 | CartPole illustrates behavior and the limits of transferring the linear result |
 
-Boundary-guided retraining is a planned research component, not an optional
-extra. The foundation provides a low-risk course-theory contribution even if
-retraining yields a negative result or the strongest theorem remains open.
-Completing the foundation alone would not complete the planned research study.
-
-The progression is also methodological: **measure the region reliably →
-intervene through training → investigate why the region changes**. Initial
-research experiments should begin once the basic evaluator works, without
-waiting for an extensive comparison of acquisition algorithms.
-
-Keep failure tolerance $\alpha$ and statistical error budget $\delta$ symbolic.
-Recovery remains the primary CartPole outcome. The continuous-cost linear
-analysis is a tractable theoretical model, distinct from a failure-probability
-guarantee for the nonlinear learned controller.
+The central deliverable is a rigorous specialization and analysis. Stage 1 alone
+is not the whole project: the certificate must be connected to a concrete update
+in Stage 2. Expansion is optional; preservation and a precise counterexample to
+unconditional improvement remain meaningful outcomes. One outer update is the
+minimum study. Repeated PPO rounds, neural certificates, barrier synthesis, and
+an acquisition-algorithm benchmark are not required deliverables.
 
 ## Abstract
 
-A controller's failures under changing initial conditions can reveal where
-additional training may be useful. We propose to investigate whether training
-near an estimated performance boundary expands a controller's acceptable
-operating region while limiting regression in previously acceptable conditions.
-The project progresses from a course foundation in level-set estimation,
-sequential certification, and linear closed-loop sensitivity to a research study
-of evaluation-guided retraining. We will freeze each policy for evaluation,
-estimate its recovery probabilities, select training conditions, and evaluate
-the updated policy using fresh data. Controlled CartPole experiments will compare
-boundary-guided training with uniform and intermediate-difficulty curricula,
-measuring gains and losses in acceptable coverage as well as evaluation and
-training costs. Theoretical investigation will connect bounded changes in
-controller performance to preservation of interior conditions and explore
-conditions for net expansion. A general monotonic-improvement result is an
-ambitious outcome rather than an assumption of the project.
+Evaluation-guided domain randomization uses a controller's observed weaknesses
+to select subsequent training conditions, but improving selected conditions can
+degrade behavior elsewhere. We propose a theory-focused study in a small family
+of discrete-time linear systems. First, we will specialize trajectory-based
+certificate learning to quadratic Lyapunov candidates, distinguishing statistical
+generalization from verified stability. We will then analyze how a verified
+decrease margin constrains one evaluation-guided update of a shared feedback
+gain. Finite-horizon cost bounds and explicit counterexamples will explain what
+stability preservation does and does not imply about acceptable performance
+coverage. Small analytical experiments will test the bounds and their
+conservatism. Existing CartPole recovery experiments motivate the question and
+provide a possible nonlinear illustration; they do not inherit the linear
+guarantees. Expansion under a specified update is an extension rather than an
+assumed property of boundary-guided training.
 
 ## Motivation and research questions
 
-The repository's [CartPole experiments](../../docs/findings.md#cartpole-recovery-failure-boundary-study)
-show that survival and recovery can disagree, and that frozen controllers have
-different recovery regions across initial angle and pole length. The existing
-[perturbation specifications](../../src/active_eval_gym/envs/perturbations.py),
-[raw rollout collector](../../src/active_eval_gym/rollout.py), and
-[boundary selector](../../src/active_eval_gym/boundary.py) make those regions
-inspectable. These are preliminary reported results; they do not demonstrate
-benefits from retraining.
+The evaluation-guided domain-randomization idea was inspired by David Snyder.
+In office hours, Prof. Matni emphasized clear scope, a central
+theoretical contribution, and relevant work on learning Lyapunov/barrier
+functions. This revision follows that guidance without assuming which paper
+he intended to recommend.
 
-The central research question is:
+The repository's [preliminary CartPole findings](../../docs/findings.md#cartpole-recovery-failure-boundary-study)
+show that survival and recovery can disagree and that fixed policies have
+different recovery regions. They motivate evaluating competence across
+conditions, but do not establish that retraining improves those regions.
 
-> Can evaluation of a controller's performance boundary guide training that
-> expands its acceptable operating region, while limiting degradation in
-> previously acceptable conditions?
+> What can trajectory-based evaluation certify about a restricted closed-loop
+> family, and which certificate margins are sufficient to preserve a guarantee
+> during an evaluation-guided controller update?
 
-Supporting questions are:
+1. **Certificate generalization:** what does satisfaction on independent sample
+   trajectories imply about a new trajectory from the same distribution?
+2. **Update preservation:** how do the decrease margin, plant matrices, and
+   update size determine whether a verified certificate remains valid, and can
+   a simple update rule enforce that condition?
+3. **Limits of improvement:** when can targeted training improve its own
+   objective while losing previously acceptable conditions? What additional
+   structure would be needed for net expansion?
 
-1. Which information makes an operating condition useful for training:
-   proximity to the acceptance threshold, intermediate difficulty, uncertainty
-   in its estimated performance, or evidence that the policy can improve there?
-2. Does boundary-guided training produce more net acceptable coverage than
-   simple curricula at equal training cost, and after charging evaluation cost?
-3. What assumptions on the dynamics, metric, controller class, and update rule
-   permit preservation or expansion guarantees?
+The project is specifically L4DC because feedback changes the trajectories on
+which learned components are evaluated; statistical certificate learning and
+control-theoretic robustness must be connected explicitly. Boundary proximity
+is a hypothesis about training usefulness, not a guarantee of a useful gradient.
 
-The intuition that boundary conditions are informative is a hypothesis about
-training value. Informative evaluation conditions need not be informative
-training conditions, and improving selected conditions can worsen others.
+## Model, sets, and feedback loops
 
-## Common formulation and feedback loops
-
-For policy iteration $k$, freeze $\pi_k$. Let $z$ be an operating condition,
-$H$ a fixed horizon, and $\xi\sim P_\xi(\cdot\mid z)$ the declared episode
-randomness. For trajectory $\tau_{\pi_k}(z,\xi)$, define
+The primary analytical model is
 
 $$
-Y_k(z,\xi)=\mathbf 1\{\text{trajectory fails the recovery requirement}\},
-\qquad p_k(z)=\mathbb E_\xi[Y_k(z,\xi)].
+x_{t+1}=A(\theta)x_t+B(\theta)u_t,\qquad u_t=-Kx_t,
+\qquad G_K(\theta)=A(\theta)-B(\theta)K.
 $$
 
-Under a fixed tolerance $\alpha$, the true acceptable region is
+Use a small fixed finite plant set $\Theta$, full-state observations, and one
+shared gain $K$. A plant stays fixed within each trajectory. Dynamics are
+deterministic and continuous-action, without quantization, saturation, process
+noise, or early termination. Matrices are known so exact verification is
+possible; fitting certificates from transitions is a controlled learning
+exercise, not system identification. Start with one plant, then a small family.
+Joint stabilizability and existence of a common quadratic certificate are
+separate assumptions; failure to find the latter does not establish instability.
+
+| Object | Domain and meaning |
+| --- | --- |
+| $V_P(x)=x^\top Px$ | Candidate certificate on state space, with $0<aI\preceq P\preceq bI$ |
+| $\mathcal E_c(P)=\{x:V_P(x)\le c\}$ | An invariant state ellipsoid only when the required decrease condition is verified |
+| $S_K^J=\{(\theta,x):\|x\|\le r,\ J_{H,K}(\theta,x)\le h\}$ | Finite-horizon cost-acceptable set over plants and initial states |
+| $S_k^p=\{z:p_k(z)\le\alpha\}$ | CartPole reliability set over plant/reset conditions $z=(\theta,s)$ |
+
+For fixed $Q\succeq0,R\succeq0$, define
 
 $$
-S_k=\{z:p_k(z)\le\alpha\}.
+J_{H,K}(\theta,x)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t)
+=x^\top P_H(K,\theta)x.
 $$
 
-Fix the evaluation domain and measure $\mu$ before comparing training methods.
-Initially use an equally weighted finite grid $\mathcal Z$, so
-$\mu(A)=|A|/|\mathcal Z|$. Define
+$P_H$ is a cost matrix, not automatically the certificate matrix $P$. In
+CartPole, $x_0\sim\nu_s$ and remaining randomness have declared conditional
+laws; $p_k(z)$ is the recovery-failure probability of frozen $\pi_k$.
+
+For each set notion, fix its reference probability measure $\mu$ before
+comparisons. The changing training distribution $q_k$ does not change $\mu$.
+Coverage $C_k=\mu(S_k)$ satisfies
 
 $$
-V_k=\mu(S_k),\qquad
-g_k=\mu(S_{k+1}\setminus S_k),\qquad
-\ell_k=\mu(S_k\setminus S_{k+1}).
+C_{k+1}-C_k=\mu(S_{k+1}\setminus S_k)-\mu(S_k\setminus S_{k+1}).
 $$
 
-Then $V_{k+1}-V_k=g_k-\ell_k$. The main research concerns gains $g_k$,
-regressions $\ell_k$, and net coverage change. Grid fractions are not physical
-volume; extending to a continuous domain needs an explicit measure and
-additional justification.
+Declare a separate measure for each domain. A grid fraction is not physical
+volume, and certificate-violation probability is not task-failure probability.
 
-The project contains three nested feedback loops:
+- **Control:** state → frozen policy action → next state.
+- **Evaluation:** selected condition → trajectory → certificate/performance
+  evidence → next condition.
+- **Improvement:** evidence → training distribution → proposed gain update →
+  margin check → accepted gain → fresh evaluation.
 
-- **Control:** observation → action under the current controller → next observation.
-- **Evaluation:** condition selection → frozen-policy rollout → updated evidence →
-  next evaluation condition.
-- **Improvement:** frozen policy $\pi_k$ → estimated performance region →
-  training distribution $q_k$ → explicit retraining → frozen policy $\pi_{k+1}$.
+Stage 1 uses a distribution fixed in advance. Adaptive evaluation is an optional
+allocation mechanism, not a substitute for the i.i.d. assumption in its proof.
+Policies remain frozen within each collection phase; updates occur separately.
 
-The last loop can be summarized as
+## Stage 1 — Specialize a certificate-learning result
 
-$$
-\pi_k
-\longrightarrow \widehat p_k,\ \widehat S_k
-\longrightarrow q_k
-\longrightarrow \operatorname{Train}(\pi_k,q_k)
-\longrightarrow \pi_{k+1}.
-$$
+The preferred anchor is Boffi et al., *Learning Stability Certificates from
+Data* [1]. The deliverable is a discrete-time quadratic specialization of its
+learning viewpoint, using Chapter 5's finite-cover/uniform-convergence tools.
+This is a pedagogical adaptation, not a reproduction of its strongest rate or
+an assertion that its continuous-time theorem applies unchanged.
 
-Training changes the target function from $p_k$ to $p_{k+1}$. Policies remain
-fixed within an evaluation phase; updates occur only in a separate training
-phase. This preserves the repository's separation of training, rollout
-collection, perturbations, and metrics.
-
-## Stage 1 — Course foundation
-
-### Level-set estimation and sequential certification
-
-Use level-set estimation to organize evaluation of a frozen controller [1, 2].
-A surrogate can guide where to sample, while direct rollout evidence supports
-certified acceptable, certified unacceptable, and unresolved labels.
-
-For each selected condition, require fresh observations satisfying
+Fit $P$ from independent trajectories of frozen $K$, with plants and initial
+conditions drawn from a fixed distribution $D_0$. Restrict $aI\preceq P\preceq bI$
+so margins cannot be enlarged arbitrarily by scaling. Study violations of
 
 $$
-\Pr(Y_{k,t}=1\mid\mathcal F_{k,t-1},z_{k,t})=p_k(z_{k,t}),
+V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2,\qquad \eta>0.
 $$
 
-where the history includes earlier training and evaluation phases. One episode
-supplies one binary outcome; its time steps are not independent samples.
-Use simultaneous confidence sequences [3] and classify a condition only when
-its upper failure-probability bound is at most $\alpha$, or its lower bound
-exceeds $\alpha$. Otherwise abstain.
+The [design notes](discussions/proposal-design-notes.md) give a bounded trajectory
+loss, finite-cover proof, and treatment of the equilibrium. One trajectory is
+one independent sample; its time steps are dependent. Uniformity over the
+certificate class is necessary because $P$ is fitted to the data. A pointwise
+interval for a preselected $P$ does not provide that uniformity.
 
-Write $\widehat S_{k,t}$ and $\widehat F_{k,t}$ for the certified sets.
-For a joint claim across policy iterations, select budgets $\delta_k$ with
-$\sum_{k\ge0}\delta_k\le\delta$ and establish conditional coverage within each
-new evaluation phase. The intended conclusion is
+Separately verify, using known matrices,
 
 $$
-\Pr\!\left[
- \forall k,t:\quad
- \widehat S_{k,t}\subseteq S_k,\quad
- \widehat F_{k,t}\subseteq\mathcal Z\setminus S_k
-\right]\ge1-\delta.
+G_K(\theta)^\top P G_K(\theta)-P\preceq-\eta_\theta I,
+\qquad \eta_\theta>0,
 $$
 
-Derive a simple Hoeffding/union-bound construction as the accessible proof.
-A Bernoulli mixture confidence sequence is the intended practical alternative.
-Use the same chosen certifier across comparisons. Fresh data are required for
-the updated policy; old trajectories do not automatically certify its behavior.
+on every plant for which stability is claimed. This all-state inequality makes
+$V_P$ a Lyapunov function there and its sublevel sets invariant. The statistical
+bound alone controls violation risk under the sampled distribution over the
+declared horizon, not all-state or infinite-horizon stability. A learned
+candidate may fail exact verification; report that outcome.
 
-Keep the evaluator study small: one transparent allocation baseline and one
-LSE-guided evaluator. The previous look-ahead certificate-gain and simple GP
-ranking designs remain candidates for the evaluation layer, not required
-parallel implementations. Acquiring certificates and locating conditions useful
-for retraining are separate objectives; a rule optimized for one must not be
-assumed optimal for the other. Selection of the simple baseline and acquisition
-rule remains a protocol decision.
+The direct course connections are Chapter 3, Theorem 3.10 and Example 3.12, and
+Chapter 5's uniform convergence and trajectory-level sampling. Chapter 2
+motivates the controller-update question. Chapter 4 becomes central only if
+learning dynamics or an expert policy is deliberately added, which is outside
+the minimum scope.
 
-GP predictions are not certificates, and the guarantee initially covers only
-the finite grid. Certified acceptable coverage at a fixed evaluation budget is
-a foundation diagnostic. The main research outcome is change in the controller's
-region, assessed with a common reference protocol.
+## Stage 2 — Analyze one restricted evaluation-guided update
 
-### Linear control result and a bridge to retraining
-
-For fixed feedback $K$, analyze
+Hold verified $P$ fixed and write $K'=K+\Delta K$. For one plant, let
+$G=G_K(\theta)$ and $d_\theta=\|B(\theta)\Delta K\|_2$. Expanding the
+quadratic form gives the sufficient preservation condition
 
 $$
-x_{j+1}=G_Kx_j,\qquad G_K=A-BK,
+2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2<\eta_\theta.
 $$
 
-with $Q\succeq0$ and
+Enforce it on a fixed retention set of plants, using a common $P$ and their
+verified old margins. The retained decrease guarantees stability and invariance
+of the old certificate ellipsoids on those plants. It does not guarantee
+preservation of a cost threshold or of the CartPole recovery criterion.
+For an unconstrained stable linear system the true region of attraction is
+already global; enlarging a certificate ellipsoid alone would not establish
+growth of that true region. Cost coverage supplies a separate meaningful target.
+
+Make the update concrete: evaluate the old gain on a fixed cost grid, target
+conditions near $J_{H,K}=h$, and mix with fixed background coverage,
 
 $$
-J_{H,K}(x)=\sum_{j=0}^{H-1}x_j^\top Qx_j=x^\top P_H(K)x,
-\qquad
-P_H(K)=\sum_{j=0}^{H-1}(G_K^j)^\top QG_K^j.
+q=(1-\lambda)q_{\rm base}+\lambda q_{\rm target}.
 $$
 
-On $\|x\|_2,\|x'\|_2\le r$, derive
+Propose one gradient step for $F_q(K)=\mathbb E_q[J_{H,K}(\theta,x)]$ and
+backtrack until the preservation test passes with a declared positive residual
+margin. Hold $q$ fixed throughout the step. If no useful step is accepted,
+record that outcome; retaining $K$ is the fallback. Small steps preserve a
+strictly positive old margin but need not produce useful progress. The guarantee
+comes from the update restriction, not the sampling mixture.
 
-$$
-|J_{H,K}(x)-J_{H,K}(x')|
-\le2r\|P_H(K)\|_2\|x-x'\|_2.
-$$
+The required analysis has three parts:
 
-This gives a sufficient rule for generalizing a continuous-cost conclusion
-between nearby initial states. Examine horizon and transient amplification;
-stable eigenvalues alone do not imply Euclidean contraction.
+1. Prove margin preservation and connect it to this accepted update, including
+   zero-gradient and rejected-step cases.
+2. Derive an explicit finite-horizon cost-drift bound in $\|\Delta K\|$, accounting
+   for both changed dynamics and the $K^\top RK$ input penalty. Bound possible
+   regression near the old cost threshold.
+3. Give a targeted-gradient counterexample showing that lower training cost,
+   or retained stability, need not increase reference coverage.
 
-A closely related controller-update bound supplies the bridge to the research:
+The old bound $r^2\|P_H(K',\theta)-P_H(K,\theta)\|$ remains a baseline, not the
+whole theory deliverable. The [explanation](discussions/linear-control-and-retraining-explained.md)
+retains its derivation and examples. These elementary results are not claimed
+as novel. Numerical work compares exact/bounded drift, checked margins, and
+coverage gains/losses. Start with uniform versus cost-boundary targeting from
+the same gain, with matched budgets and the same margin rule.
 
-$$
-|J_{H,K'}(x)-J_{H,K}(x)|
-\le r^2\|P_H(K')-P_H(K)\|_2=:b.
-$$
+## Stage 3 — Optional expansion or nonlinear extension
 
-Define $S_K^J=\{x:\|x\|_2\le r,\ J_{H,K}(x)\le h\}$. Then
+The preferred first extension is net expansion of $S_K^J$ under a specified
+update. It must establish enough gains to offset losses, rather than assume
+improvement everywhere. Set inclusion and positive net coverage differ.
+Certificate growth caused by less conservative inference is also not controller
+improvement.
 
-$$
-\{x:\|x\|_2\le r,\ J_{H,K}(x)\le h-b\}\subseteq S_{K'}^J,
-$$
+An alternative is a local nonlinear extension with an explicit remainder bound,
+a preserved equilibrium, and a verified invariant neighborhood. Choose one
+extension after the linear analysis. Failure-probability expansion and repeated
+PPO retraining are later questions, not minimum outcomes.
 
-and losses are restricted to an old boundary band:
+## Supporting CartPole study and evaluation protocol
 
-$$
-S_K^J\setminus S_{K'}^J
-\subseteq
-\{x:\|x\|_2\le r,\ h-b<J_{H,K}(x)\le h\}.
-$$
+Keep the existing task: relaxed $90^\circ$ angle cutoff, retained cart
+termination, horizon 500, and recovery defined by survival plus final-100-step
+RMS angle at most $5^\circ$. Recovery remains the primary CartPole metric.
 
-These identities and corollaries are elementary baseline results to derive
-and illustrate, not novel claims. Known matrices provide analytical reference
-sets. The finite-horizon statements do not require asymptotic stability.
+The repository's quantized LQR applies one of two fixed forces, including at
+zero state. Its closed loop is not $x^+=(A-BK)x$. Discrete-action PPO has a
+related mismatch with smooth linear-feedback assumptions. Local plant
+linearizability therefore does not transfer the theorem to these policies or
+justify large-angle recovery guarantees. Practical stability, safety, and
+recovery would require separate analyses.
 
-This analysis is distinct from the quantized LQR and discrete-action PPO in
-nonlinear CartPole. It does not automatically establish smooth failure
-probabilities, infinite-horizon safety, or monotonic acceptable-region growth.
+Use existing frozen-policy evidence or one matched PPO update only if it answers
+a question raised by the theory. If retraining is included, compare uniform and
+reliability-boundary targets first; intermediate difficulty $\widehat p(1-\widehat p)$
+is an optional third comparator. It peaks at $1/2$, which need not equal $\alpha$.
+Keep objective, mixture, optimizer, and budgets fixed, use fresh on-policy
+training data, and evaluate frozen checkpoints on fresh reference episodes.
+Fix any recovery-oriented training reward before comparing curricula.
 
-## Stage 2 — Main research: boundary-guided retraining
+For grid-based recovery claims, use fresh Bernoulli outcomes under a declared
+conditional law and simultaneous confidence bounds [4]. An upper failure bound
+at most $\alpha$ certifies acceptability; a lower bound above $\alpha$ certifies
+unacceptability; otherwise abstain. Allocate error across conditions, methods,
+and policy phases. Keep $\alpha,\delta$ symbolic until protocol design. If
+certificate-learning and rollout claims share a joint probability statement,
+allocate separate portions of $\delta$ to them too.
 
-### What counts as a boundary?
+The elementary time-uniform proof and optional GP acquisition remain supporting
+infrastructure in the design notes. GP predictions do not certify unobserved
+conditions. Learning a quadratic certificate and fitting a performance surrogate
+are different tasks. No GP implementation is needed to complete the theory.
 
-| Object | Definition or diagnostic | Role to investigate |
-| --- | --- | --- |
-| Reliability boundary | $p_k(z)$ near the prescribed $\alpha$ | Target the acceptance requirement |
-| Intermediate-difficulty region | Recovery success near $1/2$ | Seek conditions with potential training signal |
-| Statistically unresolved region | Confidence interval straddles a threshold | Seek missing evaluation evidence |
+## Reproducibility and interpretation
 
-These sets need not coincide. Mixed success can reflect reset randomness as
-well as policy limitations; it is not proof that further training will help.
-A threshold band $|p_k(z)-\alpha|\le\varepsilon$ is a band in probability
-values, not necessarily a thin geometric band in state space.
+Retain raw trajectories independently of metrics. Record environment ID/package
+versions, plant/reset specs, checkpoint hashes, training/action/episode seeds,
+action rule, metric versions, sampling distributions, query histories, and
+update rejections. Also retain linear matrices, fitted $P$, normalization,
+old/new gains, and verification tolerances. Floating-point eigenvalue checks
+need a declared numerical margin; the exact-arithmetic proposition supplies
+the proof, while computations provide numerical evidence.
 
-### Controlled training intervention
+Never select seeds by performance. Report unresolved conditions, keep rewards
+distinct from metrics, and count evaluation/training transitions as well as
+episodes. Keep reference data separate from selection/training. The earlier
+boundary study's pilot seeds 0–4 overlap final seeds 0–49; its map is not wholly
+held out and its Wilson intervals are pointwise. Preserve those artifacts and
+version any new protocol. This revision claims no new experiments or completed
+paper reproduction.
 
-Start from the same frozen nominal PPO checkpoint and branch into matched
-additional-training runs. Compare three training-condition strategies:
+## Selected literature and course fit
 
-1. **Uniform:** sample the declared operating domain without performance-based
-   prioritization.
-2. **Boundary-guided:** prioritize a band around the estimated reliability
-   boundary.
-3. **Intermediate difficulty:** use a Sampling-for-Learnability-inspired
-   score $\widehat p_k(z)(1-\widehat p_k(z))$ [6].
+1. **Boffi et al., Learning Stability Certificates from Data.** CoRL 2020,
+   PMLR publication 2021. Preferred foundation for certificate learning and
+   trajectory generalization. [Publisher](https://proceedings.mlr.press/v155/boffi21a.html),
+   [local PDF](literature/boffi21a-learning-stability-certificates.pdf).
+2. **Zhang et al., Adversarially Robust Stability Certificates can be
+   Sample-Efficient.** L4DC 2022. Optional robustness context involving
+   incremental stability; its adversarial theorem is not a required reproduction.
+   [Publisher](https://proceedings.mlr.press/v168/zhang22a.html),
+   [local PDF](literature/zhang22a-adversarially-robust-stability-certificates.pdf).
+3. **Berkenkamp et al., Safe Model-based Reinforcement Learning with Stability
+   Guarantees.** NeurIPS 2017. Context for model uncertainty and safe-region
+   expansion, with additional assumptions including a given Lyapunov candidate.
+   [Paper](https://arxiv.org/abs/1705.08551), [local PDF](literature/1705.08551v3.pdf).
+4. **Howard et al., Time-uniform, nonparametric, nonasymptotic confidence
+   sequences.** Annals of Statistics 2021. Supporting rollout inference.
+   [Paper](https://arxiv.org/abs/1810.08240), [local PDF](literature/1810.08240v9.pdf).
 
-Use the same evaluator for the two targeted curricula in the initial comparison
-to isolate the training selection rule. Estimating the intermediate-difficulty
-region must receive explicit support in the query plan; do not starve it with
-an evaluator that only samples near $\alpha$. A full reproduction of SFL,
-with its own data-collection procedure, is a later comparison if warranted.
+Fujinami et al.'s domain-randomized LQR work remains controller-learning context;
+its average-objective convergence does not imply acceptable-region expansion.
+Gotovos/Letham support optional level-set acquisition; Florensa/Jiang/Rutherford
+provide curriculum precedents. Their algorithms are not all implementation
+requirements. Entries are in [latex/references.bib](latex/references.bib); download
+provenance is in [literature/certificate-learning-sources.md](literature/certificate-learning-sources.md).
 
-A shared mixture makes the intervention explicit:
+The [syllabus](../resources/ESE6180-26Fall-Syllabus.pdf), page 2, calls for a
+theory-focused project. The [project requirements](../resources/ESE6180-26Fall-Final-Project-Description.txt)
+allow pedagogical simplifications of existing theory with numerical verification.
+The proposed contribution is an adaptation and analysis of its limits;
+methodological novelty is not presumed.
 
-$$
-q_k=(1-\lambda)q_{\rm base}+\lambda q_{{\rm target},k}.
-$$
+## Decisions for professor feedback and two-page conversion
 
-Here $q_{\rm base}$ provides common background coverage, potentially mixing
-nominal and broadly sampled conditions. Hold it and $\lambda$ fixed across
-methods. The uniform method uses a uniform target component. Mixture weights,
-boundary-band width, treatment of uncertain points, and fallback behavior
-when the selected band is empty remain to be specified. The mixture is a
-retention mechanism to test, not a guarantee against forgetting.
+- Is discrete-time quadratic certificate learning followed by one verified
+  update an appropriate central theoretical contribution?
+- Is Boffi et al. the right anchor, or is another Lyapunov/barrier result more
+  suitable? These are candidate readings, not papers attributed to his advice.
+- Is a finite family with a common quadratic certificate appropriately scoped,
+  with cost expansion optional and CartPole supporting the analysis?
 
-Use a common recovery-oriented training objective across methods. The original
-survival reward can reward trajectories that never recover upright. The exact
-reward design is open and must be fixed before the comparative experiment;
-keep training reward distinct from the unchanged evaluation criterion.
+Numerical choices remain: family matrices, certificate bounds, decrease/learning
+margins, sampling distribution, weights/horizon, retention plants, target band,
+mixture weight, step size, and budgets. Settle assumptions before interpreting
+numerical outcomes.
 
-With PPO, selected conditions determine where to collect fresh on-policy
-training rollouts. Replaying a condition does not mean inserting arbitrary old
-evaluation trajectories into an on-policy update. Fix and record evaluation
-action mode separately from training-time action sampling.
-
-### Experimental progression
-
-Begin with initial-angle variation at nominal pole length to isolate recovery
-from different starts. The existing angle–length domain is the natural next
-experiment, introducing plant variation without adding another environment.
-
-First study a single update $\pi_0\to\pi_1$ across multiple additional-training
-seeds. Starting from one shared checkpoint isolates the curriculum intervention;
-broader claims about training require additional independently trained starting
-checkpoints. Then study repeated evaluation–retraining rounds to examine whether
-gains accumulate, plateau, or reverse. The minimum commitment for the multi-round
-study is awaiting a scope decision.
-
-Evaluate:
-
-- Gains $g_k$, losses $\ell_k$, and net acceptable-coverage change under the
-  same fixed measure.
-- Nominal performance and performance in previously acceptable conditions.
-- Maps and trajectories showing where improvements or regressions occur.
-- Variation across training seeds and sensitivity to the training-condition rule.
-- Evaluation cost, training transitions, and computation time.
-
-First match training transitions and optimization settings to isolate training
-effects. Then account for boundary-discovery cost in the total evaluation-plus-
-training budget. Equal episode counts alone are insufficient because failures
-shorten episodes. Keep the independent reference evaluation budget explicit.
-
-### Research interpretation
-
-The experimental study and theoretical exploration are required research
-activities; favorable results are not assumed. A negative result should explain
-whether the issue is boundary estimation, lack of useful training signal,
-reward mismatch, or degradation elsewhere. Counterexamples and restricted
-sufficient conditions are useful outcomes.
-
-## Stage 3 — Ambitious theoretical outcome
-
-The ambitious goal is to connect the selection of training conditions and the
-actual controller update to preservation or expansion. The baseline bound
-localizes possible loss; it does not show that a training algorithm obtains
-enough gain to offset that loss.
-
-Candidate theoretical steps are:
-
-1. Bound performance drift in terms of update size, horizon, and closed-loop
-   amplification, rather than only an after-the-fact matrix difference.
-2. Construct examples where improving selected conditions degrades other
-   conditions, explaining why unconditional monotonic expansion fails.
-3. Identify assumptions on a restricted controller class and training update
-   that guarantee improvement in some outside conditions while controlling
-   loss of previously acceptable ones.
-4. Derive a sufficient condition for net expansion, and investigate whether
-   a boundary-guided update satisfies it.
-
-The choice of continuous-cost expansion as the first target versus
-failure-probability expansion as the primary target is awaiting confirmation.
-The linear model offers a tractable route; a probability-level result also
-needs assumptions about randomness and mass near the failure threshold.
-Neither pointwise cost improvement nor empirical growth of certified sets
-alone proves growth of the true failure-probability level set.
-
-A theorem that assumes improvement everywhere would not explain the value of
-boundary-guided training. The research challenge is to connect the proposed
-selection/update mechanism to the required improvement and retention
-conditions. No general monotonic-growth theorem for PPO is promised.
-
-## Task definition, evidence, and reproducibility
-
-The primary CartPole task retains the repository's modified $90^\circ$
-pole-angle termination cutoff, cart-position termination, and 500-step horizon.
-Recovery means surviving and achieving final-100-step RMS pole angle at most
-$5^\circ$. Terminated episodes fail recovery. Survival under those same
-dynamics is a secondary diagnostic; standard CartPole survival is a separate
-task if included.
-
-Fix the initial angle exactly and retain the declared reset randomness in cart
-position, cart velocity, and pole angular velocity. Record the installed reset
-law and package versions. Repeating the same seed at the same condition is not
-a fresh trial. Retain raw trajectories, requested/applied actions where relevant,
-policy/checkpoint hashes, training and episode seeds, metric versions,
-training-distribution specifications, and query histories.
-
-Use known-probability Bernoulli fixtures to check statistical validity and a
-small analytical linear example to check the theory. These do not expand the
-RL environment scope.
-
-Updated policies receive fresh evaluation data. A common reference study
-estimates each $S_k$ with uncertainty; a finite Monte Carlo map is not exact
-ground truth. Ambiguous points cannot be counted automatically as correct or
-as improvements. Separate certificate growth caused by more evaluation from
-performance changes caused by retraining.
-
-The previous final boundary study reused pilot seeds 0–4 within final seeds
-0–49; it is not wholly held out. Existing Wilson intervals are pointwise
-summaries. Preserve those artifacts as preliminary evidence and use a new
-versioned protocol for the new claims. Details and proofs are in the
-[supporting notes](discussions/proposal-design-notes.md).
-
-## Related work and research positioning
-
-**Evaluation foundation.** Gotovos et al. [1] develop adaptive GP level-set
-estimation with model-dependent approximate classification guarantees.
-Letham et al. [2] address Bernoulli observations. Howard et al. [3] provide
-time-uniform confidence-sequence tools. They support the evaluation layer;
-the proposal does not claim a new LSE or concentration framework.
-
-**Training-condition selection.** Reverse Curriculum Generation [4] constructs
-performance-adaptive curricula of starting states. Prioritized Level Replay [5]
-prioritizes environment configurations using estimated learning potential.
-Sampling for Learnability [6] directly targets mixed-success conditions and
-also studies shifts in the preferred success rate. Boundary-guided training
-and changing a sampling threshold are therefore not sufficient novelty claims.
-
-**Control guarantees.** Berkenkamp et al. [7] connect model-based policy learning
-and safe-region expansion through Lyapunov analysis and statistical dynamics
-models. Their stability certificates differ from our finite-horizon recovery
-probabilities and reset-based experiments. The comparison motivates stating
-precisely which assumptions would support an expansion result.
-
-The potential research contribution is a controlled investigation of
-**evaluation-defined boundary selection, improvement toward a declared
-acceptance requirement, and retention of prior competence**, together with
-theoretical characterization in a tractable control setting. Establishing a
-new method or theorem requires sharper positioning after the update mechanism
-is fixed. A rigorous synthesis, counterexample, or negative experimental result
-can still satisfy the research objectives.
-
-## Selected references
-
-The main bibliography now follows the foundation-to-retraining progression.
-Earlier evaluator-allocation references remain linked in the
-[supporting notes](discussions/proposal-design-notes.md), without expanding the
-core citation list. Matching entries are in [references.bib](references.bib).
-
-1. Alkis Gotovos, Nathalie Casati, Gregory Hitz, and Andreas Krause.
-   **Active Learning for Level Set Estimation.** IJCAI, 2013.
-   [Paper](https://people.csail.mit.edu/alkisg/files/gotovos13active.pdf).
-2. Benjamin Letham, Phillip Guan, Chase Tymms, Eytan Bakshy, and Michael
-   Shvartsman. **Look-Ahead Acquisition Functions for Bernoulli Level Set
-   Estimation.** AISTATS, 2022.
-   [Paper](https://proceedings.mlr.press/v151/letham22a.html).
-3. Steven R. Howard, Aaditya Ramdas, Jon McAuliffe, and Jasjeet Sekhon.
-   **Time-uniform, nonparametric, nonasymptotic confidence sequences.**
-   The Annals of Statistics, 49(2):1055–1080, 2021.
-   [Paper](https://arxiv.org/abs/1810.08240).
-4. Carlos Florensa, David Held, Markus Wulfmeier, Michael Zhang, and Pieter
-   Abbeel. **Reverse Curriculum Generation for Reinforcement Learning.**
-   CoRL, 2017. [Paper](https://proceedings.mlr.press/v78/florensa17a.html).
-5. Minqi Jiang, Edward Grefenstette, and Tim Rocktäschel.
-   **Prioritized Level Replay.** ICML, 2021.
-   [Paper](https://proceedings.mlr.press/v139/jiang21b.html).
-6. Alex Rutherford, Michael Beukman, Timon Willi, Bruno Lacerda, Nick Hawes,
-   and Jakob Foerster. **No Regrets: Investigating and Improving Regret
-   Approximations for Curriculum Discovery.** NeurIPS, 2024.
-   [Paper](https://arxiv.org/abs/2408.15099).
-7. Felix Berkenkamp, Matteo Turchetta, Angela P. Schoellig, and Andreas Krause.
-   **Safe Model-based Reinforcement Learning with Stability Guarantees.**
-   NeurIPS, 2017. [Paper](https://arxiv.org/abs/1705.08551).
-
-## Open decisions and two-page conversion
-
-- **Scope decisions requested:** whether multiple retraining rounds are required
-  and which level-set notion is the first ambitious theoretical target.
-- **Protocol decisions:** $\alpha,\delta$, grid, evaluation and training budgets,
-  training seeds, reward design, mixture weights, boundary-band width,
-  uncertainty handling, and reference precision.
-- **Evaluator design:** pick one simple baseline and one LSE-guided rule;
-  do not let evaluator optimization displace the retraining investigation.
-- **Extensions:** angle–length training and multiple starting checkpoints can
-  follow the initial-angle experiment.
-
-The [course requirements](../resources/ESE6180-26Fall-Final-Project-Description.txt)
-require two pages maximum excluding references, in L4DC LaTeX. Retain the
-three-stage progression prominently. Give the foundation one compact
-method/theory paragraph, reserve the largest share for the research question
-and retraining experiment, and describe the ambitious theorem as an objective
-with explicit assumptions to investigate. Include title, team member, abstract,
-related work, formulation, goals, and the feedback loops. Move proof details
-to working notes, replace repository links with self-contained descriptions,
-and distinguish preliminary results from planned work.
+The two-page LaTeX now leads with the theory and makes Stages 1–2 the main
+contribution. It includes author, abstract, formulation, feedback loops, related
+work, and goals, with experiments supporting the analysis and proof details
+retained in these notes. The [email draft](discussions/email-prof-matni-v3.md)
+requests feedback on the foundation and scope, with an Overleaf-link placeholder.

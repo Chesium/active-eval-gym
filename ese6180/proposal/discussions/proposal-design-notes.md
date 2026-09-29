@@ -1,30 +1,351 @@
-# Supporting notes: from evaluation to boundary-guided retraining
+# Supporting notes: certificate learning and one evaluation-guided update
 
-These notes support [brief.md](../brief.md). They retain derivations and source
-selection details that do not belong in the two-page proposal.
+These notes support the [v3 brief](../brief.md). They contain proof sketches,
+assumptions, and retained evaluation infrastructure. The [LaTeX](../latex/proposal.tex)
+now summarizes v3 in two pages plus references. See the [revision record](v3-revisin-notes.md) for scope changes.
+No paper reproduction or new experiment is claimed complete by these notes.
 
-## Current scope and progression
+## Current scope and proof obligations
 
-**Course foundation → Main research → Ambitious theoretical outcome**
+**Course foundation → Main theoretical investigation → Ambitious extension**
 
-- **Foundation:** LSE and sequential certification, plus an accessible linear
-  control sensitivity result, provide a dependable course-theory component.
-- **Main research:** boundary-guided retraining experiments and theoretical
-  investigation are planned work, not an optional stretch.
-- **Ambitious outcome:** investigate conditions for preserving or expanding
-  acceptable regions. A general monotonic-improvement theorem is not promised.
+- **Required foundation:** adapt trajectory-based certificate learning to a
+  frozen discrete-time linear family and a bounded quadratic class; explain
+  the distinction between generalization and all-state verification.
+- **Required main analysis:** connect a verified decrease margin to one actual
+  gradient update with backtracking, derive a cost-regression bound, and show
+  why targeted improvement does not imply coverage expansion.
+- **Optional:** cost-set expansion under an actual rule, or a local nonlinear
+  extension. Multiple PPO rounds, learned barriers, GP acquisition comparisons,
+  and neural certificate classes are not minimum deliverables.
 
-Shimin Chen retains recovery as the primary CartPole metric and leaves
-\(\alpha,\delta\) symbolic. The evaluation layer is reduced to one simple
-baseline and one LSE-guided rule; the two earlier GP acquisition designs remain
-candidates, not a requirement to implement both. Acquisition for certification
-and selection for retraining have different objectives.
+The default anchor is Boffi et al., *Learning Stability Certificates from Data*
+([publisher](https://proceedings.mlr.press/v155/boffi21a.html),
+[local PDF](../literature/boffi21a-learning-stability-certificates.pdf)), Sections
+3–4. Its main analysis is continuous time and already discusses quadratic
+classes. The discrete-time proof below is an elementary adaptation of the
+learning viewpoint, not a new certificate-learning framework or a claim to its
+faster rates. Chapter 3 supplies the Lyapunov argument; Chapter 5 supplies the
+finite-cover uniform-convergence tools. Paper choice remains subject to feedback.
 
-Two scope questions are pending: whether multiple retraining rounds are
-required, and whether the first ambitious theorem targets continuous-cost
-level sets or failure-probability level sets. Numerical protocol and training
-reward design also remain open. The main brief is authoritative for the
-current commitments.
+## 1. Assumptions and distinct guarantees
+
+Let $\Theta$ be a fixed finite plant set and let
+$x^+=G_K(\theta)x$, $G_K(\theta)=A(\theta)-B(\theta)K$. Each episode holds
+$\theta$ fixed. States and actions are continuous, transitions are noiseless,
+and there are no constraints or termination rules unless separately introduced.
+Matrices are known for analytical verification, while certificate fitting uses
+sampled transitions. This is not a system-identification claim.
+
+Use one shared $K$ and initially one shared certificate
+
+$$
+\mathcal P=\{P=P^\top:aI\preceq P\preceq bI\},\qquad 0<a<b<\infty.
+$$
+
+A common quadratic certificate is a restriction, not a consequence of every
+plant being individually stable or even of a shared stabilizing gain existing.
+For the first numerical example choose a family admitting such a certificate.
+For other examples, report infeasibility or failed verification rather than
+changing the retained plants based on favorable results.
+
+| Statement | What supports it | What it does not imply |
+| --- | --- | --- |
+| Small certificate-violation risk under $D_0$ over $H$ steps | Uniform statistical bound for the fitted $P$ | Every state is certified; infinite-horizon stability |
+| Decrease at every state for a retained plant | Exact matrix inequality | CartPole recovery or a chosen cost threshold |
+| Preservation of $V_P$ under an update | Old verified margin plus perturbation bound | Cost-region expansion |
+| Preservation of an interior cost set | Bound on $P_H(K',\theta)-P_H(K,\theta)$ | Asymptotic stability |
+| Grid condition has recovery failure probability at most $\alpha$ | Direct rollouts and valid upper confidence bound | A Lyapunov or barrier certificate |
+
+The notation $P$ always means a certificate matrix; $P_H$ means the cost matrix.
+A Lyapunov sublevel set lives in state space at a given plant, whereas $S_K^J$
+and $S_k^p$ also index plants or reset laws. Do not identify their domains.
+
+## 2. A concrete discrete-time certificate-generalization proof
+
+This construction gives a modest, reviewable foundation with a complete proof
+route. It deliberately uses a bounded loss and a finite cover instead of
+claiming the sharper generalization rate in Boffi et al.
+
+Freeze $K$ before sampling. Draw $N$ independent pairs $(\theta_i,x_{0,i})$
+from a fixed distribution $D_0$ and observe $H$ transitions of each. Dependence
+within a trajectory is permitted. The sample size is $N$, not $NH$. Let
+$M=\max_{\theta\in\Theta}\|G_K(\theta)\|_2<\infty$. This is a known bound,
+not a maximum estimated from the same sample without justification.
+
+Fix a desired decrease coefficient $\eta>0$ and a learning margin $\gamma>0$.
+For a nonzero visited state define
+
+$$
+r_P(x,x^+)=\frac{x^{+\top}Px^+-x^\top Px}{\|x\|_2^2}+\eta.
+$$
+
+Positive residual violates the desired decrease inequality. Normalization avoids
+requiring an impossible fixed absolute decrease near the equilibrium. At $x=0$,
+linear homogeneous dynamics give $x^+=0$ and the inequality holds automatically;
+skip this state. A trajectory with no nonzero states has loss and violation
+indicator zero. No measurement noise or numerical division claim is hidden here;
+finite-precision handling near zero must be specified before implementation.
+
+For all other trajectories $\tau$, set
+
+$$
+r_P^{\max}(\tau)=\max_{0\le t<H:x_t\ne0}r_P(x_t,x_{t+1}),\qquad
+\ell_P(\tau)=\min\{1,\max\{0,1+r_P^{\max}(\tau)/\gamma\}\}.
+$$
+
+Then $\ell_P\in[0,1]$, it is zero if every residual is at most $-\gamma$,
+and $\mathbf1\{r_P^{\max}>0\}\le\ell_P$. Equality at zero residual can incur
+loss even though the non-strict desired inequality holds; this is conservative.
+The empirical loss can be minimized over $\mathcal P$ without assuming a
+zero-loss feasible solution exists.
+
+For any $P,P'\in\mathcal P$, the norm inequality gives
+
+$$
+|r_P(x,G_K(\theta)x)-r_{P'}(x,G_K(\theta)x)|
+\le (M^2+1)\|P-P'\|_F.
+$$
+
+Taking a maximum preserves this Lipschitz constant; the clipped ramp multiplies
+it by $1/\gamma$. Thus $\ell_P$ is $L=(M^2+1)/\gamma$-Lipschitz in $P$.
+With $n$ states, the symmetric parameter space has dimension
+$d=n(n+1)/2$ and $\|P\|_F\le b\sqrt n$. An $\varepsilon$-net of $\mathcal P$
+can be chosen with cardinality
+
+$$
+\mathcal N_\varepsilon\le(1+2b\sqrt n/\varepsilon)^d.
+$$
+
+Fix $\varepsilon>0$ before drawing data. Hoeffding plus a union bound on the net
+and two Lipschitz approximation errors gives, with probability at least
+$1-\delta_{\rm cert}$, simultaneously for all $P\in\mathcal P$,
+
+$$
+\mathbb E_{D_0}\ell_P\le\frac1N\sum_{i=1}^N\ell_P(\tau_i)
++2L\varepsilon
++\sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)+\log(2/\delta_{\rm cert})}{2N}}.
+$$
+
+**Proof details.** For each net center the two-sided deviation probability at
+radius $s$ is at most $2e^{-2Ns^2}$. Sum over the net and set
+$s=\sqrt{\log(2\mathcal N_\varepsilon/\delta_{\rm cert})/(2N)}$.
+Approximating an arbitrary $P$ by a center changes its population and empirical
+losses by at most $L\varepsilon$ each. The cardinality bound yields the display.
+The inequality therefore applies to a data-dependent fitted $\widehat P$;
+its right-hand side also bounds violation probability and can be clipped at one.
+No claim that this bound is numerically tight is made.
+
+For $\varepsilon=N^{-1/2}$ the complexity term has the familiar order
+$\sqrt{d\log N/N}$ with the displayed constants. This is not the fast rate
+proved under the source paper's assumptions. Normalization and a bounded linear
+family make this particular loss Lipschitz independently of $H$; it is still
+only a statement about violation along the chosen finite horizon. The
+trajectory-level maximum and its empirical behavior can depend strongly on $H$.
+Do not claim that this special construction reproduces Chapter 5's general
+stability-dependent horizon bounds or proves stability itself.
+
+A change from $D_0$ to targeted $q$, or from $K$ to $K'$, changes the data law.
+This bound does not automatically transfer. For a new frozen phase, use fresh
+independent data and conditional error accounting, or prove a separate shift
+bound. Neither adaptive point selection nor a pointwise held-out interval can
+replace the stated uniform argument for a certificate fitted on those samples.
+
+## 3. From a candidate to a verified certificate
+
+For each predeclared retention plant, compute
+
+$$
+\eta_\theta=\lambda_{\min}\big(P-G_K(\theta)^\top P G_K(\theta)\big).
+$$
+
+If $\eta_\theta>0$, then $V_P(x)=x^\top Px$ decreases by at least
+$\eta_\theta\|x\|^2$ for every state. Since $aI\preceq P\preceq bI$,
+
+$$
+V_P(x_t)\le(1-\eta_\theta/b)^tV_P(x_0),\qquad
+\|x_t\|^2\le(b/a)(1-\eta_\theta/b)^t\|x_0\|^2.
+$$
+
+This establishes exponential stability and invariance of every
+$\mathcal E_c(P)=\{x:V_P(x)\le c\}$ for this unconstrained linear model.
+An inequality valid only on a neighborhood additionally needs a sublevel set
+contained in that neighborhood. State/input constraints require containment
+checks; none are implied by the unconstrained statement.
+
+This verification uses known matrices and is logically separate from the
+statistical theorem. A low empirical certificate loss can coexist with a failed
+all-state inequality. Verification failure means the candidate does not support
+this claim, not that a particular trajectory must fail or the plant is unstable.
+
+## 4. Preserve the verified margin through an actual update
+
+At one plant write $G=G_K(\theta)$, $E=-B(\theta)\Delta K$ and $G'=G+E$.
+Keep $P$ fixed. If $G^\top PG-P\preceq-\eta_\theta I$, then
+
+$$
+G'^\top PG'-P=G^\top PG-P+G^\top PE+E^\top PG+E^\top PE.
+$$
+
+For every $x$, the added quadratic form is at most
+
+$$
+\big(2\|G^\top P\|_2\|E\|_2+\|P\|_2\|E\|_2^2\big)\|x\|_2^2.
+$$
+
+Consequently the same certificate remains valid whenever
+
+$$
+c_\theta(\Delta K):=2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2
+<\eta_\theta,\qquad d_\theta=\|B(\theta)\Delta K\|_2.
+$$
+
+For a finite retention family enforce this for every member using the shared
+$P$. To retain a specified fraction $\rho\in(0,1)$ of each margin, require
+$c_\theta\le(1-\rho)\eta_\theta$. Then the new decrease is at least
+$\rho\eta_\theta$. The condition is sufficient, not necessary; direct new
+matrix verification can show that rejected proposals were in fact stable.
+Record this conservatism rather than silently changing the acceptance rule.
+
+### A reviewable single-update mechanism
+
+1. Freeze $K$ and verify the old common $P$ on the predeclared retention plants.
+   If verification fails, the preservation theorem's prerequisite is absent;
+   stop this certified update branch and report it.
+2. Evaluate old finite-horizon costs on a declared condition grid. Give uniform
+   weight to points in $|J_{H,K}-h|\le w$, with a predeclared uniform fallback if
+   the band is empty. Mix with $q_{\rm base}$ using fixed $\lambda$.
+3. Holding this $q$ fixed, form $D=-\nabla_K F_q(K)$, where
+   $F_q(K)=\mathbb E_qJ_{H,K}$ is a finite weighted sum for the first example.
+4. Try $\Delta K=\beta^j s_0D$ for $j=0,1,\ldots$, $0<\beta<1$. Accept the
+   first step satisfying all retained-margin tests and, if $D\ne0$, an Armijo
+   test $F_q(K+\Delta K)\le F_q(K)-c_A\beta^j s_0\|\nabla F_q(K)\|_F^2$
+   with $c_A\in(0,1)$ fixed in advance.
+5. Use a declared finite search cap in computations. If $D=0$ or no step passes,
+   retain $K$ and report no update. Otherwise freeze $K'$ and evaluate afresh.
+
+For exact gradients, finite matrices/horizon, and $D\ne0$, $F_q$ is smooth.
+A sufficiently small step meets Armijo, and $c_\theta(sD)\to0$ as $s\to0$.
+Strict old margins on a finite family therefore ensure a step exists in the
+ideal uncapped search. This proves decrease of the fixed training objective
+and retention of verified stability. It proves neither a useful progress rate
+nor an increase in cost/reliability coverage. Sampled gradients would require
+additional analysis and are not part of this first proposition.
+
+Learning a new $P'$ after updating is a different operation. Comparing
+$\{x:x^\top P'x\le c\}$ to $\{x:x^\top Px\le c\}$ without common normalization
+and geometric checks can mistake certificate scaling for region expansion.
+
+## 5. Finite-horizon cost regression is a separate calculation
+
+Let $W_K=Q+K^\top RK$ and
+
+$$
+P_H(K,\theta)=\sum_{t=0}^{H-1}(G_K(\theta)^t)^\top W_KG_K(\theta)^t.
+$$
+
+For $\|x\|\le r$, the elementary baseline is
+
+$$
+|J_{H,K'}(\theta,x)-J_{H,K}(\theta,x)|
+\le r^2\|P_H(K',\theta)-P_H(K,\theta)\|_2=:b_J(\theta).
+$$
+
+To relate it to the update, use $\|G\|,\|G'\|\le M$ with $M\ge1$ and
+
+$$
+G'^t-G^t=\sum_{i=0}^{t-1}G'^{t-1-i}(G'-G)G^i,
+\quad \|G'^t-G^t\|\le tM^{t-1}\|B(\theta)\|\|\Delta K\|.
+$$
+
+The changed input penalty obeys
+$\|W_{K'}-W_K\|\le\|R\|(\|K'\|+\|K\|)\|\Delta K\|$. Splitting each
+quadratic summand and summing proves
+
+$$
+\|P_H(K',\theta)-P_H(K,\theta)\|\le L_H(\theta)\|\Delta K\|,
+$$
+$$
+L_H(\theta)=2\|W_K\|\|B(\theta)\|\sum_{t=1}^{H-1}tM^{2t-1}
++\|R\|(\|K'\|+\|K\|)\sum_{t=0}^{H-1}M^{2t}.
+$$
+
+Use a predeclared bounded gain neighborhood to replace $M$ and $\|K'\|$ by
+uniform constants when an a priori step-size rule is desired. All norms above
+are spectral except explicitly labeled Frobenius norms. Finite horizon requires
+no asymptotic stability, although amplification can make the bound vacuous.
+Schur eigenvalues alone do not justify setting $M<1$ in Euclidean norm.
+
+On $\Theta\times\{x:\|x\|\le r\}$, define $S_K^J=\{J_{H,K}\le h\}$ and
+$B_{\rm loss}=\{h-b_J(\theta)<J_{H,K}\le h\}$. Then
+
+$$
+S_K^J\setminus S_{K'}^J\subseteq B_{\rm loss},\qquad
+\mu(S_K^J\setminus S_{K'}^J)\le\mu(B_{\rm loss}).
+$$
+
+This is preservation of the interior cost set, not all old acceptable points.
+If the actual update also reduces cost by at least $a_J>0$ on a set $T$, then
+
+$$
+\mu(S_{K'}^J)-\mu(S_K^J)
+\ge\mu(T\cap\{h<J_{H,K}\le h+a_J\})-\mu(B_{\rm loss}).
+$$
+
+The expansion extension must derive useful $a_J,T$ from the chosen update.
+Assuming their existence is only accounting, not a proof that targeting works.
+
+### A stable targeted-gradient counterexample
+
+Take scalar plants $\theta\in\{0,1\}$, $x^+=\theta x+u$, $u=-Kx$,
+$x_0=1$, $Q=1,R=0,H=2,h=1.25$, and equal reference mass on the two plants.
+Then $J_{2,K}(\theta,1)=1+(\theta-K)^2$. At $K=0.5$, both plants are
+acceptable, both have closed-loop magnitude $0.5$, and $P=1$ has margin $0.75$.
+
+A target distribution concentrated at the upper boundary plant $\theta=1$
+has gradient $2(K-1)=-1$. A step of size $0.2$ gives $K'=0.7$. Training cost
+falls from $1.25$ to $1.09$, but the other plant's cost rises to $1.49$; reference
+coverage falls from $1$ to $1/2$. Both plants remain stable, with the smallest
+new certificate margin $0.51$. The preservation bound gives
+$2(0.5)(0.2)+(0.2)^2=0.24<0.75$, and passes even when retaining half the margin.
+An Armijo coefficient $c_A=1/2$ also accepts this step.
+
+This is a counterexample to arbitrary selection among boundary points, not to
+every symmetric boundary-band rule: the symmetric rule in the algorithm above
+would give zero gradient on this particular two-point example. It isolates the
+fact that useful training descent plus preserved stability need not preserve
+cost coverage. The explanatory note retains the ellipse example and a
+continuous-plant example with equal gains/losses for complementary intuition.
+
+## 6. Local nonlinear and CartPole limits
+
+For a smooth closed-loop map with the same equilibrium write
+$f_K(x)=G_Kx+e_K(x)$ and require an explicit remainder bound on a neighborhood.
+If $\|e_K(x)\|\le c\|x\|^2$, the additional Lyapunov drift is at most
+$2\|G_K^\top P\|c\|x\|^3+\|P\|c^2\|x\|^4$. To use it, choose an ellipsoid
+inside a radius where this is smaller than the quadratic decrease margin and
+verify invariance. Uniform plant/update claims require uniform remainder bounds.
+Merely writing a linearization is insufficient.
+
+The repository's two-force CartPole action rule does not preserve the zero
+state and is not the smooth feedback used above. Practical stability about a
+set, or a hybrid/quantized analysis, is a different task. Large-angle recovery
+and final-window RMS performance also do not follow from local stability.
+
+For a score-defined failure event $\{C>h\}$, a pathwise coupling satisfying
+$|C'-C|\le\epsilon$ implies
+$|\Pr(C'>h)-\Pr(C>h)|\le\Pr(|C-h|\le\epsilon)$. This illustrates the
+additional threshold-mass assumption needed for a probability statement; the
+linear cost proof supplies neither this coupling nor the CartPole termination
+analysis. Lyapunov, barrier, finite-cost, and recovery guarantees stay distinct.
+
+## Supporting rollout inference
+
+The following construction is retained for empirical CartPole recovery claims.
+It is supporting infrastructure, not the main Stage 1 learning-theory result.
+Use distinct error allocations if these claims and certificate generalization
+are combined in one campaign-wide guarantee. The retained acquisition design
+is optional and does not change the fixed-distribution proof above.
 
 ## Elementary certification construction
 
@@ -72,9 +393,10 @@ abstain and record the event, rather than issuing both labels. If
 gap-dependent difficulty, not an efficiency theorem for an arbitrary proposer.
 Points at the threshold need not resolve.
 
-For experiments, compare the elementary construction during validation with a
-Bernoulli mixture confidence sequence, then fix one common certifier for all
-allocation comparisons. Howard et al. explain mixture constructions and
+The elementary construction is sufficient for the minimum illustration. A
+Bernoulli mixture confidence sequence is an optional tighter alternative; fix
+one common certifier before any allocation comparison. Howard et al. explain
+mixture constructions and
 beta-binomial bounds (Section 4.1 and Appendix A.3 of the linked arXiv version).
 Any tuning must be fixed in advance or covered by its own valid construction.
 [Howard et al.](https://arxiv.org/pdf/1810.08240)
@@ -111,7 +433,7 @@ after \(b\) additional binary observations. A candidate score is
 
 \[
 a_t(z,b)=\frac{
- \Pr_{\mathrm{GP}}\{C^+_{z,b}\ne\varnothing,\
+ \Pr_{\mathrm{GP}}\{C^+_{z,b}\ne\varnothing,\quad
                    \sup C^+_{z,b}\le\alpha\mid\mathcal F_t\}
 }{b}.
 \]
@@ -140,112 +462,6 @@ Before implementation, decide the batch set and safeguard, and whether this
 look-ahead calculation is worth its cost relative to a simpler surrogate
 ranking. Certificate gain is an evaluator diagnostic; it is not the main
 research objective of improving the controller.
-
-## Linear result: derivation and limits
-
-For the symmetric matrix \(P_H\) in the brief,
-
-\[
-x^\top P_Hx-x'^\top P_Hx'
-=(x-x')^\top P_Hx+x'^\top P_H(x-x').
-\]
-
-Cauchy–Schwarz gives
-\[
-|J_H(x)-J_H(x')|
-\le\|P_H\|_2(\|x\|_2+\|x'\|_2)\|x-x'\|_2.
-\]
-
-If \(\|G^k\|_2\le c\rho^k\) with \(0\le\rho<1\), then
-
-\[
-\|P_H\|_2
-\le\|Q\|_2c^2\sum_{k=0}^{H-1}\rho^{2k}
-=\|Q\|_2c^2\frac{1-\rho^{2H}}{1-\rho^2}.
-\]
-
-This separates decay rate from the prefactor that can reflect transient
-amplification. A two-dimensional analytical example suffices; it need not
-become another environment in the repository.
-
-The result concerns initial-state variation and continuous state cost. It does
-not yet cover plant-parameter variation, random disturbances, or failure
-probabilities. If \(P_H\) is positive definite and \(h>0\), the cost sublevel
-set is an ellipsoid; with only positive semidefiniteness it need not be bounded.
-
-## Controller-update preservation and a possible expansion argument
-
-Use a distinct notation \(S_K^J\) for continuous-cost sets, to avoid conflating
-them with the failure-probability sets \(S_k\). On \(\|x\|_2\le r\),
-
-\[
-|J_{H,K'}(x)-J_{H,K}(x)|
-=|x^\top(P_H(K')-P_H(K))x|
-\le r^2\|P_H(K')-P_H(K)\|_2=b.
-\]
-
-Consequently, points with \(J_{H,K}(x)\le h-b\) remain acceptable, and the
-loss set lies in the band \(h-b<J_{H,K}(x)\le h\). This is a deterministic
-baseline corollary, not a result about the effectiveness of boundary sampling.
-
-One quantitative route is to bound the matrix difference in terms of the update.
-If \(\|G_K\|_2,\|G_{K'}\|_2\le M\), with \(M\ge1\), the telescoping identity
-gives, for \(j\ge1\),
-
-\[
-\|G_{K'}^j-G_K^j\|_2
-\le jM^{j-1}\|B\|_2\|K'-K\|_2.
-\]
-
-It follows that
-
-\[
-b\le
-2r^2\|Q\|_2\|B\|_2\|K'-K\|_2
-\sum_{j=1}^{H-1}jM^{2j-1}.
-\]
-
-This elementary finite-horizon bound can be very conservative. Improving its
-usefulness through closed-loop structure is a possible analysis direction.
-Neither this bound nor a trust-region restriction establishes a favorable
-training direction.
-
-For a fixed measure on the state domain, suppose an actual update additionally
-achieves \(J_{H,K'}(x)\le J_{H,K}(x)-a\), \(a>0\), on a set \(T\).
-Then all points in
-\(T\cap\{h<J_{H,K}(x)\le h+a\}\) become acceptable, and
-
-\[
-\begin{aligned}
-\mu(S_{K'}^J)-\mu(S_K^J)
-\ \ge\ &
-\mu\!\left(T\cap\{h<J_{H,K}\le h+a\}\right)\\
-&-\mu\!\left(\{h-b<J_{H,K}\le h\}\right).
-\end{aligned}
-\]
-
-This is a conditional accounting argument, not an explanation of why a
-learning algorithm satisfies its assumptions. The ambitious research step is
-to connect boundary selection and an actual update rule to useful bounds on
-\(a,b,T\). An assumption of improvement everywhere would bypass that question.
-
-### An elementary regression example
-
-A tied controller parameter can expose interference between training conditions.
-Consider \(A=B=I_2\), \(K_\theta=\operatorname{diag}(\theta,-\theta)\),
-\(Q=I_2\), horizon \(H=2\), and initial states \(e_1,e_2\). Their costs are
-
-\[
-J_\theta(e_1)=1+(1-\theta)^2,\qquad
-J_\theta(e_2)=1+(1+\theta)^2.
-\]
-
-At \(\theta=0\), both meet the threshold \(h=2\). For \(0<\theta<1\),
-the update improves \(e_1\) but makes \(e_2\) unacceptable. Uniform coverage of
-these two conditions falls from one to one half. This is a deliberately
-restricted linear example of harmful interference, not a claim about every
-controller parameterization or about PPO. It shows why improving sampled
-boundary conditions alone cannot prove monotonic expansion.
 
 ## Repository evidence and protocol corrections
 
@@ -279,10 +495,10 @@ fixtures permit direct evaluation of the campaign-level error event.
 Report uncertainty across repeated campaigns; observing no errors is not a
 proof of the desired error bound.
 
-## Research design decisions to keep explicit
+## Protocol if the optional CartPole retraining illustration is run
 
-- The three training curricula are uniform, reliability-boundary-guided, and
-  intermediate-difficulty-guided. Match the background mixture and training
+- Begin with uniform and reliability-boundary targets; intermediate difficulty
+  is an optional third comparator. Match the background mixture and training
   objective to isolate the target-condition distribution.
 - Use the same evidence-acquisition procedure for targeted curricula in the
   initial controlled comparison. Cover both threshold regions; an evaluator
@@ -303,15 +519,12 @@ proof of the desired error bound.
   accounting. In particular, an unresolved old condition cannot automatically
   be counted as a new success after training.
 
-## Literature positioning and bibliography selection
 
-The core bibliography now has seven papers organized around the revised
-progression: Gotovos, Letham, and Howard for the evaluation foundation;
-Florensa, Jiang, and Rutherford for curricula; and Berkenkamp for control
-guarantees. This focused selection is not a claim of exhaustive literature
-coverage or established novelty.
+## Retained curriculum and evaluation literature
 
-The closest research comparisons are:
+The following curriculum and evaluation references are retained from v2 as
+background. They do not replace the certificate-learning anchor or add
+implementation requirements:
 
 - [Reverse Curriculum Generation (Florensa et al., 2017)](https://proceedings.mlr.press/v78/florensa17a.html):
   performance-adaptive initial-state curricula are already studied.
@@ -327,8 +540,8 @@ The closest research comparisons are:
   under dynamics-model and Lyapunov assumptions. The proposed finite-horizon
   recovery study does not inherit those guarantees.
 
-The following sources remain relevant background without becoming required
-algorithms or expanding the core reference list:
+These additional sources remain optional background, without becoming required
+algorithms:
 
 | Source | Role if the scope needs it |
 | --- | --- |
