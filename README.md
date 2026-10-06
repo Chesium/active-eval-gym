@@ -478,6 +478,30 @@ uv run active-eval-gym plot-sweep \
   --evaluation "$root/final" --output docs/figures
 ```
 
+## Linear certificate layer
+
+`active_eval_gym.linear` supports the linear analysis in the
+[ESE 6180 proposal](ese6180/proposal/brief.md). It works directly with known
+matrices `x+ = A(theta) x + B(theta) u` under a shared gain `u = -K x`; it does
+not create Gymnasium environments, train, sample, or write artifacts.
+
+- `family`: plant families, loaded with `config.load_linear_family`.
+  [`cartpole_length_linearization_v1`](configs/linear/cartpole_length_linearization_v1.toml)
+  linearizes CartPole at upright for each half-length of the recovery-boundary
+  grid, using the LQR design's explicit-Euler discretization.
+  [`scalar_two_plant_v1`](configs/linear/scalar_two_plant_v1.toml) is the
+  scalar counterexample from the design notes.
+- `exact`: closed loop, finite-horizon cost matrix, the exact gradient of the
+  training objective, decrease margins, the margin-preservation test, the
+  cost-drift bound, and the certificate-learning loss and generalization slack.
+- `certificate`: a max-margin common-certificate LMI (cvxpy with Clarabel). Its
+  proposal is checked independently with NumPy eigenvalues against a declared
+  tolerance.
+
+The family configs fix only the plants. Cost weights, horizon, certificate
+bounds, margins, sampling law, and the retained plant set remain protocol
+decisions.
+
 ## Supported environments
 
 - `CartPole-v1`: discrete action, interpretable four-value control state.

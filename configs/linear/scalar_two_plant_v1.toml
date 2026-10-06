@@ -1,0 +1,18 @@
+# Scalar plants x+ = theta x + u from the stable targeted-gradient
+# counterexample in ese6180/proposal/discussions/proposal-design-notes.md,
+# Section 5.
+schema_version = 1
+family_id = "scalar-two-plant-v1"
+kind = "explicit-v1"
+
+[[plants]]
+plant_id = "theta-p0"
+parameters = { theta = 0.0 }
+a = [[0.0]]
+b = [[1.0]]
+
+[[plants]]
+plant_id = "theta-p1"
+parameters = { theta = 1.0 }
+a = [[1.0]]
+b = [[1.0]]

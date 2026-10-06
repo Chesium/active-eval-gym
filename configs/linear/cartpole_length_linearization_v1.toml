@@ -1,0 +1,10 @@
+# Upright linearization of Gym CartPole, discretized with Gym's explicit Euler
+# step, at every pole half-length of the recovery-boundary study grid
+# (configs/eval/cartpole_failure_boundary_pilot_v1.toml). All other physical
+# parameters stay nominal. Choosing which plants are retained for certificate
+# claims is a protocol decision and is deliberately not made here.
+schema_version = 1
+family_id = "cartpole-length-linearization-v1"
+kind = "cartpole-length-linearization-v1"
+nominal_environment = "../envs/cartpole_v1_nominal.toml"
+lengths = [0.02, 0.04, 0.05, 0.075, 0.10, 0.20, 0.30, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00]

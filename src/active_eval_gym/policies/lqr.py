@@ -68,9 +68,7 @@ def design_cartpole_lqr(spec: PolicyDesignSpec) -> tuple[LQRModel, float]:
         raise ValueError("Quantized LQR supports only CartPole-v1.")
     parameters = spec.environment.parameters
     continuous_a, continuous_b = cartpole_continuous_matrices(parameters)
-    tau = float(parameters["tau"])
-    discrete_a = np.eye(4) + tau * continuous_a
-    discrete_b = tau * continuous_b
+    discrete_a, discrete_b = cartpole_discrete_matrices(parameters)
     q = np.diag(np.asarray(spec.hyperparameters["q_diagonal"], dtype=np.float64))
     r = np.asarray([[spec.hyperparameters["r"]]], dtype=np.float64)
     if q.shape != (4, 4):
@@ -132,6 +130,21 @@ def cartpole_continuous_matrices(
     )
     b = np.array([[0.0], [xacc_force], [0.0], [thetaacc_force]])
     return a, b
+
+
+def cartpole_discrete_matrices(
+    parameters: dict[str, Any],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Discretize the upright linearization with Gym's explicit Euler step."""
+
+    integrator = parameters.get("kinematics_integrator", "euler")
+    if integrator != "euler":
+        raise ValueError(
+            f"Explicit-Euler matrices do not match integrator {integrator!r}."
+        )
+    continuous_a, continuous_b = cartpole_continuous_matrices(parameters)
+    tau = float(parameters["tau"])
+    return np.eye(4) + tau * continuous_a, tau * continuous_b
 
 
 def finite_difference_cartpole_matrices(

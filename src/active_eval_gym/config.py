@@ -7,6 +7,13 @@ from pathlib import Path
 from typing import Any
 
 from active_eval_gym.envs.specs import package_versions
+from active_eval_gym.linear.family import (
+    CARTPOLE_LENGTH_LINEARIZATION,
+    EXPLICIT,
+    LinearFamily,
+    LinearPlant,
+    cartpole_length_family,
+)
 from active_eval_gym.models import NominalEnvSpec, PolicyDesignSpec
 
 
@@ -261,6 +268,57 @@ def load_cartpole_symmetry_suite(path: Path) -> CartPoleSymmetrySuiteSpec:
         plot_angular_velocity_limit=angular_velocity_limit,
         plot_cart_velocities=cart_velocities,
     )
+
+
+def load_linear_family(path: Path) -> LinearFamily:
+    """Load a known linear plant family for exact certificate analysis."""
+
+    data = _read_toml(path)
+    schema_version = _required_int(data, "schema_version")
+    family_id = _required_str(data, "family_id")
+    kind = _required_str(data, "kind")
+    if kind == CARTPOLE_LENGTH_LINEARIZATION:
+        nominal_path = path.parent / _required_str(data, "nominal_environment")
+        nominal = load_nominal_env_spec(nominal_path.resolve())
+        if nominal.environment_id != "CartPole-v1":
+            raise ValueError(f"{kind} requires a CartPole-v1 nominal environment.")
+        return cartpole_length_family(
+            family_id,
+            nominal.parameters,
+            _number_tuple(data.get("lengths"), "lengths"),
+            schema_version=schema_version,
+            nominal_spec_id=nominal.spec_id,
+        )
+    if kind == EXPLICIT:
+        raw_plants = data.get("plants")
+        if not isinstance(raw_plants, list) or not raw_plants:
+            raise ValueError("plants must be a non-empty array of tables.")
+        plants = []
+        for raw in raw_plants:
+            if not isinstance(raw, dict):
+                raise ValueError("Every plant must be a table.")
+            parameters = raw.get("parameters", {})
+            if not isinstance(parameters, dict):
+                raise ValueError("Plant parameters must be a table.")
+            for name in ("a", "b"):
+                if not isinstance(raw.get(name), list):
+                    raise ValueError(f"Plant matrix {name} must be a nested array.")
+            plants.append(
+                LinearPlant(
+                    plant_id=_required_str(raw, "plant_id"),
+                    parameters=dict(parameters),
+                    a=raw["a"],
+                    b=raw["b"],
+                )
+            )
+        return LinearFamily(
+            schema_version=schema_version,
+            family_id=family_id,
+            kind=kind,
+            plants=tuple(plants),
+            provenance={"source": "explicit-matrices"},
+        )
+    raise ValueError(f"Unsupported linear family kind {kind!r}.")
 
 
 def _read_toml(path: Path) -> dict[str, Any]:
