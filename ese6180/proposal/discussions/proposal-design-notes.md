@@ -80,8 +80,24 @@ $$
 r_P(x,x^+)=\frac{x^{+\top}Px^+-x^\top Px}{\|x\|_2^2}+\eta.
 $$
 
-Positive residual violates the desired decrease inequality. Normalization avoids
-requiring an impossible fixed absolute decrease near the equilibrium. At $x=0$,
+This is a normalized constraint residual. Start with the desired decrease
+$V_P(x^+)-V_P(x)\le-\eta\|x\|_2^2$, move everything to the left, and
+divide by $\|x\|_2^2>0$. Consequently,
+
+$$
+r_P(x,x^+)\le0
+\quad\Longleftrightarrow\quad
+V_P(x^+)-V_P(x)\le-\eta\|x\|_2^2.
+$$
+
+Negative residual means slack, zero means the condition is met exactly, and
+positive residual means violation. Normalization preserves this sign test and,
+for linear dynamics and quadratic $V_P$, removes dependence on state magnitude:
+$r_P(cx,cx^+)=r_P(x,x^+)$ for $c\ne0$. It also makes the stricter learning
+condition $r_P\le-\gamma$ equivalent to
+$V_P(x^+)-V_P(x)\le-(\eta+\gamma)\|x\|_2^2$. Without normalization, a
+fixed absolute residual margin would demand a nonvanishing extra decrease near
+zero; the original desired inequality itself already vanishes there. At $x=0$,
 linear homogeneous dynamics give $x^+=0$ and the inequality holds automatically;
 skip this state. A trajectory with no nonzero states has loss and violation
 indicator zero. No measurement noise or numerical division claim is hidden here;
@@ -100,6 +116,38 @@ loss even though the non-strict desired inequality holds; this is conservative.
 The empirical loss can be minimized over $\mathcal P$ without assuming a
 zero-loss feasible solution exists.
 
+To read the loss, write $s=r_P^{\max}(\tau)$ for the worst step's residual:
+
+$$
+\ell_P(\tau)=
+\begin{cases}
+0,&s\le-\gamma,\\
+1+s/\gamma,&-\gamma<s<0,\\
+1,&s\ge0.
+\end{cases}
+$$
+
+Thus $\eta$ sets the desired decrease, while $\gamma$ asks for additional
+slack when fitting the certificate. For example, with $\gamma=0.1$, worst
+residuals $-0.2,-0.05,0.02$ give losses $0,0.5,1$. A positive loss need not
+mean violation: a satisfied condition with insufficient slack also incurs
+loss. Taking the maximum tests whether **any** visited step violates the
+condition; an average residual could hide a violating step among negative ones.
+The clipped ramp upper-bounds the violation indicator, remains in $[0,1]$ for
+Hoeffding, and is $1/\gamma$-Lipschitz in $s$ for the finite-cover proof.
+It is continuous but has corners, and clipping saturates the loss on violations;
+the proof alone does not establish that a particular optimizer will fit it well.
+
+**Sources and adaptation.** The exact normalized residual and clipped ramp
+above are choices for this proposal, not definitions copied from either source.
+
+| Ingredient | Reading and relationship to this construction |
+| --- | --- |
+| Quadratic one-step decrease | [Chapter 3](../../resources/ch3%20Dynamics,%20Stability,%20and%20Basic%20Lyapunov%20Theory-1.pdf), Theorem 3.10, Lemma 3.11, and Example 3.12 (PDF pp. 4–5), supply the underlying stability condition. Rearranging and normalizing it gives our $r_P$. |
+| Certificate residual, negative fitting margin, and worst-step violation event | [Boffi et al.](https://proceedings.mlr.press/v155/boffi21a/boffi21a.pdf), Section 3.1, equations (3.1)–(3.3), and Section 4 (PDF pp. 3–5), supply this learning viewpoint. Their main residual is continuous-time; Section 4 uses a margin indicator, rather than our exact clipped ramp. |
+| Surrogate loss | [Chapter 5](../../resources/ch5%20Empirical%20Risk%20Minimization%20for%20Nonlinear%20Predictors.pdf), Example 5.14 (PDF pp. 10–11), illustrates hinge-loss surrogates. Our loss is a hinge on the signed slack $-s/\gamma$, capped at one; it is a related construction, not that example's exact loss. |
+| Generalization proof tools | Chapter 5, Lemma 5.6, Theorem 5.8, and Sections 5.5–5.6, supply Hoeffding, finite-class uniform convergence, covering numbers, and whole-trajectory sampling. The proof below combines those tools directly; it does not reproduce the paper's fast-rate theorem or Chapter 5's prediction-loss analysis. |
+
 For any $P,P'\in\mathcal P$, the norm inequality gives
 
 $$
@@ -107,15 +155,192 @@ $$
 \le (M^2+1)\|P-P'\|_F.
 $$
 
+**Derivation and meaning.** Compare two certificate matrices on the same
+transition: $K$, $\theta$, and $x\ne0$ stay fixed. Write $G=G_K(\theta)$
+and $\Delta P=P-P'$. The common $\eta$ cancels, so
+
+$$
+r_P(x,Gx)-r_{P'}(x,Gx)
+=\frac{(Gx)^\top\Delta P(Gx)-x^\top\Delta Px}{\|x\|_2^2}.
+$$
+
+For any matrix $C$ and vector $y$, Cauchy–Schwarz and the induced matrix
+norm give
+
+$$
+|y^\top Cy|\le\|y\|_2\|Cy\|_2
+\le\|C\|_2\|y\|_2^2
+\le\|C\|_F\|y\|_2^2.
+$$
+
+Here $\|C\|_2$ is the largest singular value, while
+$\|C\|_F=(\sum_{i,j}C_{ij}^2)^{1/2}$ is the square root of the sum of
+squared singular values, so $\|C\|_2\le\|C\|_F$. Apply the triangle
+inequality and the quadratic-form bound to the two terms separately:
+
+$$
+\begin{aligned}
+|r_P(x,Gx)-r_{P'}(x,Gx)|
+&\le\frac{\|\Delta P\|_F(\|Gx\|_2^2+\|x\|_2^2)}{\|x\|_2^2}\\
+&\le(\|G\|_2^2+1)\|\Delta P\|_F\\
+&\le(M^2+1)\|P-P'\|_F.
+\end{aligned}
+$$
+
+The $M^2$ comes from the next-state energy and the $1$ from the current-state
+energy. Normalization cancels state magnitude, leaving a bound uniform over
+every nonzero state and every plant. No stability assumption or $M<1$ is
+needed. This establishes Lipschitz continuity in the **certificate parameter
+$P$**: nearby certificates assign nearby residuals to the same transition.
+It does not compare two policies or two resulting trajectories. The bounds
+$aI\preceq P\preceq bI$ are used elsewhere for positivity and a bounded
+parameter class; this particular difference bound does not require them.
+
+**Reading connection.** Chapter 3, Example 3.12, supplies the quadratic drift
+identity. The norm estimate above is a direct linear-algebra derivation for
+our normalized discrete-time residual. Chapter 5, Proposition 5.19 and
+Section 5.6.2, equation (5.42), explain its learning-theory role: bound how
+much a loss changes with its parameters, then transfer a finite parameter
+cover to a loss cover. [Boffi et al.](https://proceedings.mlr.press/v155/boffi21a/boffi21a.pdf),
+Section 4.1 and equation (4.3), likewise analyze Lipschitz parameterizations
+and symmetric certificate matrices with a Frobenius-norm bound. They supply
+the related framework; the explicit $(M^2+1)$ constant is derived here.
+
 Taking a maximum preserves this Lipschitz constant; the clipped ramp multiplies
 it by $1/\gamma$. Thus $\ell_P$ is $L=(M^2+1)/\gamma$-Lipschitz in $P$.
-With $n$ states, the symmetric parameter space has dimension
+Indeed, $|\max_t u_t-\max_t v_t|\le\max_t|u_t-v_t|$, and clipping
+$1+s/\gamma$ to $[0,1]$ cannot enlarge differences. Therefore, on the same
+trajectory,
+
+$$
+|\ell_P(\tau)-\ell_{P'}(\tau)|
+\le\frac{M^2+1}{\gamma}\|P-P'\|_F.
+$$
+
+This is what lets a representative matrix within distance $\varepsilon$
+approximate the loss of any candidate to accuracy $L\varepsilon$.
+For state vectors $x\in\mathbb R^n$, the symmetric parameter space has dimension
 $d=n(n+1)/2$ and $\|P\|_F\le b\sqrt n$. An $\varepsilon$-net of $\mathcal P$
 can be chosen with cardinality
 
 $$
 \mathcal N_\varepsilon\le(1+2b\sqrt n/\varepsilon)^d.
 $$
+
+**Why the dimension is $n(n+1)/2$.** Here $n$ counts state coordinates,
+not sampled states or trajectories. The certificate matrix is $n\times n$
+and symmetric. Its $n$ diagonal entries and $n(n-1)/2$ entries above the
+diagonal determine every entry, giving
+
+$$
+d=n+\frac{n(n-1)}2=\frac{n(n+1)}2.
+$$
+
+The constraints $aI\preceq P\preceq bI$ restrict the allowed values, not this
+ambient dimension. Since $a<b$, matrices near $((a+b)/2)I$ satisfy the
+constraints, so the class has an interior in the symmetric matrix space.
+For example, a state with two coordinates uses
+
+$$
+P=\begin{pmatrix}p_{11}&p_{12}\\p_{12}&p_{22}\end{pmatrix},
+$$
+
+which has three free entries. To make the Frobenius metric exactly Euclidean,
+use the coordinate vector $(p_{11},\sqrt2p_{12},p_{22})$. In general, list
+the diagonal entries and $\sqrt2$ times each entry above the diagonal in a
+vector $v(P)\in\mathbb R^d$. Then
+
+$$
+\|v(P)-v(P')\|_2=\|P-P'\|_F,
+$$
+
+because each off-diagonal entry occurs twice in the Frobenius sum. Thus the
+matrix class can be treated as a subset of ordinary $d$-dimensional Euclidean
+space without changing distances.
+
+**Why the radius is $b\sqrt n$.** Since $P$ is symmetric and
+$aI\preceq P\preceq bI$, every eigenvalue satisfies
+$a\le\lambda_i(P)\le b$. Orthogonal diagonalization preserves the
+Frobenius norm, giving
+
+$$
+\|P\|_F^2=\sum_{i=1}^n\lambda_i(P)^2\le nb^2,
+\qquad \|P\|_F\le b\sqrt n=:R.
+$$
+
+Consequently $v(\mathcal P)$ lies inside a radius-$R$ ball in $\mathbb R^d$.
+This is an enclosing ball, not a claim that every matrix in that ball is
+positive definite or belongs to $\mathcal P$.
+
+**What an $\varepsilon$-net means.** For $\varepsilon>0$, choose finitely
+many representatives $P^{(1)},\ldots,P^{(m)}\in\mathcal P$ such that
+
+$$
+\forall P\in\mathcal P,\quad
+\min_{1\le j\le m}\|P-P^{(j)}\|_F\le\varepsilon.
+$$
+
+Every candidate is approximated by at least one representative. The covering
+number is the smallest possible number of representatives; we only need an
+upper bound on the size of one such net. Smaller $\varepsilon$ gives a more
+accurate approximation, generally at the cost of more representatives.
+
+**Where $(1+2R/\varepsilon)^d$ comes from.** Choose a maximal collection of
+points in $v(\mathcal P)$ whose pairwise distances are greater than
+$\varepsilon$: add a point whenever it is farther than $\varepsilon$ from
+all existing points. Maximal means no more points can be added. This makes
+the collection an $\varepsilon$-net; otherwise an uncovered point could be
+added. A volume argument bounds its size and ensures this process terminates:
+
+1. The radius-$\varepsilon/2$ balls around the chosen points are disjoint.
+2. Each center has norm at most $R$, so all those balls lie inside the
+   radius-$(R+\varepsilon/2)$ ball around the origin.
+3. A ball of radius $r$ in $d$ dimensions has volume $c_dr^d$. If there are
+   $m$ chosen points, disjointness and containment imply
+
+$$
+m\,c_d(\varepsilon/2)^d\le c_d(R+\varepsilon/2)^d,
+\qquad
+m\le\left(\frac{R+\varepsilon/2}{\varepsilon/2}\right)^d
+=\left(1+\frac{2R}{\varepsilon}\right)^d.
+$$
+
+Substitute $R=b\sqrt n$ to obtain the stated bound. The factor $2$ comes
+from packing balls of radius $\varepsilon/2$; the exponent $d$ comes from
+volume scaling in the symmetric parameter space. Choosing centers directly
+in $\mathcal P$ ensures each representative is an admissible candidate, even
+though the packing balls themselves may extend outside the class.
+
+**Why this helps generalization.** The previous Lipschitz bound makes each
+representative approximate its nearby candidates' losses by at most
+$L\varepsilon$, uniformly over trajectories. We can apply concentration and
+a finite union bound to the representatives, then extend the result to every
+$P$. The number of representatives enters through its logarithm:
+
+$$
+\log\mathcal N_\varepsilon
+\le d\log\left(1+\frac{2b\sqrt n}{\varepsilon}\right).
+$$
+
+This is the origin of the dimension-and-resolution term in the statistical
+bound below. The net is a proof device; fitting a certificate does not require
+enumerating all of its representatives.
+
+**Reading connection.** [Chapter 5](../../resources/ch5%20Empirical%20Risk%20Minimization%20for%20Nonlinear%20Predictors.pdf),
+Definition 5.15 (PDF p. 11), defines nets and covering numbers. Proposition
+5.18 (PDF p. 12) gives the unit-ball bound
+$\log N(u;B_2^d(1),\|\cdot\|_2)\le d\log(1+2/u)$;
+scaling to radius $R$ uses $u=\varepsilon/R$. Proposition 5.20
+discusses bounded parameter sets. The packing argument here supplies the
+bound while explicitly keeping centers inside our constrained matrix class.
+Proposition 5.19 then explains the transfer from parameter approximation to
+loss approximation. [Boffi et al.](https://proceedings.mlr.press/v155/boffi21a/boffi21a.pdf),
+Section 4.1, equation (4.3) and the paragraph after it (PDF p. 5), use
+Frobenius-bounded symmetric certificate matrices and count $k=d(d+1)/2$
+parameters for a $d\times d$ matrix. Here the paper's $d$ denotes matrix size,
+whereas our $d$ denotes parameter count. Their covering-number
+analysis motivates this specialization; their sharper Theorem 4.3 uses
+additional matrix structure and is not reproduced by our finite-net proof.
 
 Fix $\varepsilon>0$ before drawing data. Hoeffding plus a union bound on the net
 and two Lipschitz approximation errors gives, with probability at least

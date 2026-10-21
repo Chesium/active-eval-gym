@@ -1,0 +1,150 @@
+% ESE 6180 (Fall 2026) final-project proposal.
+% Two pages maximum excluding references, L4DC (PMLR) format.
+\documentclass{l4dc2026}
+
+% amsmath, amssymb, natbib, graphicx, url, algorithm2e are loaded by the class.
+\usepackage{times}
+
+\title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization:\newline Certificate Margins and Controller Updates}
+
+\author{%
+ \Name{Shimin Chen} \Email{cshimin@engineering.upenn.edu}
+}
+
+% Blank the proceedings banner ("Proceedings of Machine Learning Research vol
+% vvv:1--N, 2026") that the class puts at the top of page 1. The class applies
+% page style jmlrtps there via \maketitle, so append a head-clearing step to it
+% rather than emptying \jmlryear, which would also drop the copyright footer.
+\makeatletter
+\g@addto@macro\ps@jmlrtps{\def\@oddhead{}\let\@evenhead\@oddhead}
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}%
+Evaluation-guided domain randomization targets training conditions using a
+controller's observed weaknesses, but improvement on selected conditions can
+cause regression elsewhere. We propose a theory-focused study of a small
+linear-system family: specialize trajectory-based certificate learning to
+quadratic Lyapunov candidates, then analyze one controller update constrained
+by a verified decrease margin. Cost-sensitivity bounds and counterexamples will
+separate stability preservation from performance-coverage improvement. Small
+numerical experiments support the analysis; cost-region expansion or a local
+nonlinear extension is an ambitious additional outcome.%
+\end{abstract}
+
+\section{Motivation}
+
+Domain randomization trains a shared controller across varying plants and
+initial conditions. Evaluation can identify conditions near a performance
+threshold and guide subsequent training, but proximity to that threshold need
+not imply useful training signal. We study what can be certified before an
+update and preserved afterward. The L4DC connection is the interaction between
+statistical generalization of learned certificates and feedback-dependent
+trajectory changes when the controller is updated.
+
+\section{Problem Formulation}
+
+Consider a known finite plant family with full-state feedback,
+$x_{t+1}=A(\theta)x_t+B(\theta)u_t$, $u_t=-Kx_t$, and
+$G_K(\theta)=A(\theta)-B(\theta)K$. The shared gain $K$ is frozen during
+evaluation; $\theta$ stays fixed within each trajectory. The initial model is
+deterministic, continuous-action, and unconstrained. Known matrices permit
+exact verification alongside certificate fitting from sampled transitions.
+The retention family must admit a common quadratic certificate; this is an
+explicit restriction beyond individual plant stability.
+
+The method connects three feedback loops: \textbf{control} maps states to
+actions and next states; \textbf{evaluation} maps chosen conditions to
+trajectory-based certificate and cost evidence; \textbf{improvement} uses that
+evidence to choose a training distribution, proposes an update, checks its
+margin, and freezes the accepted controller for fresh evaluation.
+
+For fixed $Q,R\succeq0$, let
+$J_{H,K}(\theta,x)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t)
+=x^\top P_H(K,\theta)x$, with $x_0=x$.
+Define $S_K^J=\{(\theta,x):\|x\|_2\le r,\ J_{H,K}(\theta,x)\le h\}$.
+Coverage is $\mu(S_K^J)$ under a fixed reference probability measure $\mu$;
+the training distribution $q$ may change. Net coverage change equals gained
+mass minus lost mass. The cost matrix $P_H$ is distinct from a Lyapunov
+candidate $P$, and finite-horizon acceptability does not establish stability.
+
+\textbf{Research questions.}
+What generalizes when a quadratic certificate is fitted to trajectories of a
+frozen controller? Which verified margins survive an evaluation-guided update?
+When can targeted training reduce its objective yet lose acceptable coverage?
+
+\section{Goals and Approach}
+
+\textbf{Stage 1: Course foundation.}
+We will adapt the certificate-learning viewpoint of \citet{boffi2021learning}
+to discrete time and $V_P(x)=x^\top Px$, with fixed
+$0<aI\preceq P\preceq bI$. For a frozen $K$, draw independent plant/initial-state
+pairs from a fixed distribution and collect $H$ transitions each. A bounded
+margin loss measures violations of
+$V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2$, $\eta>0$.
+A finite-cover argument will give a uniform generalization bound over the
+certificate class, treating whole trajectories as independent samples.
+This connects Chapter 5's learning tools with Chapter 3's Lyapunov theory,
+without claiming the source paper's strongest rate.
+The statistical conclusion concerns violation risk under the sampled law,
+not all-state stability. Separately, known matrices verify
+$G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta_\theta I$, $\eta_\theta>0$,
+on every retained plant. Failed verification is reported.
+
+\textbf{Stage 2: Main theoretical investigation.}
+Hold verified $P$ fixed. For $K'=K+\Delta K$, write $G=G_K(\theta)$ and
+$d_\theta=\|B(\theta)\Delta K\|_2$. Expanding the quadratic form gives the
+sufficient preservation test
+\[
+2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2<\eta_\theta.
+\]
+We will connect this test to one concrete update: evaluate old costs on a fixed
+grid, mix a target near $J_{H,K}=h$ with fixed background sampling, and take an
+exact-gradient step for $F_q(K)=\mathbb E_q J_{H,K}$. Hold $q$ fixed during
+backtracking and require training descent and a positive retained margin on
+every retention plant; a capped unsuccessful search leaves $K$ unchanged.
+This preserves verified stability, not the cost-acceptable set.
+We will also derive an explicit bound
+$\|P_H(K',\theta)-P_H(K,\theta)\|_2\le L_H(\theta)\|\Delta K\|_2$,
+including the changed input penalty. With
+$b_J(\theta)=r^2L_H(\theta)\|\Delta K\|_2$, losses lie in
+$h-b_J(\theta)<J_{H,K}\le h$.
+A targeted-gradient counterexample will show that training descent and stability
+can coexist with reduced coverage. These elementary results and their limits,
+rather than a general PPO theorem, form the required analysis.
+
+\textbf{Stage 3: Ambitious extension.}
+Seek net expansion of $S_K^J$ under a specified update by establishing gains
+that outweigh losses. Alternatively, study a local nonlinear extension with
+an explicit remainder bound and invariant neighborhood. Choose one extension;
+Stages 1--2 remain deliverables without it. One outer update is sufficient.
+
+\textbf{Supporting experiments.}
+Small linear examples will compare exact and bounded drift, certificate
+verification, and gains/losses for uniform versus cost-boundary targets under
+the same update restriction. CartPole is an optional nonlinear illustration:
+with a $90^\circ$ angle cutoff and other termination rules retained, recovery
+requires 500-step survival and final-100-step RMS angle at most $5^\circ$.
+Its discrete actions and large-angle behavior do not inherit the linear theorem.
+Recovery claims require fresh episodes and simultaneous bounds
+\citep{howard2021timeuniform}. Retain raw trajectories, configurations, and seeds.
+
+\section{Related Work}
+
+\citet{boffi2021learning} study certificate generalization;
+\citet{zhang2022adversarially} extend this to robust certificates under incremental
+stability assumptions. Domain-randomized LQR \citep{fujinami2025domain}
+motivates shared-gain learning. Reverse curricula \citep{florensa2017reverse}
+precede performance-guided sampling, while \citet{berkenkamp2017safe} study
+Lyapunov-based safe-region expansion. These results motivate our analysis but
+do not imply coverage expansion for the proposed update.
+
+\noindent\textit{AI assistance:} Codex assisted with drafting and preliminary derivations.
+
+\clearpage
+\bibliography{references.bib}
+
+\end{document}

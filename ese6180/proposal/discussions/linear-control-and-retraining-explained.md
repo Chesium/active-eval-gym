@@ -19,6 +19,11 @@ preservation result is part of the main analysis.
 
 The textbook background is João P. Hespanha, *Linear Systems Theory*, second edition (2018), available as a [local PDF](../literature/Linear-Systems-2e.pdf). Reading pointers appear at the end. The calculations and examples below are explanations for this project, not claims of new textbook theorems or completed experiments.
 
+The companion **RL Atlas**, inspected at `/mnt/c/c/rl_atlas/`, explains the
+prerequisites in Parts 15–18. [Section 13](#13-reading-path-deliverables-and-remaining-choices)
+maps those chapters to this note; [Section 3.1](#31-what-exactly-is-adapted-from-boffi-et-al)
+identifies the source equations and the changes made here.
+
 ## 1. Understand the three loops and their different variables
 
 The **control loop** acts within an episode: observe the state, apply an action, and observe the next state. The **evaluation loop** selects conditions and collects trajectories of a frozen controller to estimate where it meets a requirement. The **improvement loop** uses that evidence to choose training conditions, learns an updated controller, and freezes it for a new evaluation.
@@ -80,17 +85,73 @@ it positive away from zero. A decrease inequality makes the energy fall along
 the actual dynamics. Neither the name “energy” nor a good fit is sufficient;
 the inequality is the part that proves the property.
 
-For a fixed linear closed loop, the desired inequality is
+For a fixed linear closed loop, the property we want to certify is convergence
+to the equilibrium $x=0$. Hold both $K$ and $\theta$ fixed, so the next state
+from any current state $x$ is $x^+=G_K(\theta)x$. The discrete-time analogue of
+a negative energy derivative is a negative **one-step energy difference**.
+The desired inequality, for every $x\in\mathbb R^n$, is
 
 $$
-V_P(G_K(\theta)x)-V_P(x)\le-\eta\|x\|^2.
+V_P(G_K(\theta)x)-V_P(x)\le-\eta\|x\|_2^2,\qquad \eta>0.
 $$
 
-Because $x$ is arbitrary, this is equivalent to
+Here $\eta$ is a desired decrease coefficient, not a training reward. For
+$x\ne0$, the right-hand side is strictly negative: the certificate must fall
+by at least $\eta\|x\|_2^2$ in one step. Requiring only nonincrease would allow
+$G_K(\theta)=I$, where every state stays where it started. Requiring a fixed
+absolute decrease $-\eta$ would instead fail at the equilibrium, where both
+energies are zero. The squared norm gives a decrease that vanishes at zero
+and scales quadratically with the state, just as $V_P$ does.
+
+This directly specializes [Chapter 3](../../resources/ch3%20Dynamics,%20Stability,%20and%20Basic%20Lyapunov%20Theory-1.pdf),
+Theorem 3.10, with $f(x)=G_K(\theta)x$ and comparison functions
+$\alpha_1(r)=ar^2$, $\alpha_2(r)=br^2$, and $\alpha_3(r)=\eta r^2$.
+Lemma 3.11 then supplies exponential stability; Example 3.12 derives the
+same quadratic decrease for a stable linear system.
+
+To see why this proves convergence, suppose $aI\preceq P\preceq bI$, with
+$0<a<b$. Then $a\|x\|_2^2\le V_P(x)\le b\|x\|_2^2$, so all-state decrease
+implies
+
+$$
+V_P(x_{t+1})\le V_P(x_t)-\eta\|x_t\|_2^2
+\le(1-\eta/b)V_P(x_t).
+$$
+
+Any feasible $\eta$ satisfies $0<\eta\le b$. Iterating this contraction and
+using the lower bound on $V_P$ gives, for $t\ge1$,
+
+$$
+\|x_t\|_2^2\le\frac ba(1-\eta/b)^t\|x_0\|_2^2.
+$$
+
+Thus every initial state converges to zero exponentially; when $\eta=b$,
+the bound forces the next state to be zero. The state norm need not decrease
+at every step: the contracting quantity is the weighted energy $V_P$.
+For example, in one dimension, $x^+=0.8x$ and $P=1$ give
+$V_P(x^+)-V_P(x)=(0.8^2-1)x^2=-0.36x^2$, so any
+$0<\eta\le0.36$ meets the condition.
+
+For the quadratic candidate, the one-step difference is exactly
+
+$$
+V_P(G_K(\theta)x)-V_P(x)
+=x^\top\big(G_K(\theta)^\top PG_K(\theta)-P\big)x.
+$$
+
+Because $x$ is arbitrary and the matrix is symmetric, the desired inequality
+is equivalent to
 
 $$
 G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta I.
 $$
+
+This is a condition to fit and then verify, not something that follows merely
+from freezing the controller. A stable individual linear plant admits a
+quadratic Lyapunov function, but a prescribed $\eta$ and bounded candidate
+class can still be infeasible, as can one shared $P$ across a plant family.
+Once verified, the positive decrease margin also gives the later controller
+update a quantitative budget: the update must consume less than that margin.
 
 A state trajectory supplies pairs $(x_t,x_{t+1})$. One can fit $P$ by asking for
 small violations of the decrease inequality on these pairs, while requiring
@@ -149,6 +210,200 @@ It does not prove the controller is unstable, and must not be hidden.
 For a family, using one $P$ for every retained plant is a simplifying restriction.
 Several individually stable matrices may have no common quadratic certificate.
 The first family should admit one, with this assumption stated openly.
+
+### 3.1. What exactly is adapted from Boffi et al.?
+
+Use the [local conference PDF](../literature/boffi21a-learning-stability-certificates.pdf)
+or the [published paper](https://proceedings.mlr.press/v155/boffi21a/boffi21a.pdf)
+for the equation numbers below. The atlas cites the longer
+[arXiv:2008.05952v2](https://arxiv.org/abs/2008.05952v2), also available in its
+[course pack](/mnt/c/c/rl_atlas/course/ese6180/boffi-v2.pdf).
+Both versions use equations (3.1)–(3.4), (4.1)–(4.5), Lemma 4.1, and
+Theorems 4.2–4.4 and 5.1–5.2 for the corresponding material, but their pages
+differ: the framework is on conference PDF pp. 3–4 / v2 pp. 4–5; the main
+generalization results are on conference pp. 5–6 / v2 pp. 6–7. The v2
+appendices contain the longer proofs. Atlas lessons are explanations of these
+sources, with some explicitly stated repairs, rather than additional theorems
+being assumed by this proposal.
+
+**The sampling experiment is adapted from Section 3.1.** In the paper,
+$\dot x=f(x)$ is one fixed continuous-time system, $\xi_i\sim\mathcal D$
+are independent initial states, and $\phi_t(\xi_i)$ are their trajectories.
+Here $K$ stays fixed, but a sample is $(\theta_i,x_{0,i})\sim D_0$ and its
+discrete trajectory $x_t=G_K(\theta_i)^t x_{0,i}$. Adding plant variation and
+using a finite discrete horizon are proposal choices. Within-trajectory steps
+remain dependent: the independent sample count is $N$, not $NH$. This is the
+connection explained by atlas Part 17,
+[Trajectories as independent samples](/mnt/c/c/rl_atlas/content/17-learning-theory/trajectories-as-samples.md).
+
+**The residual adapts (3.1) and the unnumbered Lyapunov residual in Section
+3.1.1.** The source condition is $h\le0$, with the Lyapunov choice
+
+$$
+h_{\rm Boffi}(x,\dot x,V,\nabla V)
+=\nabla V(x)^\top\dot x+\alpha(V(x)).
+$$
+
+The paper's $\alpha$ is a class-$\mathcal K$ function, not a learning margin.
+Our discrete-time, state-weighted counterpart is
+
+$$
+\widetilde h_P(x,x^+)=V_P(x^+)-V_P(x)+\eta\|x\|_2^2,
+\qquad
+r_P(x,x^+)=\frac{\widetilde h_P(x,x^+)}{\|x\|_2^2}
+\quad(x\ne0).
+$$
+
+There are two changes: replace the derivative by the actual one-step
+difference, and prescribe decrease using $\eta\|x\|^2$ rather than the
+paper's $\alpha(V(x))$. Then normalize by state magnitude. This is not an
+Euler discretization or the literal substitution $\alpha(V)=\eta\|x\|^2$
+for a general $P$. The exact discrete stability justification is course
+Chapter 3, Theorem 3.10, Lemma 3.11, and Example 3.12, as derived above;
+atlas Part 15's
+[Continuous and discrete time](/mnt/c/c/rl_atlas/content/15-dynamics/time-dictionary.md)
+explains the same distinction. Normalization is our choice: it permits a
+relative quadratic fitting margin near zero. At zero the original decrease
+condition holds automatically; the normalized residual is left undefined
+and that state is skipped. These changes require the direct proof below,
+rather than an automatic application of the paper's continuous-time theorems.
+
+**The fitting requirement adapts (3.2); the error definition adapts (3.3).**
+The paper asks for $h(\xi_i,V)\le-\gamma$, where its shorthand
+$h(\xi,V)$ is the worst residual along the trajectory. Our counterparts are
+
+$$
+r_P^{\max}(\tau)
+=\max_{0\le t<H:x_t\ne0}r_P(x_t,x_{t+1}),
+\qquad r_P^{\max}(\tau_i)\le-\gamma,
+$$
+
+and
+
+$$
+\operatorname{err}_{D_0,H}(P)
+=\Pr_{(\theta,x_0)\sim D_0}
+\{\text{some nonzero }x_t\text{ has }r_P(x_t,x_{t+1})>0\}.
+$$
+
+An all-zero trajectory has zero loss and no violation. On other trajectories,
+the normalized fitting constraint means
+$V_P(x_{t+1})-V_P(x_t)\le-(\eta+\gamma)\|x_t\|^2$ at every nonzero step.
+Thus $\eta$ specifies the property and $\gamma$ is extra fitting slack.
+The new error is a probability over a fresh plant/initial-state pair under
+the same law and horizon; it does not measure failure after retraining or
+under an adaptively chosen training law $q_k$.
+
+The paper's Section 4 uses the empirical margin indicator
+$N^{-1}\sum_i\mathbf1\{h(\xi_i,V)>-\gamma\}$, which is zero for a feasible
+solution of (3.2). Our soft objective instead averages
+
+$$
+\ell_P(\tau)=\min\{1,\max\{0,1+r_P^{\max}(\tau)/\gamma\}\},
+\qquad \operatorname{err}_{D_0,H}(P)\le\mathbb E_{D_0}\ell_P.
+$$
+
+This exact clipped ramp is a proposal choice, related to course Chapter 5,
+Example 5.14's surrogate-loss construction. It upper-bounds the actual
+violation indicator and permits nonzero training loss. We do not attribute
+this formula or its generalization proof to Boffi's Lemma 4.1. Atlas Part 18's
+[Learning a certificate from data](/mnt/c/c/rl_atlas/content/18-certificates/learning-certificates.md)
+separates (3.1), (3.2), (3.3), and the empirical margin indicator.
+
+**The quadratic class specializes (4.3), within the parametric family (4.1).**
+The paper writes $V_Q(x)=m(x)^\top Qm(x)$ with $Q=Q^\top\succeq0$ and
+$\|Q\|_F\le B_Q$. Set the feature map $m(x)=x$, rename $Q$ as $P$, and
+restrict to
+
+$$
+\mathcal P=\{P=P^\top:aI\preceq P\preceq bI\},
+\quad d=\frac{n(n+1)}2,
+\quad \|P\|_F\le b\sqrt n.
+$$
+
+The two spectral bounds are our restricted candidate class: the lower bound
+supplies positivity, and the upper bound fixes certificate scale. Quadratic
+certificates and their parameter count are already in the paper. Do not
+confuse its matrix $Q$ with the stage-cost matrix $Q$ in Section 5 below, or
+its certificate parameter $\theta$ in (4.1) with our plant parameter
+$\theta$. Its sample count $n$ corresponds to our $N$; its parameter count
+$k$ corresponds to our $d$; our $n$ is the state dimension.
+
+**The proof approach adapts Section 4.1's parameter-cover argument, but uses
+course Chapter 5's concentration tools.** Boffi controls changes in a
+certificate's value and gradient jointly, transfers parameter covers to
+residual covers, and uses Dudley's integral followed by Lemma 4.1. The
+specific source is v2 Appendix B.1's unnumbered inequalities
+$\|V_{\vartheta_1}-V_{\vartheta_2}\|_{\mathcal V}
+\le(L_g+L_{\nabla g})\|\vartheta_1-\vartheta_2\|$ and
+$\log\mathcal N(u;B_2^k(1))\le k\log(1+2/u)$, followed by its use of
+the entropy integral (B.1). Here $\vartheta$ denotes the paper's certificate
+parameter $\theta$, to keep it separate from our plant parameter. For our
+normalized discrete residual the [design notes](proposal-design-notes.md)
+derive the replacement estimates directly:
+
+$$
+|r_P(x,Gx)-r_{P'}(x,Gx)|\le(M^2+1)\|P-P'\|_F,
+\qquad L=\frac{M^2+1}{\gamma},
+$$
+
+$$
+\log\mathcal N_\varepsilon(\mathcal P,\|\cdot\|_F)
+\le d\log(1+2b\sqrt n/\varepsilon),
+\qquad M=\sup_\theta\|G_K(\theta)\|_2<\infty.
+$$
+
+The $(M^2+1)$ constant, normalization, and $L$ are derived for this proposal;
+they are not constants quoted from the paper. With a net resolution
+$\varepsilon>0$ fixed before sampling, Hoeffding and a union bound give,
+simultaneously for all $P\in\mathcal P$, with probability at least
+$1-\delta_{\rm cert}$,
+
+$$
+\operatorname{err}_{D_0,H}(P)\le\mathbb E_{D_0}\ell_P
+\le\frac1N\sum_{i=1}^N\ell_P(\tau_i)+2L\varepsilon
++\sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)
++\log(2/\delta_{\rm cert})}{2N}}.
+$$
+
+The two $L\varepsilon$ terms approximate population and empirical losses.
+This is the elementary uniform bound proved in the design notes, using
+course Chapter 5, Lemma 5.6, Theorem 5.8, and the covering results in §§5.5–5.6.
+Atlas Part 17's
+[Finite hypothesis classes](/mnt/c/c/rl_atlas/content/17-learning-theory/finite-classes.md),
+[Properties of covering numbers](/mnt/c/c/rl_atlas/content/17-learning-theory/covering-properties.md),
+and [Uniform convergence](/mnt/c/c/rl_atlas/content/17-learning-theory/uniform-convergence.md)
+explain those steps. With $\varepsilon=N^{-1/2}$ it has order
+$\sqrt{d\log N/N}$ for fixed class constants, and applies to the fitted
+$\widehat P$ even if its empirical loss is positive. It bounds finite-horizon
+trajectory violations, not all-state stability.
+
+### 3.2. Which source theorems are used, compared, or left optional?
+
+| Source result and atlas explanation | Relationship to this proposal |
+| --- | --- |
+| [Lemma 4.1](/mnt/c/c/rl_atlas/content/18-certificates/boffi-lemma-4-1.md), Section 4's unnumbered fast margin bound | Comparison and motivation. It bounds violation probability using squared worst-case absolute Rademacher complexity, assuming a feasible solution of (3.2). Boffi attributes it to Srebro et al., Theorem 5. Our Hoeffding bound does not invoke or reprove it. |
+| [Theorem 4.2](/mnt/c/c/rl_atlas/content/18-certificates/boffi-thm-4-2.md), bound (4.2); v2 Appendix B.1 | Closest parametric proof template: parameter regularity → covers → complexity → generalization. Its fast rate is roughly $\widetilde O(d/N)$ after matching parameter counts and fixing other constants. We retain the covering idea and replace its last steps by a slower finite-net argument. |
+| [Theorem 4.3](/mnt/c/c/rl_atlas/content/18-certificates/boffi-thm-4-3.md), class (4.3), bound (4.4); v2 Appendix B.2 | Source of the structured quadratic class and an optional sharper comparison. It uses operator-norm entropy and dual Sudakov, giving roughly $\widetilde O(n/N)$ for $m(x)=x$ with other constants fixed. Our entry-counting Frobenius cover does not reproduce this dimension improvement. Neither fast rate transfers automatically to our changed residual and sampling model. |
+| [Theorem 4.4](/mnt/c/c/rl_atlas/content/18-certificates/boffi-thm-4-4.md), kernel class (4.5); v2 Appendix B.3 | Optional extension to kernel/random-feature candidates. The quadratic minimum study does not use it. |
+| [Theorem 5.1](/mnt/c/c/rl_atlas/content/18-certificates/boffi-thm-5-1.md), (5.1)–(5.3); v2 Appendix C.1 | Optional probability-to-region argument under incremental stability, uniform initial-state measure, and regularity conditions. It yields decrease on an eroded reachable domain outside an equilibrium neighborhood. Our exact eigenvalue oracle instead proves a matrix inequality for each known linear plant; it is not an application of this theorem. |
+| [Theorem 5.2](/mnt/c/c/rl_atlas/content/18-certificates/boffi-thm-5-2.md), (5.4); v2 Appendix C.2 | Optional contraction-metric analogue, assuming true contraction and controlling violations over state–direction pairs. It supplies no controller-retraining or finite-cost coverage theorem here. |
+
+When reading Boffi's Section 5, follow the atlas's explicit source-versus-proof
+distinctions: it flags a missing negative sign in the printed violation sets
+(5.1) and (5.4), and additional conditions/corrections for the geometric
+arguments. The proposal's main result uses the directly verified discrete
+matrix inequality, so it does not depend on importing those statements.
+
+Finally, the controller-update expansion in Section 4 below, its sufficient
+margin-budget inequality, the gradient/backtracking mechanism, the finite-cost
+drift bound, and the cost-coverage counterexample are **project-specific
+derivations and design choices**. None is claimed as an adaptation of a numbered
+Boffi theorem. They connect certificate evaluation to one actual controller
+change, using standard matrix algebra and optimization. Calling them
+project-specific identifies their role here; it does not assert research
+novelty. The paper's downstream adaptive-control experiments also do not
+establish our proposed cost-region expansion claim.
 
 ## 4. Use the decrease margin to constrain one controller update
 
@@ -598,6 +853,42 @@ $$
 which need not be negative semidefinite. Finite-horizon cost sublevel sets therefore do not automatically certify stability or invariance. The certificate in Sections 3–4 can be verified directly without equating it to a cost matrix or reproducing an infinite-horizon optimization theorem.
 
 ## 13. Reading path, deliverables, and remaining choices
+
+### RL Atlas: the relevant chapters and how to read them
+
+The atlas repository is `/mnt/c/c/rl_atlas/` in WSL (Windows host path
+`C:\c\rl_atlas\`). Open the existing
+[ESE6180 companion](/mnt/c/c/rl_atlas/course/ese6180/rl_atlas-ese6180.html)
+for the course materials beside the lessons, or the
+[public atlas](/mnt/c/c/rl_atlas/rl_atlas.html) for the lessons alone. Its
+numbered chapters are called **Parts** in `content/map.toml`: Parts 15–18
+are the dynamics, contraction, learning-theory, and certificate-learning
+bridge relevant to ESE6180. They are distinct from ESE6180 course-note
+Chapters 3 and 5. Links below open the Markdown lesson sources; in the
+interactive atlas, search for the lesson title and choose **Textbook** for
+definitions and proofs, **Card** for recall, and **Lab** for numerical intuition.
+These absolute paths refer to this local checkout; they are not portable
+links to an atlas bundled in this repository.
+
+| Atlas chapter | Read these lessons | Connection to this note |
+| --- | --- | --- |
+| **15 — Dynamics and stability** | [Dynamical systems and closed loops](/mnt/c/c/rl_atlas/content/15-dynamics/dynamical-systems.md), [Stability of an equilibrium](/mnt/c/c/rl_atlas/content/15-dynamics/stability.md), [Lyapunov functions](/mnt/c/c/rl_atlas/content/15-dynamics/lyapunov-functions.md), [The Lyapunov equation](/mnt/c/c/rl_atlas/content/15-dynamics/lyapunov-equation.md), and [Continuous and discrete time](/mnt/c/c/rl_atlas/content/15-dynamics/time-dictionary.md) | Sections 2–4: closing the loop, positivity and decrease, quadratic certificates, and why discrete time uses $G^\top PG-P$ rather than an ODE derivative. The time dictionary supplies the discrete theorem and matrix-series argument. |
+| **15 — Two conceptual distinctions** | [A controller or a certificate](/mnt/c/c/rl_atlas/content/15-dynamics/controller-or-certificate.md) and [Two meanings of V](/mnt/c/c/rl_atlas/content/15-dynamics/two-values.md) | Sections 1, 3, and 5–11: fitting $P$ leaves trajectories fixed; updating $K$ changes them. A Lyapunov certificate and an RL value/cost function have different requirements. A finite-cost acceptable region need not be a stability region. |
+| **16 — Incremental stability and contraction** | [Incremental stability](/mnt/c/c/rl_atlas/content/16-contraction/incremental-stability.md), [Variational dynamics](/mnt/c/c/rl_atlas/content/16-contraction/variational-dynamics.md), [Contraction metrics](/mnt/c/c/rl_atlas/content/16-contraction/contraction-metrics.md), and [Three meanings of contraction](/mnt/c/c/rl_atlas/content/16-contraction/three-contractions.md) | Background for Boffi Section 3.1.2, (3.4), Assumption 5.1, and Theorems 5.1–5.2. Pairwise trajectory convergence, the Bellman contraction, and contraction of statistical complexity are different notions. This chapter supports the optional nonlinear extension; its full metric machinery is not needed for our elementary quadratic proof. |
+| **17 — Learning theory: minimum proof path** | [Risk and empirical risk minimization](/mnt/c/c/rl_atlas/content/17-learning-theory/risk-erm.md), [Trajectories as independent samples](/mnt/c/c/rl_atlas/content/17-learning-theory/trajectories-as-samples.md), [Hoeffding and McDiarmid inequalities](/mnt/c/c/rl_atlas/content/17-learning-theory/concentration.md), [Finite hypothesis classes](/mnt/c/c/rl_atlas/content/17-learning-theory/finite-classes.md), [Properties of covering numbers](/mnt/c/c/rl_atlas/content/17-learning-theory/covering-properties.md), and [Uniform convergence](/mnt/c/c/rl_atlas/content/17-learning-theory/uniform-convergence.md) | Section 3 and the design-notes proof: bounded trajectory loss, independent sample count, concentration on a net, Lipschitz extension, and a bound valid for a data-selected $P$. |
+| **17 — Learning theory: reading Boffi's sharper route** | [Rademacher complexity](/mnt/c/c/rl_atlas/content/17-learning-theory/rademacher-complexity.md), [Properties and the contraction lemma](/mnt/c/c/rl_atlas/content/17-learning-theory/rademacher-properties.md), [Covering numbers and Dudley's integral](/mnt/c/c/rl_atlas/content/17-learning-theory/covering-dudley.md), [Margins and fast rates](/mnt/c/c/rl_atlas/content/17-learning-theory/margin-bounds.md), and [Dual Sudakov](/mnt/c/c/rl_atlas/content/17-learning-theory/dual-sudakov.md) | Explains what our finite-net proof omits: the absolute complexity convention, entropy integral, zero-margin-error fast rate, and matrix structure behind Lemma 4.1 and Theorems 4.2–4.3. [Kernels and random features](/mnt/c/c/rl_atlas/content/17-learning-theory/kernels-random-features.md) is only needed for optional Theorem 4.4. |
+| **18 — Learning certificates** | [Learning a certificate from data](/mnt/c/c/rl_atlas/content/18-certificates/learning-certificates.md), [Certificate classes and their joint norm](/mnt/c/c/rl_atlas/content/18-certificates/certificate-classes.md), then the individual result lessons linked in Section 3.2 | The direct paper-reading companion: residual → fitting margin → trajectory violation probability → class-dependent generalization → optional geometric guarantees. Use Section 3.1's substitutions to distinguish the source formulas from our adaptations. |
+| **18 — Numerical interpretation** | [Certificates in practice](/mnt/c/c/rl_atlas/content/18-certificates/certificates-in-practice.md) and [Damped Van der Pol: violation sets](/mnt/c/c/rl_atlas/content/18-certificates/vdp-certificates.md) | Distinguishes sampled feasibility, independent holdout estimates, and theorem premises. The Lab is an adapted continuous-time contraction example, not a reproduction of this discrete-time project or evidence for our retraining claim. |
+| **1 and 10 — RL background, as needed** | [Value functions](/mnt/c/c/rl_atlas/content/01-problem/value-functions.md), [Policy gradient theorem](/mnt/c/c/rl_atlas/content/10-policy-gradients/pg-theorem.md), [TRPO](/mnt/c/c/rl_atlas/content/10-policy-gradients/trpo.md), and [PPO](/mnt/c/c/rl_atlas/content/10-policy-gradients/ppo.md) | Helps interpret a learned controller and the optional CartPole experiment. PPO's clipping rule is not the verified quadratic margin condition in Section 4. The minimum linear experiment uses an exact finite-cost gradient, not a required PPO reproduction. |
+
+A short route for the minimum deliverable is **15 → 17's minimum proof path
+→ 18's formulation and parametric results → this note's Section 4**. Read
+Part 16 before pursuing Boffi's Section 5 or a contraction-based extension.
+Use Part 17's sharper route to compare rates, rather than attributing the
+paper's fast rate to the elementary proof. This reading order keeps the
+prerequisites tied to the actual deliverable.
+
+### Textbook, course notes, and complementary papers
 
 The textbook supplies the following background. Page references use printed pages; add 19 for this local PDF's viewer page number.
 

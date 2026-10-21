@@ -1,0 +1,101 @@
+% ESE 6180 (Fall 2026) final-project proposal.
+% Two pages maximum excluding references, L4DC (PMLR) format.
+\documentclass{l4dc2026}
+
+% amsmath, amssymb, natbib, graphicx, url, algorithm2e are loaded by the class.
+\usepackage{times}
+
+\title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization:\newline Certificate Margins and Controller Updates}
+
+\author{%
+ \Name{Shimin Chen} \Email{cshimin@engineering.upenn.edu}
+}
+
+% Blank the proceedings banner ("Proceedings of Machine Learning Research vol
+% vvv:1--N, 2026") that the class puts at the top of page 1. The class applies
+% page style jmlrtps there via \maketitle, so append a head-clearing step to it
+% rather than emptying \jmlryear, which would also drop the copyright footer.
+\makeatletter
+\g@addto@macro\ps@jmlrtps{\def\@oddhead{}\let\@evenhead\@oddhead}
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\input{Report_Sections/00_abstract}
+
+\input{Report_Sections/01_introduction}
+
+\input{Report_Sections/02_problem_formulation}
+
+% \section{Goals and Approach}
+
+% \textbf{Stage 1: Course foundation.}
+% We will adapt the certificate-learning viewpoint of \citet{boffi2021learning}
+% to discrete time and $V_P(x)=x^\top Px$, with fixed
+% $0<aI\preceq P\preceq bI$. For a frozen $K$, draw independent plant/initial-state
+% pairs from a fixed distribution and collect $H$ transitions each. A bounded
+% margin loss measures violations of
+% $V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2$, $\eta>0$.
+% A finite-cover argument will give a uniform generalization bound over the
+% certificate class, treating whole trajectories as independent samples.
+% This connects Chapter 5's learning tools with Chapter 3's Lyapunov theory,
+% without claiming the source paper's strongest rate.
+% The statistical conclusion concerns violation risk under the sampled law,
+% not all-state stability. Separately, known matrices verify
+% $G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta_\theta I$, $\eta_\theta>0$,
+% on every retained plant. Failed verification is reported.
+
+% \textbf{Stage 2: Main theoretical investigation.}
+% Hold verified $P$ fixed. For $K'=K+\Delta K$, write $G=G_K(\theta)$ and
+% $d_\theta=\|B(\theta)\Delta K\|_2$. Expanding the quadratic form gives the
+% sufficient preservation test
+% \[
+% 2\|G^\top P\|_2d_\theta+\|P\|_2d_\theta^2<\eta_\theta.
+% \]
+% We will connect this test to one concrete update: evaluate old costs on a fixed
+% grid, mix a target near $J_{H,K}=h$ with fixed background sampling, and take an
+% exact-gradient step for $F_q(K)=\mathbb E_q J_{H,K}$. Hold $q$ fixed during
+% backtracking and require training descent and a positive retained margin on
+% every retention plant; a capped unsuccessful search leaves $K$ unchanged.
+% This preserves verified stability, not the cost-acceptable set.
+% We will also derive an explicit bound
+% $\|P_H(K',\theta)-P_H(K,\theta)\|_2\le L_H(\theta)\|\Delta K\|_2$,
+% including the changed input penalty. With
+% $b_J(\theta)=r^2L_H(\theta)\|\Delta K\|_2$, losses lie in
+% $h-b_J(\theta)<J_{H,K}\le h$.
+% A targeted-gradient counterexample will show that training descent and stability
+% can coexist with reduced coverage. These elementary results and their limits,
+% rather than a general PPO theorem, form the required analysis.
+
+% \textbf{Stage 3: Ambitious extension.}
+% Seek net expansion of $S_K^J$ under a specified update by establishing gains
+% that outweigh losses. Alternatively, study a local nonlinear extension with
+% an explicit remainder bound and invariant neighborhood. Choose one extension;
+% Stages 1--2 remain deliverables without it. One outer update is sufficient.
+
+% \textbf{Supporting experiments.}
+% Small linear examples will compare exact and bounded drift, certificate
+% verification, and gains/losses for uniform versus cost-boundary targets under
+% the same update restriction. CartPole is an optional nonlinear illustration:
+% with a $90^\circ$ angle cutoff and other termination rules retained, recovery
+% requires 500-step survival and final-100-step RMS angle at most $5^\circ$.
+% Its discrete actions and large-angle behavior do not inherit the linear theorem.
+% Recovery claims require fresh episodes and simultaneous bounds
+% \citep{howard2021timeuniform}. Retain raw trajectories, configurations, and seeds.
+
+\input{Report_Sections/03_related_work}
+
+\input{Report_Sections/04_methodology}
+
+\input{Report_Sections/05_theoretical_results}
+
+\input{Report_Sections/06_numerical_results}
+
+\input{Report_Sections/07_discussion_and_conclusion}
+
+\clearpage
+\bibliography{references.bib}
+
+\end{document}

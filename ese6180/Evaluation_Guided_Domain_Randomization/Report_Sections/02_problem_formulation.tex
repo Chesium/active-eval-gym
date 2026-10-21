@@ -1,0 +1,50 @@
+\section{Problem Formulation}
+\label{sec:problem_formulation}
+
+\subsection{Domain-Randomized Robust Control}
+\label{subsec:general_case}
+\textbf{David Example Paragraphs:} We consider the problem of domain-randomized robust control. We denote by $\theta \in \Theta$ a vector of parameters (e.g., mass, dimensions, moments of inertia) that parameterize a family of state dynamics in state $x$: 
+\begin{equation}
+    x_{t+1} = f(x_t, u_t; \theta),
+\end{equation}
+where the physical parameters are drawn from a distribution of dynamics instances $\theta \sim \mathcal{D}_\theta$. \\
+
+The objective of domain-randomized robust control is to find a control law, $\pi$, that minimizes expected controller loss with respect to the distribution of physical systems $\mathcal{D}_\theta$. Denoting by $J$ the performance loss, we express the general case as: 
+\begin{equation}
+    \begin{split}
+        \pi^* & := \arg\min_{\pi \in \Pi} \mathbb{E}_{\theta \sim \mathcal{D}_\theta}[J(\pi, \theta)] \\
+        \text{s.t.} & \hspace{7mm} x_{t+1} = f(x_t, u_t; \theta)\\ 
+        & \hspace{7mm} x_0 \sim \mathcal{D}_{0}
+    \end{split}
+\end{equation}
+
+\subsection{Linear Domain-Randomized Robust Control}
+\label{subsec:linear_case}
+Consider a known finite plant family with full-state feedback,
+$x_{t+1}=A(\theta)x_t+B(\theta)u_t$, $u_t=-Kx_t$, and
+$G_K(\theta)=A(\theta)-B(\theta)K$. The shared gain $K$ is frozen during
+evaluation; $\theta$ stays fixed within each trajectory. The initial model is
+deterministic, continuous-action, and unconstrained. Known matrices permit
+exact verification alongside certificate fitting from sampled transitions.
+The retention family must admit a common quadratic certificate; this is an
+explicit restriction beyond individual plant stability.
+
+The method connects three feedback loops: \textbf{control} maps states to
+actions and next states; \textbf{evaluation} maps chosen conditions to
+trajectory-based certificate and cost evidence; \textbf{improvement} uses that
+evidence to choose a training distribution, proposes an update, checks its
+margin, and freezes the accepted controller for fresh evaluation.
+
+For fixed $Q,R\succeq0$, let
+$J_{H,K}(\theta,x)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t)
+=x^\top P_H(K,\theta)x$, with $x_0=x$.
+Define $S_K^J=\{(\theta,x):\|x\|_2\le r,\ J_{H,K}(\theta,x)\le h\}$.
+Coverage is $\mu(S_K^J)$ under a fixed reference probability measure $\mu$;
+the training distribution $q$ may change. Net coverage change equals gained
+mass minus lost mass. The cost matrix $P_H$ is distinct from a Lyapunov
+candidate $P$, and finite-horizon acceptability does not establish stability.
+
+\textbf{Research questions.}
+What generalizes when a quadratic certificate is fitted to trajectories of a
+frozen controller? Which verified margins survive an evaluation-guided update?
+When can targeted training reduce its objective yet lose acceptable coverage?

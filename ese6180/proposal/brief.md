@@ -147,6 +147,15 @@ $$
 V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2,\qquad \eta>0.
 $$
 
+This is the discrete-time Lyapunov decrease condition: with
+$x_{t+1}=G_K(\theta)x_t$, it asks the positive quadratic energy to fall at every
+nonzero state. The squared norm makes the required decrease vanish at the
+equilibrium and scale with the energy. If verified for all states, the bounds
+on $P$ give $V_P(x_{t+1})\le(1-\eta/b)V_P(x_t)$ and hence exponential
+convergence to zero. Mere nonincrease would allow a state to remain nonzero
+forever. The [explanatory note](discussions/linear-control-and-retraining-explained.md#3-learn-a-certificate-before-claiming-it-is-valid-everywhere)
+derives this implication and the equivalent matrix test.
+
 The [design notes](discussions/proposal-design-notes.md) give a bounded trajectory
 loss, finite-cover proof, and treatment of the equilibrium. One trajectory is
 one independent sample; its time steps are dependent. Uniformity over the
@@ -166,7 +175,7 @@ bound alone controls violation risk under the sampled distribution over the
 declared horizon, not all-state or infinite-horizon stability. A learned
 candidate may fail exact verification; report that outcome.
 
-The direct course connections are Chapter 3, Theorem 3.10 and Example 3.12, and
+The direct course connections are Chapter 3, Theorem 3.10, Lemma 3.11, and Example 3.12, and
 Chapter 5's uniform convergence and trajectory-level sampling. Chapter 2
 motivates the controller-update question. Chapter 4 becomes central only if
 learning dynamics or an expert policy is deliberately added, which is outside

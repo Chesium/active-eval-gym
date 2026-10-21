@@ -80,20 +80,20 @@ When can targeted training reduce its objective yet lose acceptable coverage?
 \section{Goals and Approach}
 
 \textbf{Stage 1: Course foundation.}
-We will adapt the certificate-learning viewpoint of \citet{boffi2021learning}
-to discrete time and $V_P(x)=x^\top Px$, with fixed
-$0<aI\preceq P\preceq bI$. For a frozen $K$, draw independent plant/initial-state
-pairs from a fixed distribution and collect $H$ transitions each. A bounded
-margin loss measures violations of
+We will specialize \citet{boffi2021learning} to discrete time and
+$V_P(x)=x^\top Px$, with fixed $0<aI\preceq P\preceq bI$.
+For frozen $K$, collect $H$ transitions per independent plant/initial-state
+pair from a fixed distribution. A bounded margin loss measures violations of
 $V_P(x_{t+1})-V_P(x_t)\le-\eta\|x_t\|_2^2$, $\eta>0$.
-A finite-cover argument will give a uniform generalization bound over the
-certificate class, treating whole trajectories as independent samples.
-This connects Chapter 5's learning tools with Chapter 3's Lyapunov theory,
-without claiming the source paper's strongest rate.
-The statistical conclusion concerns violation risk under the sampled law,
-not all-state stability. Separately, known matrices verify
+This Lyapunov condition requires energy to fall away from zero, with decrease
+vanishing at the equilibrium. If valid for all states, it gives
+$V_P(x_{t+1})\le(1-\eta/b)V_P(x_t)$ and exponential convergence
+(Chapter 3, Lemma 3.11).
+A finite-cover uniform bound (Chapter 5) will control violation risk, treating
+whole trajectories as independent samples; it does not prove all-state stability
+or claim the source paper's strongest rate. Separately, known matrices verify
 $G_K(\theta)^\top PG_K(\theta)-P\preceq-\eta_\theta I$, $\eta_\theta>0$,
-on every retained plant. Failed verification is reported.
+equivalent to all-state decrease on each retained plant. Report failed verification.
 
 \textbf{Stage 2: Main theoretical investigation.}
 Hold verified $P$ fixed. For $K'=K+\Delta K$, write $G=G_K(\theta)$ and
