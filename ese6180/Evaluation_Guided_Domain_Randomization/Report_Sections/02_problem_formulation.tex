@@ -20,21 +20,292 @@ The objective of domain-randomized robust control is to find a control law, $\pi
 
 \subsection{Linear Domain-Randomized Robust Control}
 \label{subsec:linear_case}
-Consider a known finite plant family with full-state feedback,
-$x_{t+1}=A(\theta)x_t+B(\theta)u_t$, $u_t=-Kx_t$, and
-$G_K(\theta)=A(\theta)-B(\theta)K$. The shared gain $K$ is frozen during
-evaluation; $\theta$ stays fixed within each trajectory. The initial model is
-deterministic, continuous-action, and unconstrained. Known matrices permit
-exact verification alongside certificate fitting from sampled transitions.
-The retention family must admit a common quadratic certificate; this is an
-explicit restriction beyond individual plant stability.
+% Temporary drafting annotations. Replace the macro body by {} to hide them.
+% The report's JMLR class already supplies xcolor and theorem environments.
+\providecommand{\foundationsourcenote}[1]{{\normalfont\small\color{gray}%
+  \hypersetup{citecolor=gray,linkcolor=gray,urlcolor=gray}%
+  [Temporary source note: #1]}}
 
-The method connects three feedback loops: \textbf{control} maps states to
-actions and next states; \textbf{evaluation} maps chosen conditions to
-trajectory-based certificate and cost evidence; \textbf{improvement} uses that
-evidence to choose a training distribution, proposes an update, checks its
-margin, and freezes the accepted controller for fresh evaluation.
+The course foundation concerns \emph{evaluation of a frozen shared gain}:
+learn a quadratic candidate from trajectories, bound its violation risk on
+fresh trajectories, and separately check whether it certifies all-state
+stability. Controller optimization and subsequent changes to the
+randomization law belong to the later stages. The following definitions
+and result statements specify the foundation; proofs are deferred to
+Section~\ref{sec:theory}. All vector norms are Euclidean;
+$\|\cdot\|_2$ and $\|\cdot\|_F$ denote matrix operator and Frobenius norms.
 
+\begin{definition}[Frozen evaluation experiment]
+\label{def:foundation_experiment}
+Let $\Theta$ be a nonempty finite set of known plants, with
+$A(\theta)\in\mathbb R^{n\times n}$ and
+$B(\theta)\in\mathbb R^{n\times m}$. For a shared gain
+$K\in\mathbb R^{m\times n}$, define
+\begin{equation}
+\label{eq:foundation_closed_loop}
+ x_{t+1}=A(\theta)x_t+B(\theta)u_t=G_K(\theta)x_t,
+ \qquad u_t=-Kx_t,\qquad G_K(\theta)=A(\theta)-B(\theta)K.
+\end{equation}
+Fix $K$, positive integers $H$ (horizon) and $N$ (sample size), and a joint probability
+law $\mathcal D_{\mathrm{cert}}$ on
+$\Theta\times\mathcal X_0$, where
+$\mathcal X_0=\{x:\|x\|_2\le r\}$ and $r>0$, before collecting data.
+Draw $z_i=(\theta_i,x_{0,i})\stackrel{\mathrm{i.i.d.}}{\sim}
+\mathcal D_{\mathrm{cert}}$ and record $H$ transitions of each trajectory
+$\tau_i=\tau_K(z_i)$. Hold $\theta_i$ fixed within its trajectory, so
+$x_{t,i}=G_K(\theta_i)^t x_{0,i}$. Set
+\begin{equation}
+\label{eq:foundation_dynamics_bound}
+ M_K=\max_{\theta\in\Theta}\|G_K(\theta)\|_2<\infty.
+\end{equation}
+Dynamics and observations are exact, deterministic, full-state, and
+continuous-action, with no saturation, disturbances, constraints, or early
+termination. The independent sample count is $N$, not $NH$.
+\foundationsourcenote{Course Chapter~3, Sections~3.1--3.2 (discrete dynamics
+and feedback), and Chapter~5, Section~5.6.2 (whole trajectories as samples).
+\citet{boffi2021learning}, Section~3.1, sample independent
+initial states for one fixed continuous-time system. A joint plant/initial-state
+law and a finite discrete horizon are our adaptations; no independence
+between the two coordinates of $z_i$ is required.}
+\end{definition}
+
+\begin{definition}[Quadratic candidates and normalized decrease]
+\label{def:foundation_candidates}
+Fix $0<a<b<\infty$, a desired decrease coefficient $\eta>0$, and a fitting
+margin $\gamma>0$, all before sampling. Define
+\begin{equation}
+\label{eq:foundation_candidate_class}
+ \mathcal P=\{P=P^\top:aI\preceq P\preceq bI\},
+ \qquad V_P(x)=x^\top Px,
+ \qquad d=\frac{n(n+1)}2.
+\end{equation}
+The desired condition is
+\begin{equation}
+\label{eq:foundation_desired_decrease}
+ V_P(G_K(\theta)x)-V_P(x)\le-\eta\|x\|_2^2.
+\end{equation}
+For a nonzero state and its observed successor define
+\begin{equation}
+\label{eq:foundation_residual}
+ r_P(x,x^+)=\frac{x^{+\top}Px^+-x^\top Px}{\|x\|_2^2}+\eta.
+\end{equation}
+Then $r_P\le0$ is equivalent to~\eqref{eq:foundation_desired_decrease},
+while $r_P\le-\gamma$ requires decrease at least
+$(\eta+\gamma)\|x\|_2^2$. At $x=0$, the successor is zero and the desired
+condition holds automatically; no normalized residual is evaluated there.
+\foundationsourcenote{Course Chapter~3, Theorem~3.10, equations
+(3.11)--(3.12), and Example~3.12, equations (3.20)--(3.22), supply the
+discrete Lyapunov condition. Boffi Section~3.1.1 uses the unnumbered
+continuous-time residual $\nabla V^\top\dot x+\alpha(V)$ in (3.1).
+The actual one-step difference, state-weighted decrease, and normalization
+are our choices, not an Euler substitution into that residual. The class
+specializes Boffi (4.3) with feature map $m(x)=x$ and matrix $Q=P$;
+the spectral bounds additionally impose positivity and fix scale.}
+\end{definition}
+
+\begin{definition}[Trajectory loss and violation risk]
+\label{def:foundation_risk}
+For a trajectory $\tau=(\theta,x_0,\ldots,x_H)$ containing a nonzero state
+among $x_0,\ldots,x_{H-1}$, set
+\begin{equation}
+\label{eq:foundation_trajectory_loss}
+ s_P(\tau)=\max_{\substack{0\le t<H\\x_t\ne0}}r_P(x_t,x_{t+1}),
+ \qquad
+ \ell_P(\tau)=\min\{1,\max\{0,1+s_P(\tau)/\gamma\}\}.
+\end{equation}
+For an all-zero trajectory set $s_P(\tau)=-\infty$ and $\ell_P(\tau)=0$.
+Define the population loss, empirical loss, and finite-horizon violation risk
+by
+\begin{align}
+\label{eq:foundation_population_empirical}
+ L_K(P)&=\mathbb E_{z\sim\mathcal D_{\mathrm{cert}}}
+                  \ell_P(\tau_K(z)),
+ &\widehat L_{N,K}(P)&=\frac1N\sum_{i=1}^N\ell_P(\tau_i),\\
+\label{eq:foundation_violation_risk}
+ e_{K,H}(P)&=\Pr_{z\sim\mathcal D_{\mathrm{cert}}}
+                   \{s_P(\tau_K(z))>0\}.
+\end{align}
+The risk counts a trajectory if \emph{any} of its $H$ transitions violates
+the desired condition. A fresh $z$ is independent of the fitting sample.
+\foundationsourcenote{Boffi (3.2) asks for a negative fitting margin;
+(3.3) defines a worst-time trajectory violation probability. These become
+a finite-step maximum and a joint-law probability here. Course Chapter~5,
+Definitions~5.1--5.2, supply population and empirical risk; Example~5.14
+motivates surrogate losses. Our exact clipped ramp replaces the margin
+indicator used at the start of Boffi Section~4. Its positive loss can mean
+insufficient slack rather than an actual violation.}
+\end{definition}
+
+\begin{definition}[Certificate fitting]
+\label{def:foundation_fitting}
+Given an optimization tolerance $\xi_{\mathrm{opt}}\ge0$, return a measurable
+$\widehat P\in\mathcal P$ satisfying
+\begin{equation}
+\label{eq:foundation_erm}
+ \widehat L_{N,K}(\widehat P)
+ \le\inf_{P\in\mathcal P}\widehat L_{N,K}(P)+\xi_{\mathrm{opt}}.
+\end{equation}
+Only $P$ is fitted; $K$ and the recorded trajectories remain fixed.
+Zero empirical loss means all nonzero sampled transitions meet the extra
+margin; zero-loss feasibility is not assumed.
+\foundationsourcenote{Course Chapter~5, Definition~5.3, is ERM, with
+approximate optimization allowed in its discussion. This soft formulation
+adapts Boffi's feasibility problem (3.2); it does not assume the feasible
+zero-margin-error solution required by their Lemma~4.1. Existence of a
+common quadratic certificate is not needed to state the learning problem.}
+\end{definition}
+
+\paragraph{Foundation results to establish.}
+The next two lemmas specify the regularity and complexity inputs; no
+stability assumption on $K$ is needed for these finite-horizon statements.
+
+\begin{lemma}[Loss domination and parameter regularity]
+\label{lem:foundation_regular_loss}
+For every $P,P'\in\mathcal P$, every nonzero transition $x^+=G_K(\theta)x$,
+and every trajectory of Definition~\ref{def:foundation_experiment},
+\begin{align}
+\label{eq:foundation_residual_lipschitz}
+ |r_P(x,x^+)-r_{P'}(x,x^+)|
+    &\le(M_K^2+1)\|P-P'\|_F,\\
+\label{eq:foundation_loss_lipschitz}
+ |\ell_P(\tau)-\ell_{P'}(\tau)|
+    &\le L_{\mathrm{par}}\|P-P'\|_F,
+ &L_{\mathrm{par}}&=\frac{M_K^2+1}{\gamma}.
+\end{align}
+Moreover $0\le\ell_P\le1$ and
+$\mathbf1\{s_P(\tau)>0\}\le\ell_P(\tau)$, hence
+$e_{K,H}(P)\le L_K(P)$.
+\foundationsourcenote{Course Chapter~5, Proposition~5.19 and
+Section~5.6.2, equation (5.42), use parameter-to-loss Lipschitz control.
+Boffi Section~4's joint value/gradient norm and the unnumbered parameter
+inequality in arXiv v2 Appendix~B.1 serve the same role. The constant
+$(M_K^2+1)/\gamma$ and indicator domination are derived for our normalized
+discrete loss, not quoted from Boffi.}
+\end{lemma}
+
+\begin{lemma}[Finite covering of the candidate class]
+\label{lem:foundation_cover}
+Let $\mathcal N_F(\varepsilon,\mathcal P)$ be the smallest cardinality of
+a Frobenius $\varepsilon$-net with centers in $\mathcal P$.
+For every $\varepsilon>0$,
+\begin{equation}
+\label{eq:foundation_cover}
+ \|P\|_F\le b\sqrt n\quad(P\in\mathcal P),\qquad
+ \log\mathcal N_F(\varepsilon,\mathcal P)
+ \le d\log\!\left(1+\frac{2b\sqrt n}{\varepsilon}\right).
+\end{equation}
+\foundationsourcenote{Course Chapter~5, Definition~5.15 and
+Propositions~5.18--5.20, define covers and bound Euclidean parameter balls.
+Boffi (4.3) counts symmetric matrix parameters; v2 Appendix~B.1 uses the
+unnumbered volume bound $\log\mathcal N(u;B_2^k(1))\le k\log(1+2/u)$.
+Here the symmetric parameter dimension is $d=n(n+1)/2$, and packing centers
+inside $\mathcal P$ preserves admissibility. This does not use the
+operator-norm/dual-Sudakov refinement of their Theorem~4.3.}
+\end{lemma}
+
+\begin{theorem}[Uniform generalization for the frozen controller]
+\label{thm:foundation_generalization}
+For the experiment and loss defined above, fix
+$\varepsilon>0$ and $\delta\in(0,1)$ before drawing the trajectories, and set
+\begin{equation}
+\label{eq:foundation_generalization_penalty}
+ \Delta_N(\varepsilon,\delta)
+ =2L_{\mathrm{par}}\varepsilon+
+ \sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)+\log(2/\delta)}{2N}}.
+\end{equation}
+With probability at least $1-\delta$ over the $N$ independent trajectories,
+simultaneously for all $P\in\mathcal P$,
+\begin{equation}
+\label{eq:foundation_uniform_bound}
+ |L_K(P)-\widehat L_{N,K}(P)|\le\Delta_N(\varepsilon,\delta).
+\end{equation}
+On the same event, any fitted $\widehat P$ satisfies
+\begin{align}
+\label{eq:foundation_fitted_risk}
+ e_{K,H}(\widehat P)
+ &\le\min\{1,\widehat L_{N,K}(\widehat P)+\Delta_N(\varepsilon,\delta)\},\\
+\label{eq:foundation_erm_population}
+ L_K(\widehat P)
+ &\le\inf_{P\in\mathcal P}L_K(P)
+        +2\Delta_N(\varepsilon,\delta)+\xi_{\mathrm{opt}},
+\end{align}
+where the last inequality assumes~\eqref{eq:foundation_erm}.
+With $\varepsilon=N^{-1/2}$ and other problem constants fixed,
+$\Delta_N=O(\sqrt{(d\log(1+N)+\log(1/\delta))/N})$.
+\foundationsourcenote{Course Chapter~5, Lemma~5.6, equation (5.16),
+and Theorem~5.8, equation (5.20), supply Hoeffding and a finite union bound;
+Proposition~5.19 transfers a parameter cover to losses. Section~5.6.2
+supplies trajectory-level sampling. The approach parallels Boffi
+Theorem~4.2, (4.2), but replaces Dudley's integral (v2 (B.1)) and their
+fast-margin Lemma~4.1 with a two-sided concentration bound on one fixed net.
+The two approximation errors give $2L_{\mathrm{par}}\varepsilon$.
+This explicit elementary bound, including nonzero fitting loss and
+optimization error, is our specialization; it does not reproduce Boffi's
+$\widetilde O(d/N)$ or structured-matrix rate.}
+\end{theorem}
+
+The conclusion concerns violations over $H$ steps under
+$\mathcal D_{\mathrm{cert}}$, not universal or infinite-horizon stability.
+Its constants are independent of $H$ for this normalized homogeneous linear
+construction; the trajectory loss and risk can still depend on $H$.
+Changing $K$, changing the sampling law, or selecting evaluation conditions
+adaptively requires fresh justified sampling or a separate transfer argument.
+
+\begin{theorem}[Verified exponential stability]
+\label{thm:foundation_verification}
+Let $P\in\mathcal P$ (possibly fitted from data), and fix a nonempty
+retention set $\Theta_{\mathrm{ret}}\subseteq\Theta$ before inspecting results.
+For known matrices define
+\begin{equation}
+\label{eq:foundation_verified_margin}
+ \eta_\theta(P)=\lambda_{\min}
+  \!\left(P-G_K(\theta)^\top P G_K(\theta)\right),
+ \qquad \eta_* =\min_{\theta\in\Theta_{\mathrm{ret}}}\eta_\theta(P).
+\end{equation}
+For each retained plant,~\eqref{eq:foundation_desired_decrease} holds for
+every $x\in\mathbb R^n$ if and only if $\eta_\theta(P)\ge\eta$.
+If $\eta_*>0$, then $0<\eta_*\le b$, every retained fixed-plant closed loop
+is globally exponentially stable, and for every initial state and $t\ge1$,
+\begin{equation}
+\label{eq:foundation_exponential_bound}
+ \|x_t\|_2^2\le\frac ba
+       \left(1-\frac{\eta_*}{b}\right)^t\|x_0\|_2^2.
+\end{equation}
+When $\eta_*=b$, each retained loop reaches zero in one step.
+Every sublevel set $\mathcal E_c(P)=\{x:x^\top Px\le c\}$, $c\ge0$,
+is forward invariant for each retained plant. If also $\eta_*\ge\eta$,
+the desired residual never violates on those plants at any horizon; in
+particular, $e_{K,H}(P)=0$ if $\mathcal D_{\mathrm{cert}}$ is supported on
+$\Theta_{\mathrm{ret}}\times\mathcal X_0$.
+\foundationsourcenote{Course Chapter~3, Example~3.12, (3.22), gives
+the quadratic drift identity; Theorem~3.10 and Lemma~3.11,
+(3.17)--(3.19), give stability and the exponential estimate with
+coefficients $a,b,\eta_*$. The eigenvalue test is our exact known-matrix
+verification oracle. It is separate from Boffi (3.3)'s statistical error
+and does not invoke their Theorem~5.1, (5.1)--(5.3), which instead transfers
+small violation measure to a restricted decrease region under additional
+incremental-stability and geometric assumptions.}
+\end{theorem}
+
+A common quadratic certificate is a restriction beyond individual plant
+stability. Positive verification is conditional on the displayed test;
+an unattainable fitting margin or a failed test must be reported and does
+not establish instability. An initial numerical example may deliberately use
+a family known to admit a common certificate. Numerical eigenvalue checks must state
+their tolerance; the theorem itself is an exact-arithmetic statement.
+
+\paragraph{Proof tasks and connection to later stages.}
+Section~\ref{sec:theory} will establish the two lemmas, apply two-sided
+Hoeffding concentration to a deterministic candidate net, extend to the
+whole class, and specialize the quadratic Lyapunov comparison for verification.
+The theorem statements already specify the constants needed by this route;
+sharper complexity terms would require a separate proof and are not assumed.
+Certificate fitting and verification leave $K$ unchanged. The subsequent
+improvement stage will hold a verified $P$ fixed while changing $K$ and
+checking how much decrease margin survives; that update is outside the
+foundation's generalization theorem.
+
+For context in those later stages, keep performance distinct from stability.
 For fixed $Q,R\succeq0$, let
 $J_{H,K}(\theta,x)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t)
 =x^\top P_H(K,\theta)x$, with $x_0=x$.
