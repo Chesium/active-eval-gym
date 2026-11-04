@@ -6,7 +6,7 @@ Status: an implementation and experiment handoff, not a completed experiment.
 The priority is a controlled CartPole/PPO comparison on **initial pole angle ×
 pole half-length**, using this repository's recovery task. The linear analysis
 continues as a smaller supporting track. No training or remote compute is
-launched by this document.
+launched by this document. Section 13 orders the work into gated stages `S0`–`S9`.
 
 Repository baseline inspected: `ceb5ccf3831366d866697f7e1a49ee19a271dc39`.
 The executing agent should record its actual implementation commit and resolved
@@ -628,7 +628,8 @@ and a short reproduction command list using the interfaces actually implemented.
 Copyable task for the executing agent:
 
 > Implement and run the controlled first-phase CartPole/PPO study in
-> `ese6180/discussions/2026-11-04-post-midterm-cartpole-ppo-plan.md`.
+> `ese6180/discussions/2026-11-04-post-midterm-cartpole-ppo-plan.md`, following
+> stages `S0`–`S9` and their exit gates in Section 13.
 > Preserve the declared recovery task, both angle signs, parent checkpoint,
 > comparator budgets, and independent reference evaluation. Implement missing
 > continuation/sampler/sealing infrastructure, validate it, run smoke and pilot,
@@ -636,6 +637,268 @@ Copyable task for the executing agent:
 > and failed/regressing outcomes. Produce a self-contained report and reproducible
 > analysis. Do not replace the first-phase question with adaptive search, reward
 > tuning, or a claim that the linear certificate already guarantees PPO behavior.
+
+## 13. Staged execution plan
+
+This section orders Sections 3–12 into stages with exit gates and stop rules.
+It does not change the protocol. If a stage seems to conflict with an earlier
+section, the earlier section holds until a versioned configuration changes it.
+
+`S0`–`S9` are execution stages. They are distinct from the linear Stage 1–3 in
+Section 11, from outer rounds, and from the tiers in Section 8, which map to
+`S6` (smoke), `S7` (pilot), and `S8` (confirmatory).
+
+| Stage | Purpose | Main output | Exit gate |
+|---|---|---|---|
+| `S0` | Bind machine and parent | Provenance record | Parent, lockfile, and tests verified |
+| `S1` | Encode the protocol | Study config, `protocol/` | Grids and seeds tested; D1–D3 decided |
+| `S2` | Build the evaluation path | `evaluate`, `analyze` | Metrics reproduce; resume is exact |
+| `S3` | Discover and build targets | `discovery/`, `distributions/` | Arm contrast reported and reviewed |
+| `S4` | Build the reset-level sampler | Condition sampler | Matches fixed recovery wrapper exactly |
+| `S5` | Build continuation and sealing | `train`, child artifacts, seals | First update, budget, and repeatability verified |
+| `S6` | Smoke tier | Full small run | Pipeline runs end to end; costs measured |
+| `S7` | Pilot tier and protocol lock | `pilot/`, lock record | Forecast fits; researcher signs lock |
+| `S8` | Confirmatory tier | `policies/`, `reference_raw/` | All planned jobs accounted for |
+| `S9` | Analysis and report | `metrics_v1/`, `figures/`, `report.md` | Artifact-only reanalysis reproduces report |
+
+```text
+S0 -> S1 -> S2 -> S3 --+
+       |               +--> S6 -> S7 -> [lock] -> S8 -> S9 -> extensions
+       +--> S4 -> S5 --+
+```
+
+Discovery comes before the training infrastructure on purpose. It needs only
+the frozen parent and the evaluation path, and it tests the largest scientific
+risk: that the arms barely differ. `S4`–`S5` may proceed alongside `S2`–`S3`.
+A stage's gate must pass before any later stage **collects study data**. Code
+may be developed ahead of a gate.
+
+### 13.1 Readiness measured on 4 November 2026
+
+These results are from commit `4b35396` on a 24-CPU, 30 GiB machine with 153 GiB
+(164 GB) free. They are resource and integrity checks only. The benchmark used seeds
+outside every role, wrote only to temporary storage, computed no recovery
+outcomes, and ran no training.
+
+- **Parent:** `model.zip` matches the expected hash, `freeze.json` binds the
+  model and manifest hashes, and `load_policy_artifact(require_frozen=True)`
+  succeeds. The parent records 100,096 timesteps and 7,820 updates.
+- **Migration:** direct attachment fails as Section 6 predicts. The migration
+  in Section 6 loads, with identical weights, Adam state, and logits and
+  deterministic actions on 4,096 fixed observations. The schedules report
+  constant 0.0003 and 0.2. The parent file is unchanged.
+- **Stale optimizer LR:** the restored Adam group holds **-9.6e-07**, because
+  the parent's linear schedule overran its 100,000-step request. SB3 overwrites
+  this at the start of `train()`, so `S5` must assert the value actually used
+  by the first update; the load-time schedule alone does not prove it.
+- **Reset seeds:** `DummyVecEnv.reset` passes SB3-derived seeds and auto-resets
+  pass none. The sampler must therefore own its reset seed and ignore the seed
+  it is given; otherwise the declared role-2 stream is silently not used.
+- **Collector:** `collect_sweep` is serial, refuses an existing output directory,
+  and requires a passed nominal gate, so it cannot be reused for sealed children.
+  The new collector should wrap `collect_episode`, `make_artifact_environment`,
+  and `write_episode` instead.
+- **Evaluation cost:** one core sustains about 10,900 transitions/s for
+  collection plus writing, excluding per-episode environment construction.
+  Storage is about 482 bytes/transition and 3 files/episode. The 153.8 KB/episode
+  matches the historical 5.7 GB over 37,200 episodes. Per-file gzip reached 5.6×.
+- **Environment:** `.venv` was not lock-exact: it held 10 packages absent from
+  `uv.lock`. A search of `src`, `scripts`, `tests`, `notebooks`, and `configs`
+  found no use of `cvxpy`, `clarabel`, `joblib`, or `osqp`. `S0` removed all 10.
+- **Dependency:** SciPy, needed for Clopper–Pearson intervals, was available only
+  transitively through `control`. `S1` made it a direct dependency.
+
+Forecast, using worst-case 500-step episodes and counting the parent among the
+pilot's evaluated checkpoints:
+
+| Stage | Training transitions | Evaluation episodes | Max evaluation transitions | Raw, max | At 5.6× | Core-hours |
+|---|---|---|---|---|---|---|
+| `S3` | 0 | 4,576 | 2.29 M | 1.1 GB | 0.2 GB | 0.06 |
+| `S6` | 24,576 | 352 | 0.18 M | 0.08 GB | 0.02 GB | 0.01 |
+| `S7` | 921,600 | 174,720 | 87.4 M | 42 GB | 7.5 GB | 2.2 |
+| `S8` | 3,072,000 | 1,083,264 | 541.6 M | 261 GB | 47 GB | 13.8 |
+| Total | 4,018,176 | 1,262,912 | 631.5 M | 304 GB | 54 GB | 16.1 |
+
+Core-hours cover evaluation only; training rate is first measured in `S6`.
+**Disk, not CPU, is the constraint.** Section 8's twofold margin needs about
+608 GB raw, which does not fit in 164 GB. At 5.6× it needs about 109 GB, which
+fits. The gzip ratio comes from five hand-picked conditions, so `S6` must
+replace it with a measured value in the final format.
+
+### 13.2 Decisions fixed before discovery is read
+
+These were decided on 4 November 2026, before any discovery data existed, and
+are recorded in `configs/experiments/cartpole_ppo_boundary_v1.toml`. Deciding
+after seeing discovery would have made them data-dependent.
+
+- **D1, evaluation storage.** Decided: one compressed shard per
+  (checkpoint, condition) job, holding the existing JSON-lines trajectory rows,
+  with each episode's digest computed on its uncompressed bytes as now. That
+  gives 8,463 resumable confirmatory jobs instead of about 3.2 million files.
+  Section 10 permits this if digests, metric semantics, and replay are preserved.
+- **D2, thin boundary band.** With 32 episodes, Section 5's band contains only
+  `s` in {28, 29, 30}. Section 5 handles an empty band but not a very small one,
+  where a single condition could receive more than half of the episodes.
+  Decided: keep the rule unchanged, and report a phase with fewer than 5 band
+  conditions as "thin-band" so its result is read as a highly concentrated test.
+- **D3, snapshot evaluation.** Section 9 asks for coverage versus training budget,
+  but Section 6 limits the primary reference comparison to parent and final
+  checkpoints, and no tier counts snapshot evaluations. Across confirmatory
+  children they would add 3,144,960 episodes and change `M`. Decided:
+  evaluate snapshots in the pilot only (27 checkpoints, 471,744 episodes, about
+  20 GB at 5.6×), labelled as development data, if `S6` shows room. Otherwise
+  drop the figure from v1 and say so.
+
+### 13.3 Stages
+
+**`S0`: bind the machine and parent. Passed 4 November 2026.**
+
+- Work: run `uv sync --frozen --group dev`, rerun the Section 10 test suites, and
+  record package versions, hardware, and thread settings.
+- Gate: the lockfile applies cleanly and the tests pass at the recorded commit.
+- If it fails: report the discrepancy; do not substitute a parent (Section 2).
+- Result: the sync left `.venv` lock-exact, and all 114 tests passed at `4b35396`.
+  Package versions match the parent's manifest with no differences. The manifest
+  records the parent as built at `cfc3a51` from a dirty working tree, so its
+  exact training source cannot be recovered from that commit alone.
+  `prepare` now records runtime provenance in `protocol/provenance.json`.
+
+**`S1`: encode the protocol. Gate passed 4 November 2026; committed protocol
+record outstanding.**
+
+- Work: add `configs/experiments/cartpole_ppo_boundary_v1.toml`, a typed loader,
+  the seed functions with their range checks, and the `prepare` subcommand that
+  writes `protocol/`. Add SciPy as a direct dependency at its locked version and
+  report the `pyproject.toml` and `uv.lock` change.
+- Gate: tests confirm 143, 273, and 11 grid points, reference weights of 1/273,
+  and disjoint seed roles with out-of-range indices rejected. D1–D3 are recorded.
+- Result: added the config, `load_ppo_boundary_study` in `config.py`,
+  `ppo_boundary.py`, `scripts/cartpole_ppo_boundary_study.py`, and
+  `tests/test_ppo_boundary_study.py`. The `uv.lock` change adds only the direct
+  SciPy edge; no package version moved. All 161 tests pass, and deliberately
+  broken seed limits, weights, accounting, and validation rules each fail a test.
+  A development run on the real parent reproduced the Section 13.1 job counts.
+- Remaining: `prepare` refuses uncommitted source, so the study's real
+  `protocol/` waits for a commit. Then run
+  `uv run python scripts/cartpole_ppo_boundary_study.py prepare --output
+  artifacts/experiments/cartpole-ppo-boundary-v1`. Do this before `S3`.
+
+**`S2`: build the evaluation path.**
+
+- Work: add the job collector, the D1 storage layer, the `evaluate` subcommand,
+  and the `analyze` subcommand with cell counts, Wilson intervals,
+  Clopper–Pearson intervals, and coverage. Load the parent through the frozen
+  path; seal support for children arrives in `S5`.
+- Gate, using a small parent evaluation in temporary storage: recovery recomputed
+  from stored states equals `episode-summary-v4`; a shard round-trips byte-exact
+  to the existing digest; an interrupted run resumes without duplicates or
+  omissions; `analyze` runs without environments or policies.
+
+**`S3`: run discovery and construct targets.**
+
+- Work: run the parent on all 143 conditions with 32 role-1 episodes each, then
+  serialize the three `q` vectors with their masks and provenance. Reference
+  results must not exist yet.
+- Report: the band size `k_B`; each arm's effective support, `1/sum_z q(z)^2`;
+  the pairwise total-variation distances; and the sign balance of each target.
+- Why this matters: the `p_tilde` floor gives a saturated cell about 1/17 of the score
+  of a perfectly mixed cell. On a nearly saturated map, this pulls `intermediate`
+  toward `background`: with 5 perfectly mixed cells among 143, they would hold
+  only 38% of its target mass.
+- Gate: the researcher reviews the contrast report before `S6`.
+- If `k_B = 0`, or `intermediate` is close to `background`: pause. The first
+  phase may not be able to test that hypothesis. Any response is a new versioned
+  configuration applied to all arms before role-3 data exist, and the original
+  discovery results stay on record.
+
+**`S4`: build the reset-level condition sampler.** The current recovery wrapper
+fixes length and angle at construction, so per-episode conditions need new code.
+
+- Work: move the angle, length, `polemass_length`, and cutoff logic into one
+  shared function used by both the fixed wrapper and the sampler. Place the
+  sampler inside `Monitor`, own the reset-seed stream, and expose condition ID,
+  worker, episode index, and reset seed in `info`.
+- Gate: for the same condition and reset seed, sampler and fixed-wrapper episodes
+  are identical under a fixed action sequence. Length stays constant within an
+  episode, the observation Box is common, auto-resets follow the declared stream,
+  and every other Section 10 sampler check passes. Existing fixed-wrapper
+  trajectories must not change.
+
+**`S5`: build continuation, capture, and sealing.**
+
+- Work: add the Section 6 migration, the `train` subcommand, raw transition
+  shards, rollout-level policy hashes, child artifacts, `evaluation-ready.json`,
+  and seal-verified loading. Prefer repeated
+  `learn(chunk, reset_num_timesteps=False)` calls for snapshots: a save between
+  calls is post-update by construction and needs no hook into PPO.
+- Gate: the first update uses LR 0.0003 and clip 0.2, confirmed in the optimizer;
+  the new-transition count is exact; the same seed twice gives identical final
+  weights; chunked and single-call runs give identical weights, or the chunking
+  is dropped; the parent hash is unchanged; a regressing child seals and loads.
+
+**`S6`: smoke tier.** This is replicate 900 with all three arms, 8,192
+transitions each, and evaluation on the 11-point support. It makes no scientific
+claim.
+
+- Work: run `prepare` through `analyze`, deliberately interrupting and resuming
+  at least one training job and one evaluation job.
+- Gate: job accounting is exact and every seal verifies. Measure training
+  transitions/s, evaluation transitions/s, bytes/transition in the final format,
+  and training-shard size. Re-forecast `S7` and `S8` using these values, and
+  settle the D3 storage condition.
+
+**`S7`: pilot tier and protocol lock.** This is replicates 0–2, with 102,400
+transitions per arm, and evaluation at 64 role-4 episodes per reference condition.
+
+- Review: realized episode and transition shares, regressions, failure causes,
+  and whether the Section 10 checks hold at full budget.
+- Change control: any substantive change gets a new versioned configuration, is
+  applied to all arms, and restarts from the earliest affected stage.
+- Forecast check: confirmatory storage with twofold margin must fit the disk
+  actually available. If it does not, obtain storage or change the format. Do
+  not shrink the design (Section 8).
+- Gate: write a lock record containing the commit, resolved-config hash, parent
+  hash, vector-environment backend, seed plan, and forecast. Pilot metrics are
+  never pooled with confirmatory results. **The researcher signs the lock.**
+
+**`S8`: confirmatory tier.** This is replicates 100–109 with all three arms.
+
+- Order: train and seal all 30 children before the first role-3 episode, so no
+  child can depend on reference outcomes. Then evaluate 31 checkpoints across
+  273 conditions at 128 episodes each.
+- While running, monitor job counts, failures, disk, and throughput only. Do not
+  view partial maps or per-arm summaries.
+- Failures: retry an infrastructure failure with the same declared seeds and
+  record it. A poorly performing checkpoint is an outcome, not a failure.
+- Gate: 30 sealed children, 8,463 evaluation jobs, and 1,083,264 episodes, all
+  with verified digests. If any cannot be completed, finish unaffected jobs and
+  label the campaign incomplete (Section 10).
+
+**`S9`: analysis and report.**
+
+- Work: run `analyze` from saved data only to produce `metrics_v1/`, every
+  Section 9 figure, and `report.md`. Report all ten replicates, including gained,
+  lost, and unresolved conditions, and apply the Section 9 interpretation rules
+  without selecting a favorable metric, threshold, seed, or checkpoint.
+- Gate: a clean artifact-only rerun reproduces all reported numbers with no
+  training or new rollouts. New metrics get new versions rather than overwriting
+  `metrics_v1/`.
+
+### 13.4 After `S9`
+
+Each Section 11 extension needs its own versioned configuration, confidence
+family, and storage forecast, and none reuses confirmatory results as if it were
+independent of them.
+
+1. **Reward ablation first** if `S9` shows survival improving without recovery.
+   This is the mismatch Section 3 predicts.
+2. **Repeated curricula first** if one phase moves coverage but the band or
+   target goes stale, since these test feedback from refreshed targeting.
+3. **Nominal-seeded curriculum** after either of these.
+
+The linear track in Section 11 runs alongside these stages. It neither blocks
+nor is blocked by any gate, and its results do not count as evidence for a
+PPO-stage gate.
 
 ## Primary references and interpretation
 

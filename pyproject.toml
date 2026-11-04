@@ -12,6 +12,7 @@ dependencies = [
     "minigrid>=3.1.0,<4",
     "numpy>=2.5.0,<3",
     "pillow>=12.3.0,<13",
+    "scipy>=1.18.0,<2",
     "stable-baselines3>=2.9.0,<3",
 ]
 
