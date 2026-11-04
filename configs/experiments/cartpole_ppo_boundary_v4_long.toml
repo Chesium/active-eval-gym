@@ -1,0 +1,139 @@
+schema_version = 1
+study_id = "cartpole-ppo-boundary-v4-long"
+environment_id = "CartPole-v1"
+perturbation_name = "cartpole-recovery-angle-length-v1"
+metric_version = "episode-summary-v4"
+theta_threshold_deg = 90
+outer_rounds = 1
+training_reward = "gymnasium-survival-plus-one"
+
+[parent]
+policy_id = "cartpole_ppo_nominal_v1"
+design_config = "../policies/cartpole_ppo_nominal_v1.toml"
+model_sha256 = "37c9bac10919b2d6bdc833fd5a3a920460d4b80f09392ef7fb758e4777a856e8"
+
+# Length is Gymnasium's pole half-length in metres.
+[supports.discovery]
+initial_theta_deg = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]
+length = [0.02, 0.04, 0.05, 0.075, 0.10, 0.20, 0.30, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00]
+
+[supports.reference]
+initial_theta_deg = [
+    -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0,
+    5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+]
+length = [0.02, 0.04, 0.05, 0.075, 0.10, 0.20, 0.30, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00]
+
+[supports.smoke]
+initial_theta_deg = [-40, 0, 40]
+length = [0.02, 0.50, 3.00]
+extra_points = [[-20, 0.50], [20, 0.50]]
+
+[acceptance]
+primary_tau = 0.90
+secondary_taus = [0.50, 0.75, 0.95]
+recovery_tail_steps = 100
+recovery_rms_angle_deg = 5.0
+
+[curriculum]
+arms = ["background", "acceptance_boundary", "intermediate"]
+discovery_episodes_per_condition = 32
+mixture_lambda = 0.5
+# v1 left the boundary arm empty: discovery recovery counts are almost binary.
+# Boundary arm: unaccepted 4-neighbours of accepted discovery conditions.
+# Intermediate arm: only conditions with both recoveries and failures.
+target_rule = "ppo-boundary-targets-v2"
+pseudocount_success = 0.5
+pseudocount_total = 1.0
+# Decision D2: phases below this band size are reported as thin-band.
+thin_band_min_conditions = 5
+
+[continuation]
+# v2 collapsed at LR 0.0003: see Sections 13.3 (S7) and 13.5 of the plan.
+learning_rate = 0.00003
+clip_range = 0.2
+device = "cpu"
+checkpoint_selection = "final-fixed-budget"
+vec_env_backend = "DummyVecEnv"
+torch_threads = 1
+
+[continuation.hyperparameters]
+policy = "MlpPolicy"
+n_envs = 8
+n_steps = 32
+batch_size = 256
+n_epochs = 20
+gamma = 0.98
+gae_lambda = 0.8
+ent_coef = 0.0
+
+[sampling]
+# The same frozen arm mixtures now specify desired TRANSITION shares.
+# Calibration uses frozen-parent stochastic actions, disjoint reset/action seeds,
+# and no optimizer updates. Its cost is recorded outside continuation budgets.
+mode = "inverse-episode-length-v1"
+calibration_episodes_per_condition = 8
+calibration_seed_role = 6
+calibration_action_seed = 730000
+# Shared across the eight workers of each child; update estimates at episode end.
+# Refresh reset probabilities every 10 PPO rollouts (2,560 transitions).
+length_ema_alpha = 0.1
+refresh_rollouts = 10
+minimum_length = 1.0
+
+[seeds]
+master_seed = 6180
+training_policy_seed_base = 300000
+condition_stream_tag = 10
+
+[seeds.roles]
+discovery = 1
+training = 2
+confirmatory = 3
+pilot = 4
+smoke = 5
+
+# Decision D3: snapshots are evaluated in the pilot only, if S6 shows disk room.
+[[tiers]]
+name = "smoke"
+arms = ["acceptance_boundary"]
+replicate_ids = [900]
+additional_transitions = 8192
+snapshot_transitions = []
+evaluation_support = "smoke"
+episodes_per_condition = 8
+seed_role = "smoke"
+snapshot_evaluation = "none"
+
+[[tiers]]
+name = "pilot"
+arms = ["acceptance_boundary"]
+replicate_ids = [0, 1, 2]
+additional_transitions = 1024000
+snapshot_transitions = [102400, 256000, 512000, 768000, 896000]
+evaluation_support = "reference"
+episodes_per_condition = 64
+seed_role = "pilot"
+snapshot_evaluation = "if-s6-headroom"
+
+[[tiers]]
+name = "confirmatory"
+arms = ["acceptance_boundary"]
+replicate_ids = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
+additional_transitions = 102400
+snapshot_transitions = [25600, 51200, 76800]
+evaluation_support = "reference"
+episodes_per_condition = 128
+seed_role = "confirmatory"
+snapshot_evaluation = "none"
+
+[confidence]
+family_alpha = 0.05
+interval = "clopper-pearson-bonferroni"
+
+# Decision D1: one compressed shard per (checkpoint, condition) job.
+[storage]
+evaluation_layout = "checkpoint-condition-shard-v1"
+compression = "gzip"
+compression_level = 6
+episode_digest = "sha256-uncompressed-trajectory"
