@@ -19,6 +19,7 @@ from active_eval_gym.envs.perturbations import (
 )
 
 if TYPE_CHECKING:
+    from active_eval_gym.ppo_transition_sampling import InverseLengthSampler
     from active_eval_gym.sweeps import SweepCondition
 
 CONDITION_INFO_KEY = "active_eval_gym.condition"
@@ -45,6 +46,7 @@ class CartPoleRecoveryConditionSampler(gym.Wrapper):
         condition_rng: np.random.Generator,
         reset_seed: Callable[[int], int],
         worker_id: int,
+        sampling: "InverseLengthSampler | None" = None,
     ) -> None:
         super().__init__(env)
         if not conditions:
@@ -62,6 +64,8 @@ class CartPoleRecoveryConditionSampler(gym.Wrapper):
         if len(thresholds) != 1:
             raise ValueError("Sampled conditions must share one failure cutoff.")
         self._cdf = _cumulative(probabilities, len(conditions))
+        self._sampling = sampling
+        self._episode_steps = 0
         self._condition_rng = condition_rng
         self._reset_seed = reset_seed
         self._worker_id = worker_id
@@ -81,8 +85,10 @@ class CartPoleRecoveryConditionSampler(gym.Wrapper):
         episode_index = self._next_episode
         reset_seed = self._reset_seed(episode_index)
         draw = float(self._condition_rng.random())
-        index = int(np.searchsorted(self._cdf, draw, side="right"))
+        cdf = self._cdf if self._sampling is None else self._sampling.cdf
+        index = int(np.searchsorted(cdf, draw, side="right"))
         self._next_episode += 1
+        self._episode_steps = 0
 
         condition = self._conditions[index]
         task = self._tasks[index]
@@ -97,6 +103,11 @@ class CartPoleRecoveryConditionSampler(gym.Wrapper):
             "episode_index": episode_index,
             "reset_seed": reset_seed,
         }
+        if self._sampling is not None:
+            self._episode |= {
+                "selection_probability": float(self._sampling.probabilities[index]),
+                "sampling_revision": self._sampling.revision,
+            }
         return observation, {
             **info,
             CONDITION_INFO_KEY: {**self._episode, "state": self._state()},
@@ -107,6 +118,11 @@ class CartPoleRecoveryConditionSampler(gym.Wrapper):
             raise RuntimeError("The condition sampler must be reset before stepping.")
         state = self._state()
         observation, reward, terminated, truncated, info = self.env.step(action)
+        self._episode_steps += 1
+        if self._sampling is not None and (terminated or truncated):
+            self._sampling.observe_completion(
+                self._episode["condition_index"], self._episode_steps
+            )
         record = {
             **self._episode,
             "state": state,

@@ -13,6 +13,7 @@ from active_eval_gym.ppo_boundary_evaluation import (
 from active_eval_gym.ppo_boundary_stability import score_studies
 from active_eval_gym.ppo_boundary_targets import build_distributions
 from active_eval_gym.ppo_boundary_training import train_campaign
+from active_eval_gym.ppo_transition_sampling import calibrate_lengths
 
 DEFAULT_CONFIG = Path("configs/experiments/cartpole_ppo_boundary_v3.toml")
 CAMPAIGNS = tuple(CAMPAIGN_DIRECTORIES)
@@ -72,6 +73,15 @@ def main() -> None:
         action="store_true",
         help="allow a temporary development run on uncommitted source",
     )
+    calibrate = commands.add_parser(
+        "calibrate", help="collect stochastic frozen-parent episode lengths"
+    )
+    calibrate.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    calibrate.add_argument("--study", type=Path, required=True)
+    calibrate.add_argument(
+        "--artifact-root", type=Path, default=Path("artifacts/policies")
+    )
+    calibrate.add_argument("--allow-dirty", action="store_true")
     stability = commands.add_parser(
         "stability", help="score continuation candidates, pooled across arms"
     )
@@ -94,6 +104,17 @@ def main() -> None:
         print(f"Protocol: {result['protocol_dir']}")
         if result["development_record"]:
             print("Development record: not valid for confirmatory results.")
+    elif args.command == "calibrate":
+        result = calibrate_lengths(
+            args.config,
+            study_dir=args.study,
+            artifact_root=args.artifact_root,
+            allow_dirty=args.allow_dirty,
+        )
+        print(
+            f"Calibration: {result['episodes']} episodes, "
+            f"{result['transitions']} transitions, no optimizer updates."
+        )
     elif args.command == "evaluate":
         result = collect_campaign(
             args.config,

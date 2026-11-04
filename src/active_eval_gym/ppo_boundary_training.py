@@ -64,7 +64,12 @@ from active_eval_gym.ppo_boundary_targets import (
     DISTRIBUTIONS_DIRECTORY,
     DISTRIBUTIONS_FILENAME,
 )
+from active_eval_gym.ppo_transition_sampling import (
+    InverseLengthSampler,
+    load_calibration,
+)
 from active_eval_gym.serialization import (
+    to_jsonable,
     write_json_new,
     write_transition_shard,
 )
@@ -138,9 +143,13 @@ class TransitionCapture(BaseCallback):
     The same instance spans repeated `learn` calls. It draws no random numbers.
     """
 
-    def __init__(self, capacity: int) -> None:
+    def __init__(
+        self, capacity: int, sampling: InverseLengthSampler | None = None
+    ) -> None:
         super().__init__(verbose=0)
         self._count = 0
+        self.sampling = sampling
+        self.sampling_history: list[dict[str, Any]] = []
         self._columns: dict[str, np.ndarray] = {
             "state": np.empty((capacity, 4), np.float64),
             "next_state": np.empty((capacity, 4), np.float64),
@@ -170,6 +179,20 @@ class TransitionCapture(BaseCallback):
 
     def _on_rollout_start(self) -> None:
         self._record_update()
+        if (
+            self.sampling is not None
+            and len(self.rollouts) % self.sampling.settings.refresh_rollouts == 0
+        ):
+            if self.rollouts:
+                self.sampling.refresh()
+            self.sampling_history.append(
+                {
+                    "transitions": self._count,
+                    "probabilities": self.sampling.probabilities.copy(),
+                    "lengths": self.sampling.length_estimates.copy(),
+                    "completed": self.sampling.completed_episodes.copy(),
+                }
+            )
         self.rollouts.append(
             {
                 "rollout": len(self.rollouts),
@@ -235,7 +258,7 @@ class TransitionCapture(BaseCallback):
         columns = {name: rows[: self._count] for name, rows in self._columns.items()}
         resets = list(self._resets.items())
         rollouts = self.rollouts
-        return {
+        result = {
             **columns,
             "reset_worker": np.array([key[0] for key, _ in resets], np.uint8),
             "reset_episode_index": np.array([key[1] for key, _ in resets], np.uint32),
@@ -258,6 +281,28 @@ class TransitionCapture(BaseCallback):
                 [row["policy_sha256"] for row in rollouts], "U64"
             ),
         }
+        if self.sampling is not None:
+            result |= {
+                "reset_selection_probability": np.array(
+                    [row["selection_probability"] for _, row in resets], np.float64
+                ),
+                "reset_sampling_revision": np.array(
+                    [row["sampling_revision"] for _, row in resets], np.uint32
+                ),
+                "sampling_transition_count": np.array(
+                    [row["transitions"] for row in self.sampling_history], np.int64
+                ),
+                "sampling_probabilities": np.array(
+                    [row["probabilities"] for row in self.sampling_history], np.float64
+                ),
+                "sampling_length_estimates": np.array(
+                    [row["lengths"] for row in self.sampling_history], np.float64
+                ),
+                "sampling_completed_episodes": np.array(
+                    [row["completed"] for row in self.sampling_history], np.int64
+                ),
+            }
+        return result
 
 
 def state_sha256(state: Any) -> str:
@@ -359,6 +404,13 @@ def load_distributions(
         raise ValueError("Distributions do not match the discovery conditions.")
     if set(record["arms"]) != set(spec.curriculum.arms):
         raise ValueError("Distributions do not match the declared arms.")
+    unit = "transition" if spec.sampling is not None else "episode"
+    if record.get("sampling_unit", "episode") != unit:
+        raise ValueError("Distribution sampling unit differs from the study.")
+    if spec.sampling is not None and record.get("sampling") != to_jsonable(
+        spec.sampling
+    ):
+        raise ValueError("Distribution sampling settings differ from the study.")
     return record, hashlib.sha256(content).hexdigest()
 
 
@@ -368,6 +420,7 @@ def make_training_environment(
     probabilities: np.ndarray,
     *,
     replicate_id: int,
+    sampling: InverseLengthSampler | None = None,
 ) -> DummyVecEnv:
     """Build the workers, with each sampler inside `Monitor`."""
 
@@ -402,6 +455,7 @@ def make_training_environment(
                     condition_rng=generator,
                     reset_seed=reset_seed,
                     worker_id=worker_id,
+                    sampling=sampling,
                 )
             )
 
@@ -535,6 +589,9 @@ def train_campaign(
     distributions, distributions_sha256 = load_distributions(
         spec, provenance, study_dir, allow_dirty=allow_dirty
     )
+    calibration_hash = None
+    if spec.sampling is not None:
+        _, calibration_hash = load_calibration(spec, provenance, study_dir)
     jobs = plan_training(
         spec,
         tier,
@@ -555,6 +612,8 @@ def train_campaign(
             "protocol_config_sha256": provenance["config_sha256"],
             "parent_model_sha256": spec.parent_model_sha256,
             "distributions_sha256": distributions_sha256,
+            "sampling": spec.sampling,
+            "calibration_sha256": calibration_hash,
             "additional_transitions": tier_spec.additional_transitions,
             "snapshot_transitions": tier_spec.snapshot_transitions,
             "continuation": spec.continuation,
@@ -627,6 +686,13 @@ def run_training_job(
     seed = training_policy_seed(spec, replicate_id=job.replicate_id)
     arm = distributions["arms"][job.arm]
     probabilities = np.array(arm["probabilities"])
+    sampling = None
+    calibration_hash = None
+    if spec.sampling is not None:
+        calibration, calibration_hash = load_calibration(spec, provenance, study_dir)
+        sampling = InverseLengthSampler(
+            probabilities, np.array(calibration["initial_mean_lengths"]), spec.sampling
+        )
 
     parent_dir = Path(job.parent_dir)
     parent_zip = parent_dir / MODEL_FILENAME
@@ -649,9 +715,14 @@ def run_training_job(
         "budget": budget,
         "distributions": distributions,
         "distributions_sha256": distributions_sha256,
+        "sampling": sampling,
+        "calibration_sha256": calibration_hash,
     }
+    environment_options = {"replicate_id": job.replicate_id}
+    if sampling is not None:
+        environment_options["sampling"] = sampling
     environment = make_training_environment(
-        spec, parent, probabilities, replicate_id=job.replicate_id
+        spec, parent, probabilities, **environment_options
     )
     started = time.perf_counter()
     try:
@@ -662,7 +733,7 @@ def run_training_job(
         context |= {"migration": migration, "settings": settings}
         initial_timesteps = model.num_timesteps
         initial_updates = model._n_updates
-        capture = TransitionCapture(budget)
+        capture = TransitionCapture(budget, sampling=sampling)
         recorder = OptimizerStepRecorder(model.policy.optimizer)
         for boundary in (*snapshots, budget):
             done = model.num_timesteps - initial_timesteps
@@ -823,6 +894,19 @@ def _write_checkpoint(
         "source": job.source,
         **extra,
     }
+    if context.get("sampling") is not None:
+        sampling = context["sampling"]
+        summary["sampling"] = {
+            "settings": spec.sampling,
+            "calibration_sha256": context["calibration_sha256"],
+            "target_transition_shares": sampling.target_shares,
+            "current_reset_probabilities": sampling.probabilities,
+            "current_length_estimates": sampling.length_estimates,
+            "completed_episodes": sampling.completed_episodes,
+            "revision": sampling.revision,
+            "reset_law": "normalize(target_share / estimated_episode_length)",
+            "raw_schedule_arrays": "sampling_* and reset_selection_probability",
+        }
     write_continued_artifact(design, model_path, summary)
     write_evaluation_seal(
         directory,

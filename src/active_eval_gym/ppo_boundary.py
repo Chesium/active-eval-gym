@@ -131,7 +131,7 @@ def tier_children(
             "replicate_id": replicate,
         }
         for replicate in tier.replicate_ids
-        for arm in spec.curriculum.arms
+        for arm in (tier.arms if tier.arms is not None else spec.curriculum.arms)
     )
 
 
@@ -179,9 +179,9 @@ def job_accounting(spec: PPOBoundaryStudySpec) -> dict[str, Any]:
     """Return exact planned jobs and worst-case volume for every tier."""
 
     steps = spec.parent_design.environment.max_episode_steps
-    arms = len(spec.curriculum.arms)
     tiers: dict[str, Any] = {}
     for tier in spec.tiers:
+        arms = len(tier.arms if tier.arms is not None else spec.curriculum.arms)
         conditions = len(support_conditions(spec, tier.evaluation_support))
         children = len(tier.replicate_ids) * arms
         snapshots: dict[str, Any] = {"status": tier.snapshot_evaluation}

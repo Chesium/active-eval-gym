@@ -270,6 +270,9 @@ def build_distributions(
         thin_band_min_conditions=spec.curriculum.thin_band_min_conditions,
         condition_ids=condition_ids,
     )
+    if spec.sampling is not None:
+        distributions["sampling_unit"] = "transition"
+        distributions["sampling"] = spec.sampling
     output.mkdir(parents=True)
     write_json_new(output / DISTRIBUTIONS_FILENAME, distributions)
     write_json_new(output / CONTRAST_FILENAME, report)

@@ -132,6 +132,19 @@ class ContinuationSpec:
 
 
 @dataclass(frozen=True)
+class TransitionSamplingSpec:
+    """Training-only inverse-duration correction for desired transition shares."""
+
+    mode: str
+    calibration_episodes_per_condition: int
+    calibration_seed_role: int
+    calibration_action_seed: int
+    length_ema_alpha: float
+    refresh_rollouts: int
+    minimum_length: float
+
+
+@dataclass(frozen=True)
 class StudySeedSpec:
     """Named seed roots and episode-reset roles."""
 
@@ -153,6 +166,7 @@ class StudyTierSpec:
     episodes_per_condition: int
     seed_role: str
     snapshot_evaluation: str
+    arms: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -196,6 +210,7 @@ class PPOBoundaryStudySpec:
     tiers: tuple[StudyTierSpec, ...]
     confidence: ConfidenceSpec
     storage: EvaluationStorageSpec
+    sampling: TransitionSamplingSpec | None = None
 
     def tier(self, name: str) -> StudyTierSpec:
         """Return one execution tier by name."""
@@ -433,6 +448,7 @@ def load_ppo_boundary_study(path: Path) -> PPOBoundaryStudySpec:
         tiers=tuple(_study_tier_spec(item) for item in _table_list(data, "tiers")),
         confidence=_confidence_spec(_required_table(data, "confidence")),
         storage=_storage_spec(_required_table(data, "storage")),
+        sampling=_transition_sampling_spec(data.get("sampling")),
     )
     _validate_ppo_boundary_study(spec)
     return spec
@@ -493,6 +509,24 @@ def _continuation_spec(data: dict[str, Any]) -> ContinuationSpec:
     )
 
 
+def _transition_sampling_spec(
+    data: dict[str, Any] | None,
+) -> TransitionSamplingSpec | None:
+    if data is None:
+        return None
+    return TransitionSamplingSpec(
+        mode=_required_str(data, "mode"),
+        calibration_episodes_per_condition=_required_int(
+            data, "calibration_episodes_per_condition"
+        ),
+        calibration_seed_role=_required_int(data, "calibration_seed_role"),
+        calibration_action_seed=_required_int(data, "calibration_action_seed"),
+        length_ema_alpha=_required_number(data, "length_ema_alpha"),
+        refresh_rollouts=_required_int(data, "refresh_rollouts"),
+        minimum_length=_required_number(data, "minimum_length"),
+    )
+
+
 def _study_seed_spec(data: dict[str, Any]) -> StudySeedSpec:
     roles = _required_table(data, "roles")
     return StudySeedSpec(
@@ -517,6 +551,7 @@ def _study_tier_spec(data: dict[str, Any]) -> StudyTierSpec:
         episodes_per_condition=_required_int(data, "episodes_per_condition"),
         seed_role=_required_str(data, "seed_role"),
         snapshot_evaluation=_required_str(data, "snapshot_evaluation"),
+        arms=_string_tuple(data["arms"], "tier arms") if "arms" in data else None,
     )
 
 
@@ -557,6 +592,29 @@ def _validate_ppo_boundary_study(spec: PPOBoundaryStudySpec) -> None:
         raise ValueError("The frontier rule requires a complete discovery grid.")
     _validate_continuation(spec)
     _validate_seed_roles(spec.seeds)
+    if spec.sampling is not None:
+        sampling = spec.sampling
+        if sampling.mode != "inverse-episode-length-v1":
+            raise ValueError("Unknown transition sampling mode.")
+        if sampling.calibration_episodes_per_condition <= 0:
+            raise ValueError("Calibration episodes must be positive.")
+        if not 1 <= sampling.calibration_seed_role <= 9 or (
+            sampling.calibration_seed_role in spec.seeds.roles.values()
+        ):
+            raise ValueError("Calibration seed role must be disjoint from study roles.")
+        if not 0 <= sampling.calibration_action_seed < 2**32 - 100_000:
+            raise ValueError("Invalid calibration action seed.")
+        if not 0 < sampling.length_ema_alpha <= 1:
+            raise ValueError("Length EMA alpha must be in (0, 1].")
+        if sampling.refresh_rollouts <= 0 or not 1 <= sampling.minimum_length <= 500:
+            raise ValueError("Invalid sampling refresh or minimum length.")
+        if (
+            len(spec.supports["discovery"].initial_theta_deg)
+            * len(spec.supports["discovery"].length)
+            * sampling.calibration_episodes_per_condition
+            >= 100_000
+        ):
+            raise ValueError("Calibration reset seed namespace would overflow.")
     _validate_tiers(spec)
     if not 0.0 < spec.confidence.family_alpha < 1.0:
         raise ValueError("family_alpha must lie strictly between 0 and 1.")
@@ -660,6 +718,12 @@ def _validate_tiers(spec: PPOBoundaryStudySpec) -> None:
     if len(set(replicates)) != len(replicates):
         raise ValueError("Replicate IDs must be unique across tiers.")
     for tier in spec.tiers:
+        if tier.arms is not None and (
+            not tier.arms
+            or len(set(tier.arms)) != len(tier.arms)
+            or not set(tier.arms) <= set(spec.curriculum.arms)
+        ):
+            raise ValueError("Tier arms must be a nonempty unique curriculum subset.")
         if tier.evaluation_support not in spec.supports:
             raise ValueError(f"Tier {tier.name!r} has an unknown support.")
         if tier.seed_role not in spec.seeds.roles or tier.seed_role == "training":
