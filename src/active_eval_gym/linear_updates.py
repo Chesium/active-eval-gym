@@ -4,7 +4,7 @@ This analytical fixture is independent of Gym and of policy training. Bounds are
 evaluations of exact-arithmetic inequalities, not interval-arithmetic proofs.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -138,6 +138,11 @@ def circle_grid(plants: int, directions: int) -> ConditionGrid:
     )
 
 
+def policy_actions(gain: np.ndarray, states: np.ndarray) -> np.ndarray:
+    """Inputs of u = -K x along saved trajectories, one definition for all callers."""
+    return -np.einsum("ij,ctj->cti", gain, states[:, :-1])
+
+
 def rollout(
     family: LinearFamily, grid: ConditionGrid, gain: np.ndarray, horizon: int
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -148,8 +153,7 @@ def rollout(
     states[:, 0] = grid.resets
     for t in range(horizon):
         states[:, t + 1] = np.einsum("cij,cj->ci", loops, states[:, t])
-    actions = -np.einsum("ij,ctj->cti", gain, states[:, :-1])
-    return states, actions
+    return states, policy_actions(gain, states)
 
 
 def trajectory_costs(
@@ -396,6 +400,38 @@ def backtrack(
             return result
     result.status = "search_exhausted"
     return result
+
+
+def capacity_step(
+    family: LinearFamily,
+    grid: ConditionGrid,
+    gain: np.ndarray,
+    p: np.ndarray,
+    weights: np.ndarray,
+    spec: UpdateSpec,
+    *,
+    cap: float | None = None,
+    slack: float = 1e-9,
+    shrink: float = 0.9,
+    max_trials: int = 200,
+) -> StepResult:
+    """Try the largest step the guard allows, shrinking only if Armijo rejects it.
+
+    `cap` limits the first trial; None leaves only the guard's limit. `slack` keeps
+    that trial strictly inside the guard despite rounding. Trials run through
+    `backtrack`, so the guard and Armijo tests exist in one place.
+    """
+    _, gradients = cost_gradients(family, grid, gain, spec.horizon)
+    direction = -np.einsum("c,cij->ij", weights, gradients)
+    step = (1 - slack) * step_capacity(family, gain, p, direction, spec)
+    if cap is not None:
+        step = min(cap, step)
+    # A zero gradient or failed verification has no usable step; backtrack records it.
+    first = float(step) if np.isfinite(step) and step > 0 else spec.initial_step
+    trials = replace(
+        spec, initial_step=first, shrink=shrink, max_backtracks=max_trials - 1
+    )
+    return backtrack(family, grid, gain, p, weights, trials)
 
 
 def curvature_bound(
