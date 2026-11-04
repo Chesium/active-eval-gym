@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
-  "script_sha256": "04b2d93901c92573fac8c1daa6630be8646a8ec3716b17b516ab6e0a5ad2277f",
+  "schema_version": 2,
+  "script_sha256": "0c0e7238319857a6dea3debaeeab9cbe9b1b259c4fefc8a3b7680f7b8a5b737a",
   "source_sha256": {
     "artifacts/certificate_generalization/20261021T171258986368Z/metadata.json": "6ad173b0c3e4a2cf4e2d3feccaf2e50c07f1553254ec24de149a6a3fcd13d824",
     "artifacts/certificate_generalization/20261021T171258986368Z/metrics_v1.npz": "006d16ab761c9fae3debc82c7302a786bbc05635b4fa7b1d167330005cce250f",
-    "artifacts/linear-study-smoke-v2/manifest.json": "de3a4cf42161aeac4c31dd9e18402b5dc4e4939419b76fe32e983ce73f91b89e"
+    "artifacts/linear-crossed-study-v1-report/summary.json": "1b732a68fba71209aa3ee001efd525835dcb47b7fc50ad5f10c90e986474bd03"
   },
   "certificate": {
     "spec": {
@@ -64,67 +64,230 @@
     ],
     "description": "Maximum observed loss gap over numerical grid; the theorem controls the full continuous class. Shading is dataset 10th\u201390th percentile, not a confidence interval."
   },
-  "updates": {
+  "crossed_study": {
+    "run_manifest_sha256": "dd8329f6b43d277625683b8277035d2087d77d472fcc32bdb2900a2b8c6d2a97",
     "study_spec": {
-      "preset": "smoke",
+      "preset": "crossed",
       "master_seed": 6180,
-      "replicates": 2,
+      "families_per_type": 200,
       "rounds": 3,
-      "sample_sizes": [
-        32
-      ],
-      "repeated_sample_size": 32,
       "directions": 64,
       "reference_directions": 256,
-      "band_width": 0.35,
       "mixture": 0.5,
-      "landscape": false
+      "initial_coverage": 0.539,
+      "relative_band_width": 0.1,
+      "reference_replicates": 10,
+      "fitting_size": 32,
+      "step_shifts": 16,
+      "tie_limit": null,
+      "capacity_slack": 1e-09,
+      "capacity_shrink": 0.9,
+      "capacity_trials": 200,
+      "bootstrap_resamples": 10000,
+      "meaningful_gap": 1.0
     },
-    "selection": "All one_step N=32 records for the three named selectors",
-    "coverage_gains_percentage_points": {
-      "known": {
-        "background": [
-          7.8125,
-          7.8125
-        ],
-        "boundary": [
-          7.8125,
-          7.8125
-        ],
-        "high_cost": [
-          6.25,
-          6.25
-        ]
+    "panel_b_mean_final_coverage_background": {
+      "same_shape": {
+        "erm_large_step": {
+          "fixed": 90.919921875,
+          "refit": 91.904296875
+        },
+        "erm_first": {
+          "fixed": 90.673828125,
+          "refit": 89.205078125
+        },
+        "erm_small_step": {
+          "fixed": 77.27734375,
+          "refit": 70.546875
+        }
       },
-      "erm_small_step": {
-        "background": [
-          3.90625,
-          3.90625
-        ],
-        "boundary": [
-          3.90625,
-          3.90625
-        ],
-        "high_cost": [
-          2.34375,
-          2.34375
-        ]
+      "general": {
+        "erm_large_step": {
+          "fixed": 78.10985949612403,
+          "refit": 79.0546269379845
+        },
+        "erm_first": {
+          "fixed": 77.05002422480621,
+          "refit": 76.26271802325581
+        },
+        "erm_small_step": {
+          "fixed": 65.47359496124031,
+          "refit": 63.10259205426357
+        }
       },
-      "erm_large_step": {
-        "background": [
-          7.8125,
-          7.8125
-        ],
-        "boundary": [
-          7.8125,
-          7.8125
-        ],
-        "high_cost": [
-          6.25,
-          6.25
-        ]
+      "rotated_actuator": {
+        "erm_large_step": {
+          "fixed": 85.1287411971831,
+          "refit": 86.03928257042253
+        },
+        "erm_first": {
+          "fixed": 83.72579225352112,
+          "refit": 83.0050616197183
+        },
+        "erm_small_step": {
+          "fixed": 68.12279929577464,
+          "refit": 65.01980633802818
+        }
+      },
+      "mirrored": {
+        "erm_large_step": {
+          "fixed": 53.90824298469388,
+          "refit": 53.912228954081634
+        },
+        "erm_first": {
+          "fixed": 53.88432716836735,
+          "refit": 53.86439732142857
+        },
+        "erm_small_step": {
+          "fixed": 53.706951530612244,
+          "refit": 53.64516900510204
+        }
       }
     },
-    "description": "Bars average both predeclared replicates; dots retain both observations. Initial reference coverage is 0.5390625."
+    "panel_c_boundary_minus_background_fixed_p": {
+      "same_shape": {
+        "erm_large_step": {
+          "first": {
+            "mean": 0.02734375,
+            "ci95": [
+              -0.0078125,
+              0.0625
+            ]
+          },
+          "last": {
+            "mean": -0.01953125,
+            "ci95": [
+              -0.05078125,
+              0.009765625
+            ]
+          }
+        },
+        "erm_small_step": {
+          "first": {
+            "mean": 0.009765625,
+            "ci95": [
+              -0.02734375,
+              0.052734375
+            ]
+          },
+          "last": {
+            "mean": -0.03515625,
+            "ci95": [
+              -0.0703125,
+              0.001953125
+            ]
+          }
+        }
+      },
+      "general": {
+        "erm_large_step": {
+          "first": {
+            "mean": 2.7555717054263567,
+            "ci95": [
+              2.028827519379845,
+              3.527737403100775
+            ]
+          },
+          "last": {
+            "mean": 1.159762596899225,
+            "ci95": [
+              0.14527313468992256,
+              2.1529796511627906
+            ]
+          }
+        },
+        "erm_small_step": {
+          "first": {
+            "mean": 0.9084302325581395,
+            "ci95": [
+              0.6480135658914729,
+              1.2051841085271318
+            ]
+          },
+          "last": {
+            "mean": 2.4830426356589146,
+            "ci95": [
+              1.7380541424418605,
+              3.2673207364341086
+            ]
+          }
+        }
+      },
+      "rotated_actuator": {
+        "erm_large_step": {
+          "first": {
+            "mean": 1.7908230633802817,
+            "ci95": [
+              1.1471170774647887,
+              2.462037852112676
+            ]
+          },
+          "last": {
+            "mean": -0.03851232394366197,
+            "ci95": [
+              -0.839018485915493,
+              0.75656084947183
+            ]
+          }
+        },
+        "erm_small_step": {
+          "first": {
+            "mean": 0.704225352112676,
+            "ci95": [
+              0.5171654929577465,
+              0.8967869718309859
+            ]
+          },
+          "last": {
+            "mean": 1.2956646126760563,
+            "ci95": [
+              0.7977552816901409,
+              1.8320862676056338
+            ]
+          }
+        }
+      },
+      "mirrored": {
+        "erm_large_step": {
+          "first": {
+            "mean": 1.5684789540816326,
+            "ci95": [
+              1.0403380102040816,
+              2.1345364317602034
+            ]
+          },
+          "last": {
+            "mean": 4.4184470663265305,
+            "ci95": [
+              3.631218112244898,
+              5.241549744897959
+            ]
+          }
+        },
+        "erm_small_step": {
+          "first": {
+            "mean": 0.7134885204081632,
+            "ci95": [
+              0.5699936224489796,
+              0.8629623724489796
+            ]
+          },
+          "last": {
+            "mean": 1.6521843112244898,
+            "ci95": [
+              1.2794961734693877,
+              2.05078125
+            ]
+          }
+        }
+      }
+    },
+    "families_with_shared_certificate": {
+      "same_shape": 200,
+      "general": 129,
+      "rotated_actuator": 142,
+      "mirrored": 196
+    },
+    "description": "Means over families with a shared certificate. Halted branches count at their current coverage. Panel (c) shows boundary minus uniform for fixed-P Max and Min arms; every arm is in the study summary."
   }
 }

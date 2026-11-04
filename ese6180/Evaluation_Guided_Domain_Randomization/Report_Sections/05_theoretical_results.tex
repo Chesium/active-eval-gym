@@ -7,7 +7,9 @@ Lemmas~\ref{lem:foundation_regular_loss} and~\ref{lem:foundation_cover}
 and Theorems~\ref{thm:foundation_generalization}
 and~\ref{thm:foundation_verification}. The arguments are elementary and
 are written to be checked line by line. Each proof opens with a short
-statement of its idea.
+statement of its idea. Sections~\ref{subsec:stage2_proofs}
+and~\ref{subsec:stage3_envelope} add draft proofs for Stage~2 and a draft
+Stage~3 starting point, both awaiting author review.
 
 The results fit together as follows. Lemma~\ref{lem:foundation_regular_loss}
 says that a small change of the certificate matrix makes only a small change
@@ -460,5 +462,217 @@ is the value to use in the rate $\varrho$. Third, a fitted $P$ must itself
 be checked to be symmetric with $aI\preceq P\preceq bI$, since (F3) and
 Step~2 assume $P\in\mathcal P$ exactly.
 
-Proofs of the Stage~2 statements of Section~\ref{subsec:stage2_update} are
-not yet written.
+\subsection{Draft proofs of the Stage~2 statements}
+\label{subsec:stage2_proofs}
+
+These proofs are drafts awaiting author review. Throughout, $G=G_K(\theta)$,
+$E=-B(\theta)\Delta K$, and $G^+=G+E=G_{K^+}(\theta)$.
+
+\begin{proof}[Proof of Lemma~\ref{lem:stage2_margin_drift}]
+Expanding $(G+E)^\top P(G+E)-P$ gives~\eqref{eq:stage2_drift_expansion}. Let
+$T=G^\top PE+E^\top PG+E^\top PE$, which is symmetric. For a unit vector $y$,
+\[
+ y^\top Ty=2y^\top G^\top PEy+y^\top E^\top PEy
+ \le2\|G^\top P\|_2\|E\|_2+\|P\|_2\|E\|_2^2=c_\theta(\Delta K),
+\]
+because $\|E\|_2=d_\theta(\Delta K)$. By (F2), $T\preceq c_\theta(\Delta K)I$,
+which is~\eqref{eq:stage2_drift_bound}. Since
+$G^\top PG-P\preceq-\eta_\theta I$, an admissible change gives
+$(G^+)^\top PG^+-P\preceq-(\eta_\theta-c_\theta(\Delta K))I
+\preceq-\rho\eta_\theta I$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:stage2_certified_descent}]
+\emph{Accepted steps.} An accepted nonzero step has $D\ne0$, $s_j>0$, and
+$\Delta K=s_jD$ admissible. Armijo~\eqref{eq:stage2_armijo} with $c_A>0$ gives
+$F_q(K^+)<F_q(K)$. Lemma~\ref{lem:stage2_margin_drift} gives
+\eqref{eq:stage2_preserved_margin}. Write
+$\eta_*^+=\min_{\theta\in\Theta_{\mathrm{ret}}}
+\lambda_{\min}(P-G_{K^+}(\theta)^\top PG_{K^+}(\theta))$ and
+$\underline\eta=\rho\min_{\theta\in\Theta_{\mathrm{ret}}}\eta_\theta$, so
+$\eta_*^+\ge\underline\eta>0$. Theorem~\ref{thm:foundation_verification}, applied to
+$K^+$ with the same $P\in\mathcal P$, gives exponential stability, invariance of
+every $\mathcal E_c(P)$, and~\eqref{eq:foundation_exponential_bound} with
+$\eta_*^+$. Since $0<\underline\eta\le\eta_*^+\le b$, replacing $\eta_*^+$ by
+$\underline\eta$ only enlarges the right side. If $\rho\eta_\theta\ge\eta$ on the
+retention set, its eigenvalue test retains the coefficient $\eta$.
+
+\emph{Small steps.} Let $D\ne0$ and $\varphi(s)=F_q(K+sD)$. Each $G_{K+sD}(\theta)$
+is affine in $s$, so $\varphi$ is a polynomial, and
+$\varphi'(0)=\langle\nabla_KF_q(K),D\rangle_F=-\|D\|_F^2$. Thus
+$(\varphi(s)-\varphi(0))/s\to-\|D\|_F^2<-c_A\|D\|_F^2$ as $s\downarrow0$, since
+$c_A<1$, so Armijo holds on some $(0,s_A]$. The radius holds for
+$s\le\kappa/\|D\|_2$. Each $s\mapsto c_\theta(sD)$ is continuous and vanishes at
+$0$, each budget $(1-\rho)\eta_\theta$ is positive, and $\Theta_{\mathrm{ret}}$ is
+finite, so the consumption test holds on some $(0,s_G]$. As $s_j\to0$, an uncapped
+search reaches a passing trial unless it has already accepted one. The fallback
+$K^+=K$ changes nothing.
+\end{proof}
+
+\emph{Starting from the step capacity.} The midterm report and the linear studies
+start the search at $\bar s=\min\{s_0,s^*(D)\}$, where $s^*(D)$ is the step capacity of
+Proposition~\ref{prop:stage3_direction}, and shrink only for Armijo. The accepted-step
+argument above is unchanged, because every trial is admissible and passes Armijo. The
+small-step argument is also unchanged: $\bar s>0$, all smaller steps are admissible, and
+Armijo holds on $(0,s_A]$. The implementation multiplies the first trial by
+$1-10^{-9}$ so that rounding keeps it inside the guard.
+
+\begin{proof}[Proof of Lemma~\ref{lem:stage2_cost_sensitivity}]
+Let $\|\Delta K\|_2\le\kappa$ and $W=W_K$, $W^+=W_{K^+}$. Then
+$\|G\|_2,\|G^+\|_2\le\overline M_\theta$ and $\|E\|_2\le\|B(\theta)\|_2\|\Delta K\|_2$.
+Split
+\begin{align*}
+ P_H(K^+,\theta)-P_H(K,\theta)
+ &=\sum_{t=0}^{H-1}\big((G^+)^t\big)^\top(W^+-W)(G^+)^t\\
+ &\quad+\sum_{t=1}^{H-1}\Big(\big((G^+)^t\big)^\top W(G^+)^t-(G^t)^\top WG^t\Big).
+\end{align*}
+For the first sum, $W^+-W=K^\top R\Delta K+\Delta K^\top RK+\Delta K^\top R\Delta K$
+gives $\|W^+-W\|_2\le\|R\|_2(2\|K\|_2+\kappa)\|\Delta K\|_2$. For the second, write
+$A=(G^+)^t$ and $C=G^t$. Then
+\[
+ A^\top WA-C^\top WC=A^\top W(A-C)+(A-C)^\top WC,
+ \qquad
+ A-C=\sum_{j=0}^{t-1}(G^+)^{t-1-j}EG^j,
+\]
+so $\|A-C\|_2\le t\overline M_\theta^{\,t-1}\|E\|_2$, and the $t$-th term has norm at
+most $2\|W\|_2\|B(\theta)\|_2t\overline M_\theta^{\,2t-1}\|\Delta K\|_2$. Summing
+gives~\eqref{eq:stage2_cost_matrix_drift}. Then
+$|x^\top(P_H(K^+,\theta)-P_H(K,\theta))x|\le r^2\mathcal L_H(\theta;\kappa)
+\|\Delta K\|_2$ on $\mathcal X_0$, which is~\eqref{eq:stage2_cost_drift}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:stage2_cost_regression}]
+Write $b=b_J(\theta;\Delta K)$. If $J_{H,K}(\theta,x)\le h-b$,
+then~\eqref{eq:stage2_cost_drift} gives $J_{H,K^+}(\theta,x)\le h$,
+proving~\eqref{eq:stage2_interior_preservation}. If $z$ is lost, then
+$J_{H,K}(z)\le h<J_{H,K^+}(z)\le J_{H,K}(z)+b$, so $z$ lies in the loss band,
+proving~\eqref{eq:stage2_losses}. Costs are continuous in $x$ and $\Theta$ is finite,
+so these sets are measurable. Finally
+$\mu(S_{K^+}^J)=\mu(S_{K^+}^J\cap S_K^J)+\mu(S_{K^+}^J\setminus S_K^J)$, likewise
+for $S_K^J$; subtracting gives the identity
+in~\eqref{eq:stage2_coverage_accounting}, and dropping the gained mass
+with~\eqref{eq:stage2_losses} gives the inequality.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:stage2_counterexample}]
+Here $G_{\widetilde K}(\theta)=\theta-\widetilde K$ and
+$J_{2,\widetilde K}(\theta,1)=1+(\theta-\widetilde K)^2$. At $K=1/2$ both costs are
+$5/4=h$, so $C_J(K)=1$. With $q=(1/4,3/4)$,
+$F_q(\widetilde K)=\tfrac14(1+\widetilde K^2)+\tfrac34(1+(1-\widetilde K)^2)$, so
+$F_q(1/2)=1.25$, $\nabla F_q(1/2)=1/4-3/4=-1/2$, and $D=1/2$. Then $s_0=2/5$ gives
+$\Delta K=1/5\le\kappa$ and $K^+=7/10$. Both old margins are $1-1/4=3/4$. With
+$d_\theta=1/5$, $c_\theta=2(1/2)(1/5)+1/25=0.24\le0.375=(1-\rho)(3/4)$.
+Also $F_q(7/10)=\tfrac14(1.49)+\tfrac34(1.09)=1.19\le1.25-\tfrac12\cdot\tfrac25
+\cdot\tfrac14=1.20$, so the first trial passes. The new costs are $1.49>h$ at
+$\theta=0$ and $1.09\le h$ at $\theta=1$, so $C_J(K^+)=1/2$. The new margins are
+$1-0.49=0.51$ and $1-0.09=0.91$.
+\end{proof}
+
+\subsection{Draft Stage~3 starting point: envelope accounting}
+\label{subsec:stage3_envelope}
+
+This proposition is a draft awaiting author review. Fix $K$, a direction $D\ne0$, and
+$\bar s=\kappa/\|D\|_2$. Keep $\overline M_\theta$ from
+Lemma~\ref{lem:stage2_cost_sensitivity}, and set $\beta_\theta=\|B(\theta)D\|_2$,
+$\bar k=\|K\|_2+\kappa$, $w_0=\|Q\|_2+\|R\|_2\bar k^2$,
+$w_1=2\|R\|_2\bar k\|D\|_2$, and $w_2=2\|R\|_2\|D\|_2^2$. For $z=(\theta,x)$, let
+$X_0=\|x\|_2$, $U_0=V_0=0$, and
+\[
+ X_{t+1}=\overline M_\theta X_t,\quad
+ U_{t+1}=\overline M_\theta U_t+\beta_\theta X_t,\quad
+ V_{t+1}=\overline M_\theta V_t+2\beta_\theta U_t,
+\]
+\[
+ C_z=\sum_{t=0}^{H-1}\big(2w_0(U_t^2+X_tV_t)+4w_1X_tU_t+w_2X_t^2\big),
+\]
+and define the \emph{alignment} and \emph{upper envelope}
+\[
+ a_z=-\langle\nabla_KJ_{H,K}(z),D\rangle_F,
+ \qquad \mathcal U_z(s)=J_{H,K}(z)-sa_z+\tfrac12C_zs^2.
+\]
+
+\begin{proposition}[Envelope coverage bound]
+\label{prop:stage3_envelope}
+For every $s\in[0,\bar s]$, $J_{H,K+sD}(z)\le\mathcal U_z(s)$. Define the
+\emph{guaranteed gains} and \emph{possible losses}
+\[
+ \mathcal A(s)=\{z\notin S_K^J:\mathcal U_z(s)\le h\},
+ \qquad
+ \mathcal R(s)=\{z\in S_K^J:\mathcal U_z(s)>h\}.
+\]
+Then
+\[
+ C_J(K+sD)-C_J(K)\ge\mu(\mathcal A(s))-\mu(\mathcal R(s)).
+\]
+Suppose $C_z>0$. A rejected $z$ with excess $e_z=J_{H,K}(z)-h>0$ is in
+$\mathcal A(s)$ if and only if $a_z>0$, $a_z^2\ge2C_ze_z$, and
+$s\in[(a_z-\sqrt{a_z^2-2C_ze_z})/C_z,(a_z+\sqrt{a_z^2-2C_ze_z})/C_z]$. An accepted
+$z$ with slack $\sigma_z=h-J_{H,K}(z)\ge0$ is outside $\mathcal R(s)$ if and only if
+$s\le(a_z+\sqrt{a_z^2+2C_z\sigma_z})/C_z$.
+\end{proposition}
+
+\begin{proof}
+Let $r\in[0,\bar s]$, $K_r=K+rD$, and $G_r=G_K(\theta)-rB(\theta)D$, so
+$\|G_r\|_2\le\overline M_\theta$ and $\|K_r\|_2\le\bar k$. Let $x_t=G_r^tx$, with
+derivatives in $r$ marked by primes. Then
+$x_{t+1}'=G_rx_t'-B(\theta)Dx_t$ and
+$x_{t+1}''=G_rx_t''-2B(\theta)Dx_t'$, so induction gives $\|x_t\|_2\le X_t$,
+$\|x_t'\|_2\le U_t$, and $\|x_t''\|_2\le V_t$. For $W_r=Q+K_r^\top RK_r$ we have
+$\|W_r\|_2\le w_0$, $\|W_r'\|_2\le w_1$, and $\|W_r''\|_2\le w_2$. Since
+\[
+ (x_t^\top W_rx_t)''=2x_t'^\top W_rx_t'+2x_t^\top W_rx_t''
+ +4x_t^\top W_r'x_t'+x_t^\top W_r''x_t,
+\]
+$\phi(r)=J_{H,K_r}(z)$ satisfies $|\phi''(r)|\le C_z$. Also $\phi'(0)=-a_z$, and
+Taylor's formula with integral remainder gives
+$\phi(s)\le\mathcal U_z(s)$. Thus $\mathcal A(s)$ is contained in the gained set, and
+the lost set is contained in $\mathcal R(s)$. The bound follows
+from~\eqref{eq:stage2_coverage_accounting}'s identity. The last two claims solve
+$\tfrac12C_zs^2-a_zs+e_z\le0$ and $\tfrac12C_zs^2-a_zs-\sigma_z\le0$ over $s\ge0$.
+For the first, the roots have positive product, so real roots are both positive
+exactly when $a_z>0$.
+\end{proof}
+
+This bound uses old costs and gradients only, so it is computable before updated
+costs are observed. Positivity is not automatic. On the 201 primary-family updates of
+the recorded study it is never positive (largest value $-0.156$), although coverage
+rises by up to $0.203$ on those updates. On the designed one-plant scalar fixture,
+with $A=0.8$, $B=1$, $K=0.2$, $Q=1$, $R=0$, $H=2$, $h=1.2$, and four resets, the
+boundary and high-cost targets give a bound of $0.25$, equal to the observed change,
+while background gives $0$. This is a step-size effect, not evidence of target
+superiority: with one plant every cost gradient has the same sign, and background's
+shorter move $\Delta K\approx0.14$ leaves the largest cost at $1.21$, just above $h$,
+whereas boundary's $\Delta K\approx0.22$ crosses it.
+
+\begin{proposition}[Guard-limited updates depend only on direction]
+\label{prop:stage3_direction}
+Fix $K$ and a certificate $P$ with positive retained margins $\eta_\theta$, and let
+\[
+ \mathcal G=\{\Delta K:\|\Delta K\|_2\le\kappa,\
+ c_\theta(\Delta K)\le(1-\rho)\eta_\theta
+ \text{ for every }\theta\in\Theta_{\mathrm{ret}}\}.
+\]
+For $D\ne0$, let $s^*(D)=\max\{s\ge0:sD\in\mathcal G\}$, the \emph{step capacity}.
+Then $s^*(D)$ is finite and positive, $\{s\ge0:sD\in\mathcal G\}=[0,s^*(D)]$, and for
+every $\alpha>0$,
+\[
+ s^*(\alpha D)\,\alpha D=s^*(D)\,D.
+\]
+So the full-capacity update depends on $D$ only through $D/\|D\|_F$.
+\end{proposition}
+
+\begin{proof}
+$\mathcal G$ is defined by conditions on $\Delta K$ alone. Along $s\mapsto sD$, the
+norm $s\|D\|_2$ and each $c_\theta(sD)=2\|G_K(\theta)^\top P\|_2sd_\theta(D)
++\|P\|_2s^2d_\theta(D)^2$ are continuous and nondecreasing in $s\ge0$. They vanish at
+$s=0$, where every budget is positive, and $s\|D\|_2$ exceeds $\kappa$ for large $s$.
+Hence the feasible set is a compact interval $[0,s^*(D)]$ with $s^*(D)>0$. Finally,
+$s\alpha D\in\mathcal G$ exactly when $s\alpha\le s^*(D)$, so
+$s^*(\alpha D)=s^*(D)/\alpha$.
+\end{proof}
+
+The proposition ignores two limits on the step: the initial step $s_0$ and the Armijo
+test. When either binds, the size of $D$ can matter. In the recorded family study the
+$s_0$ limit almost never binds, but Armijo limits most updates on mirrored plants.
+Under the proposition's conditions, a target can change the update only by turning
+$D$, so any theorem that separates target rules needs a hypothesis on that turn.

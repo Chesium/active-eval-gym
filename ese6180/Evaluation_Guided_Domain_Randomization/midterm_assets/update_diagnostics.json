@@ -1,0 +1,666 @@
+{
+  "schema_version": 1,
+  "script_sha256": "4ad77ee8b18d3dc714e52cf57b18b52227cffdd31b04e3e0cc4cf9a6240bbb38",
+  "source_manifest_sha256": "de3a4cf42161aeac4c31dd9e18402b5dc4e4939419b76fe32e983ce73f91b89e",
+  "numpy_version": "2.5.2",
+  "reproduced_round_records": 126,
+  "recorded": {
+    "primary_updates": 201,
+    "updates_with_lost_mass": 0,
+    "armijo_rejections": 0,
+    "trials": 2019,
+    "loss_band_covers_all_acceptable": 201,
+    "smallest_new_margin": 0.14279259274043868,
+    "paired_comparisons": 96,
+    "paired_comparisons_differing": 0,
+    "fixed_certificate_checks_on_later_controllers": 60,
+    "later_checks_with_positive_empirical_loss": 0,
+    "largest_empirical_loss": 0
+  },
+  "max_capacity_refit_step_limits": {
+    "background": [
+      {
+        "step_limit": 0.0029717052423167876,
+        "step": 0.001953125
+      },
+      {
+        "step_limit": 0.004913730525057225,
+        "step": 0.00390625
+      },
+      {
+        "step_limit": 0.009413398648561992,
+        "step": 0.0078125
+      }
+    ],
+    "boundary": [
+      {
+        "step_limit": 0.0030214380426691117,
+        "step": 0.001953125
+      },
+      {
+        "step_limit": 0.004387130450994606,
+        "step": 0.00390625
+      },
+      {
+        "step_limit": 0.007763486854147484,
+        "step": 0.00390625
+      }
+    ]
+  },
+  "initial_gain": {
+    "direction_cosine": 0.9999672803750485,
+    "band_conditions": 12,
+    "training_conditions": 128,
+    "known_certificate_smallest_margin": 0.1377641960730859,
+    "guarded_first_step": 0.001953125,
+    "radius_limited_step": {
+      "background": {
+        "step": 0.015625,
+        "coverage": 1.0,
+        "smallest_known_margin": 0.3239875610526253
+      },
+      "boundary": {
+        "step": 0.015625,
+        "coverage": 1.0,
+        "smallest_known_margin": 0.3214538750501807
+      }
+    },
+    "candidates": 874,
+    "ties": {
+      "0": {
+        "smallest_empirical_loss": 0.0,
+        "tied_candidates": 108
+      },
+      "1": {
+        "smallest_empirical_loss": 0.0,
+        "tied_candidates": 109
+      }
+    },
+    "first_update_cost_drift": {
+      "bound_by_plant": [
+        49.82,
+        67.26
+      ],
+      "largest_actual_change": 1.0001868418699624
+    }
+  },
+  "search_caps": {
+    "0.5": 30,
+    "0.7": 60,
+    "0.8": 90,
+    "0.9": 180,
+    "0.95": 360
+  },
+  "boundary_vs_background_by_backtracking_factor": {
+    "0.5": [
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 83.984375,
+        "boundary_percent": 85.546875,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 83.984375,
+        "boundary_percent": 85.546875,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 85.546875,
+        "difference_points": -14.453125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 85.546875,
+        "difference_points": -14.453125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 83.984375,
+        "boundary_percent": 85.546875,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 83.984375,
+        "boundary_percent": 85.546875,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 69.53125,
+        "boundary_percent": 70.703125,
+        "difference_points": 1.171875
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 69.53125,
+        "boundary_percent": 70.703125,
+        "difference_points": 1.171875
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 64.84375,
+        "boundary_percent": 65.234375,
+        "difference_points": 0.390625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 64.84375,
+        "boundary_percent": 65.234375,
+        "difference_points": 0.390625
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 87.109375,
+        "boundary_percent": 90.234375,
+        "difference_points": 3.125
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 87.109375,
+        "boundary_percent": 90.234375,
+        "difference_points": 3.125
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 90.234375,
+        "difference_points": -9.765625
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 90.234375,
+        "difference_points": -9.765625
+      }
+    ],
+    "0.7": [
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 87.109375,
+        "boundary_percent": 83.984375,
+        "difference_points": -3.125
+      },
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 87.109375,
+        "boundary_percent": 83.984375,
+        "difference_points": -3.125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 91.796875,
+        "boundary_percent": 90.234375,
+        "difference_points": -1.5625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 91.796875,
+        "boundary_percent": 90.234375,
+        "difference_points": -1.5625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 87.109375,
+        "boundary_percent": 83.984375,
+        "difference_points": -3.125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 87.109375,
+        "boundary_percent": 83.984375,
+        "difference_points": -3.125
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 81.25,
+        "boundary_percent": 80.078125,
+        "difference_points": -1.171875
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 81.25,
+        "boundary_percent": 80.078125,
+        "difference_points": -1.171875
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 67.1875,
+        "boundary_percent": 67.96875,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 67.1875,
+        "boundary_percent": 67.96875,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 92.578125,
+        "difference_points": -7.421875
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 92.578125,
+        "difference_points": -7.421875
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      }
+    ],
+    "0.8": [
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 89.453125,
+        "boundary_percent": 90.234375,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 89.453125,
+        "boundary_percent": 90.234375,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 97.265625,
+        "boundary_percent": 94.921875,
+        "difference_points": -2.34375
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 97.265625,
+        "boundary_percent": 94.921875,
+        "difference_points": -2.34375
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 89.453125,
+        "boundary_percent": 90.234375,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 89.453125,
+        "boundary_percent": 90.234375,
+        "difference_points": 0.78125
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 80.46875,
+        "boundary_percent": 80.078125,
+        "difference_points": -0.390625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 80.46875,
+        "boundary_percent": 80.078125,
+        "difference_points": -0.390625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 67.1875,
+        "boundary_percent": 68.75,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 67.1875,
+        "boundary_percent": 68.75,
+        "difference_points": 1.5625
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      }
+    ],
+    "0.9": [
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 96.09375,
+        "boundary_percent": 94.140625,
+        "difference_points": -1.953125
+      },
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 96.09375,
+        "boundary_percent": 94.140625,
+        "difference_points": -1.953125
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 94.140625,
+        "boundary_percent": 91.796875,
+        "difference_points": -2.34375
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 94.140625,
+        "boundary_percent": 91.796875,
+        "difference_points": -2.34375
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 81.640625,
+        "boundary_percent": 81.640625,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 81.640625,
+        "boundary_percent": 81.640625,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 68.75,
+        "boundary_percent": 67.578125,
+        "difference_points": -1.171875
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 68.75,
+        "boundary_percent": 67.578125,
+        "difference_points": -1.171875
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      }
+    ],
+    "0.95": [
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 94.921875,
+        "boundary_percent": 95.3125,
+        "difference_points": 0.390625
+      },
+      {
+        "selector": "known",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 94.921875,
+        "boundary_percent": 95.3125,
+        "difference_points": 0.390625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_first",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 92.96875,
+        "boundary_percent": 92.578125,
+        "difference_points": -0.390625
+      },
+      {
+        "selector": "erm_first",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 92.96875,
+        "boundary_percent": 92.578125,
+        "difference_points": -0.390625
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 82.421875,
+        "boundary_percent": 82.421875,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 82.421875,
+        "boundary_percent": 82.421875,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 68.75,
+        "boundary_percent": 68.75,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_small_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 68.75,
+        "boundary_percent": 68.75,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "fixed",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 0,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      },
+      {
+        "selector": "erm_large_step",
+        "mode": "refit",
+        "replicate": 1,
+        "background_percent": 100.0,
+        "boundary_percent": 100.0,
+        "difference_points": 0.0
+      }
+    ]
+  }
+}

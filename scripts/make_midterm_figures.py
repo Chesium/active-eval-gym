@@ -1,4 +1,4 @@
-"""Regenerate the midterm figure from retained artifacts, without experiments."""
+"""Regenerate the midterm figure from retained artifacts, no experiments."""
 
 import argparse
 import json
@@ -11,14 +11,223 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 CERTIFICATE_RUN = ROOT / "artifacts/certificate_generalization/20261021T171258986368Z"
-UPDATE_RUN = ROOT / "artifacts/linear-study-smoke-v2"
+CROSSED_REPORT = ROOT / "artifacts/linear-crossed-study-v1-report"
 DEFAULT_OUTPUT = ROOT / "ese6180/Evaluation_Guided_Domain_Randomization/midterm_assets"
-TARGETS = ("background", "boundary", "high_cost")
-SELECTORS = ("known", "erm_small_step", "erm_large_step")
+FAMILIES = {
+    "same_shape": "Same shape",
+    "general": "Random",
+    "rotated_actuator": "Rotated",
+    "mirrored": "Mirrored",
+}
+# Validated palette slots; each hue follows its rule across both panels.
+RULES = {
+    "erm_large_step": ("Max", "#2a78d6"),
+    "erm_first": ("First tie", "#1baf7a"),
+    "erm_small_step": ("Min", "#eb6834"),
+}
+INK, MUTED = "#333333", "#6b6b6b"
+# Target colors stay apart from panel (b): this red clears the separation checks
+# against its orange, which the palette's own red does not.
+BOUNDARY, UNIFORM = "#b3261e", "#8c8c8c"
+SHAPES = {"erm_large_step": "o", "erm_small_step": "s"}
+# Panel (c) keeps its legend above the axes; all titles clear that height.
+TITLE_PAD = 19
+START_COVERAGE = 53.9
 
 
 def digest(path: Path) -> str:
     return sha256(path.read_bytes()).hexdigest()
+
+
+def refit_values(summary: dict) -> dict:
+    """Mean final coverage under background, for panel (b)."""
+    values = {}
+    for family in FAMILIES:
+        cells = summary["families"][family]["cells"]
+        values[family] = {
+            rule: {
+                mode: cells[f"{rule}_{mode}_background"]["mean"]
+                for mode in ("fixed", "refit")
+            }
+            for rule in RULES
+        }
+    return values
+
+
+def target_values(summary: dict) -> dict:
+    """Boundary minus background with fixed P, for panel (c)."""
+    values = {}
+    for family in FAMILIES:
+        target = summary["families"][family]["target"]
+        values[family] = {
+            rule: {
+                moment: {
+                    "mean": target[f"{rule}_fixed_{moment}"]["mean"],
+                    "ci95": target[f"{rule}_fixed_{moment}"]["mean_ci95"],
+                }
+                for moment in ("first", "last")
+            }
+            for rule in ("erm_large_step", "erm_small_step")
+        }
+    return values
+
+
+def bound_panel(axis, sizes, low, median, high, bounds) -> None:
+    axis.fill_between(sizes, low, high, color="#2a78d6", alpha=0.18, linewidth=0)
+    axis.plot(
+        sizes,
+        bounds,
+        "s--",
+        color=MUTED,
+        markersize=2.5,
+        linewidth=0.8,
+        label=r"Bound $\Delta_N$",
+    )
+    axis.plot(
+        sizes,
+        median,
+        "o-",
+        color="#2a78d6",
+        markersize=2.5,
+        linewidth=0.8,
+        label="Largest gap",
+    )
+    axis.set(
+        xscale="log",
+        yscale="log",
+        xlabel="Trajectories $N$",
+        ylabel="Loss gap",
+        ylim=(0.004, 1.3),
+    )
+    axis.set_title("(a) Generalization", pad=TITLE_PAD)
+    axis.set_xticks(sizes[::2], [str(n) for n in sizes[::2]])
+    axis.minorticks_off()
+    axis.legend(loc="lower left", frameon=False, handlelength=1.8, borderaxespad=0.1)
+
+
+def refit_panel(axis, values: dict) -> None:
+    from matplotlib.lines import Line2D
+
+    axis.axvline(START_COVERAGE, color=MUTED, linewidth=0.6, linestyle=":")
+    axis.text(START_COVERAGE + 0.8, -0.4, "Start", color=MUTED, fontsize=6.5)
+    for row, family in enumerate(FAMILIES):
+        for offset, (rule, (_, color)) in zip(
+            (0.26, 0, -0.26), RULES.items(), strict=True
+        ):
+            fixed = values[family][rule]["fixed"]
+            refit = values[family][rule]["refit"]
+            y = row - offset
+            axis.plot([fixed, refit], [y, y], color=color, linewidth=0.8, zorder=2)
+            axis.plot(
+                fixed,
+                y,
+                "o",
+                markersize=3.4,
+                markerfacecolor="white",
+                markeredgecolor=color,
+                markeredgewidth=0.8,
+                zorder=3,
+            )
+            axis.plot(refit, y, "o", markersize=3.4, color=color, zorder=3)
+    axis.set(
+        xlim=(50, 100),
+        ylim=(len(FAMILIES) - 0.45, -0.55),
+        xlabel="Final coverage (%)",
+    )
+    axis.set_title("(b) Tie-break and refitting", pad=TITLE_PAD)
+    axis.set_yticks(range(len(FAMILIES)), list(FAMILIES.values()))
+    handles = [
+        Line2D([], [], color=color, marker="o", markersize=3, linewidth=0, label=name)
+        for name, color in RULES.values()
+    ]
+    handles += [
+        Line2D(
+            [],
+            [],
+            color=MUTED,
+            marker="o",
+            markersize=3,
+            linewidth=0,
+            markerfacecolor="white",
+            label="Fixed",
+        ),
+        Line2D(
+            [], [], color=MUTED, marker="o", markersize=3, linewidth=0, label="Refit"
+        ),
+    ]
+    axis.legend(
+        handles=handles,
+        loc="lower right",
+        ncols=3,
+        frameon=False,
+        columnspacing=0.5,
+        handletextpad=0.05,
+        borderaxespad=0.1,
+    )
+
+
+def target_panel(axis, values: dict) -> None:
+    """Every mark is boundary relative to uniform, so uniform is the zero line."""
+    from matplotlib.lines import Line2D
+
+    axis.axvline(0, color=UNIFORM, linewidth=1.2, zorder=1)
+    levels = {
+        ("erm_large_step", "first"): -0.3,
+        ("erm_large_step", "last"): -0.12,
+        ("erm_small_step", "first"): 0.12,
+        ("erm_small_step", "last"): 0.3,
+    }
+    for row, family in enumerate(FAMILIES):
+        for (rule, moment), offset in levels.items():
+            point = values[family][rule][moment]
+            y = row + offset
+            axis.plot(point["ci95"], [y, y], color=BOUNDARY, linewidth=0.7, zorder=2)
+            axis.plot(
+                point["mean"],
+                y,
+                SHAPES[rule],
+                markersize=3.2,
+                markeredgecolor=BOUNDARY,
+                markeredgewidth=0.8,
+                markerfacecolor=BOUNDARY if moment == "last" else "white",
+                zorder=3,
+            )
+    axis.set(xlabel="Boundary minus uniform (points)")
+    axis.set_title("(c) Target and family", pad=TITLE_PAD)
+    axis.tick_params(axis="y", length=0)
+
+    def key(label, marker="o", color=INK, face=None):
+        return Line2D(
+            [],
+            [],
+            color=color,
+            marker=marker,
+            markersize=3,
+            linewidth=0,
+            markerfacecolor=face or color,
+            label=label,
+        )
+
+    handles = [
+        key("Boundary", color=BOUNDARY),
+        Line2D([], [], color=UNIFORM, linewidth=1.2, label="Uniform"),
+        key("Max"),
+        key("Min", marker="s"),
+        key("Round 1", face="white"),
+        key("Round 3"),
+    ]
+    axis.legend(
+        handles=handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.99),
+        ncols=3,
+        frameon=False,
+        columnspacing=0.7,
+        handlelength=1.0,
+        handletextpad=0.25,
+        borderaxespad=0,
+        labelspacing=0.15,
+    )
 
 
 def make_figures(output: Path) -> None:
@@ -31,7 +240,7 @@ def make_figures(output: Path) -> None:
     import matplotlib.pyplot as plt
 
     certificate_metadata = json.loads((CERTIFICATE_RUN / "metadata.json").read_text())
-    update_manifest = json.loads((UPDATE_RUN / "manifest.json").read_text())
+    summary = json.loads((CROSSED_REPORT / "summary.json").read_text())
     with np.load(CERTIFICATE_RUN / "metrics_v1.npz") as data:
         sizes = data["sample_sizes"]
         gaps = data["grid_gap"]
@@ -39,112 +248,44 @@ def make_figures(output: Path) -> None:
         epsilon = data["epsilon"]
         candidate_count = len(data["candidates"])
     low, median, high = np.quantile(gaps, (0.1, 0.5, 0.9), axis=1)
-    records = update_manifest["records"]
-    gains = {}
-    for selector in SELECTORS:
-        for target in TARGETS:
-            selected = sorted(
-                (
-                    r
-                    for r in records
-                    if r["study"] == "one_step"
-                    and r["sample_size"] == 32
-                    and r["selector"] == selector
-                    and r["target"] == target
-                ),
-                key=lambda r: r["replicate"],
-            )
-            expected = list(range(update_manifest["study_spec"]["replicates"]))
-            if [r["replicate"] for r in selected] != expected:
-                raise ValueError("Missing or duplicated predeclared replicate.")
-            gains[selector, target] = np.array(
-                [100 * r["summary"]["coverage_change"] for r in selected]
-            )
+    coverage, gaps_by_target = refit_values(summary), target_values(summary)
 
     plt.rcParams.update(
         {
-            "font.size": 8,
-            "axes.titlesize": 9,
-            "axes.labelsize": 8,
-            "xtick.labelsize": 7.5,
-            "ytick.labelsize": 7.5,
-            "legend.fontsize": 7,
+            "font.size": 7,
+            "axes.titlesize": 7.5,
+            "axes.labelsize": 7,
+            "xtick.labelsize": 6.5,
+            "ytick.labelsize": 6.5,
+            "legend.fontsize": 6.5,
             "axes.spines.top": False,
             "axes.spines.right": False,
+            "axes.edgecolor": MUTED,
+            "axes.linewidth": 0.5,
+            "text.color": INK,
+            "axes.labelcolor": INK,
+            "xtick.color": INK,
+            "ytick.color": INK,
+            "xtick.major.width": 0.5,
+            "ytick.major.width": 0.5,
             "pdf.fonttype": 42,
         }
     )
-    fig, (left, right) = plt.subplots(1, 2, figsize=(6, 1.94), layout="constrained")
-    left.fill_between(sizes, low, high, color="#2563a6", alpha=0.18)
-    left.plot(
-        sizes, median, "o-", color="#2563a6", markersize=3, label="Numerical-grid gap"
+    fig, axes = plt.subplots(
+        1, 3, figsize=(6.0, 1.95), width_ratios=(0.9, 1.25, 1.05), layout="constrained"
     )
-    left.plot(
-        sizes,
-        bounds,
-        "s--",
-        color="#555555",
-        markersize=3,
-        label=r"Full-class bound $\Delta_N$",
-    )
-    left.set(
-        xscale="log",
-        yscale="log",
-        xlabel=r"Independent trajectories $N$",
-        ylabel="Loss gap / bound",
-        title="(a) Certificate generalization",
-    )
-    left.set_xticks(sizes, [str(n) for n in sizes])
-    left.minorticks_off()
-    left.grid(alpha=0.18)
-    left.legend(loc="upper right", frameon=False, handlelength=1.5)
-
-    colors = ("#2563a6", "#d97706", "#7c3aed")
-    labels = ("Background", "Boundary", "High-cost")
-    positions = np.arange(len(SELECTORS))
-    width = 0.23
-    for index, (target, color, label) in enumerate(
-        zip(TARGETS, colors, labels, strict=True)
-    ):
-        x = positions + (index - 1) * width
-        values = [gains[selector, target] for selector in SELECTORS]
-        right.bar(x, [v.mean() for v in values], width, color=color, label=label)
-        for position, observations in zip(x, values, strict=True):
-            jitter = np.linspace(-0.035, 0.035, len(observations))
-            right.scatter(
-                position + jitter,
-                observations,
-                s=11,
-                facecolors="white",
-                edgecolors="#222222",
-                linewidths=0.5,
-                zorder=3,
-            )
-    right.set_xticks(
-        positions, [r"Known $P_0$", "Min-capacity\nERM", "Max-capacity\nERM"]
-    )
-    right.set(
-        ylabel="Coverage gain\n(percentage points)",
-        ylim=(0, 10.2),
-        title="(b) One controller update",
-    )
-    right.set_yticks((0, 4, 8))
-    right.legend(
-        loc="upper center",
-        ncols=3,
-        frameon=False,
-        columnspacing=0.7,
-        handlelength=0.9,
-        handletextpad=0.3,
-    )
-    right.grid(axis="y", alpha=0.18)
-    right.set_axisbelow(True)
+    fig.get_layout_engine().set(wspace=0.02)
+    bound_panel(axes[0], sizes, low, median, high, bounds)
+    refit_panel(axes[1], coverage)
+    target_panel(axes[2], gaps_by_target)
+    axes[2].sharey(axes[1])
+    axes[2].tick_params(labelleft=False)
 
     output.mkdir(parents=True, exist_ok=True)
     fig.savefig(
         output / "linear_results.pdf",
         metadata={
-            "Title": "Linear certificate and target-map preliminary results",
+            "Title": "Generalization and component effects",
             "Author": "Shimin Chen",
             "CreationDate": None,
             "ModDate": None,
@@ -155,10 +296,10 @@ def make_figures(output: Path) -> None:
     sources = (
         CERTIFICATE_RUN / "metadata.json",
         CERTIFICATE_RUN / "metrics_v1.npz",
-        UPDATE_RUN / "manifest.json",
+        CROSSED_REPORT / "summary.json",
     )
     metadata = {
-        "schema_version": 1,
+        "schema_version": 2,
         "script_sha256": digest(Path(__file__)),
         "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in sources},
         "certificate": {
@@ -177,17 +318,18 @@ def make_figures(output: Path) -> None:
             "theorem controls the full continuous class. Shading is dataset "
             "10th–90th percentile, not a confidence interval.",
         },
-        "updates": {
-            "study_spec": update_manifest["study_spec"],
-            "selection": "All one_step N=32 records for the three named selectors",
-            "coverage_gains_percentage_points": {
-                selector: {
-                    target: gains[selector, target].tolist() for target in TARGETS
-                }
-                for selector in SELECTORS
+        "crossed_study": {
+            "run_manifest_sha256": summary["manifest_sha256"],
+            "study_spec": summary["study_spec"],
+            "panel_b_mean_final_coverage_background": coverage,
+            "panel_c_boundary_minus_background_fixed_p": gaps_by_target,
+            "families_with_shared_certificate": {
+                family: summary["families"][family]["shared_certificate"]
+                for family in FAMILIES
             },
-            "description": "Bars average both predeclared replicates; dots retain "
-            "both observations. Initial reference coverage is 0.5390625.",
+            "description": "Means over families with a shared certificate. Halted "
+            "branches count at their current coverage. Panel (c) shows boundary minus "
+            "uniform for fixed-P Max and Min arms; every arm is in the study summary.",
         },
     }
     (output / "figure_provenance.json").write_text(

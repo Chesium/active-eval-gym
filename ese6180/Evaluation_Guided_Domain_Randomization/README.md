@@ -3,8 +3,8 @@
 - `main_report.tex` is the detailed research note, including full foundation
   proofs and proposed update results.
 - `midterm_report.tex` is the separate L4DC hand-in: four pages of main text,
-  followed by references. It explains the loss hierarchy, the three-arrow
-  uniform-bound argument, the guarded update, and preliminary evidence.
+  followed by references. It explains the feedback loop, the loss hierarchy, the
+  uniform bound, the guarded update, preliminary evidence, and open challenges.
 - Both documents share `references.bib`. Only cited entries are printed.
 
 From the repository root:
@@ -22,22 +22,42 @@ font size are retained.
 
 ## Figures and evidence
 
-The committed `midterm_assets/linear_results.pdf` permits compilation without
-the local experiment artifacts. Its PNG is a preview. The accompanying
-`figure_provenance.json` identifies the retained inputs, SHA-256 hashes, sample
-sizes, probability budget, replicate counts, and extracted results.
+The committed `midterm_assets/linear_results.pdf` permits compilation without the local experiment artifacts. The PNG is a preview.
+The accompanying `figure_provenance.json` identifies the retained inputs, SHA-256
+hashes, sample sizes, probability budget, replicate counts, and extracted results.
+`update_diagnostics.json` holds the step-size diagnostics quoted in the report.
 
 To regenerate from the retained local artifacts:
 
 ```bash
 uv run python scripts/make_midterm_figures.py
+uv run python scripts/midterm_update_diagnostics.py
 ```
 
-This command analyzes saved data and collects no new experiments. The left
-panel uses 500 certificate datasets per sample size from the declared stress
-fixture; its failure budget is 0.01 per size (0.05 jointly across five sizes).
-The right panel uses both predeclared smoke-study replicates, with their
-individual observations shown. It does not represent the unrun full preset.
+Panels (b) and (c) come from a crossed study, described in
+`docs/linear-crossed-study.md`. It builds on the family study in
+`docs/linear-family-study.md`, which must run first:
+
+```bash
+uv run python scripts/linear_family_study.py run --preset full --jobs 16 \
+  --output artifacts/linear-family-study-v1
+uv run python scripts/linear_crossed_study.py run --preset full --jobs 16 \
+  --output artifacts/linear-crossed-study-v1
+uv run python scripts/linear_crossed_study.py analyze \
+  --run artifacts/linear-crossed-study-v1 \
+  --family-run artifacts/linear-family-study-v1 \
+  --output artifacts/linear-crossed-study-v1-report
+```
+
+These runs write about 2.9 GB. In WSL, check free space on the Windows drive first.
+
+The first command analyzes saved data and collects no new experiments. The second
+reruns deterministic linear rollouts. It stops unless every recorded round is
+reproduced, and only then varies the backtracking factor. The left panel uses 500
+certificate datasets per sample size from the declared stress fixture; its failure
+budget is 0.01 per size (0.05 jointly across five sizes). The other panels show means
+over every declared family with a shared certificate. Step-grid gaps from the original
+smoke study are artifacts, so the report defines its update with the exact step.
 
 The notebook and long note are learning/research material; they are not required
 to read the hand-in. The hand-in distinguishes written proofs, the short
@@ -52,8 +72,6 @@ It claims neither universal curriculum improvement nor a CartPole/PPO theorem.
 - Armijo (1966): sufficient-decrease backtracking. The certificate guard is a
   project addition.
 - Florensa et al. (2017): performance-adaptive starting-state curricula.
-- Berkenkamp et al. (2017): state-space safe-region expansion under additional
-  model assumptions, discussed as context for a possible extension.
 
 The scalar witness uses its own initial step 0.4 and Armijo coefficient 0.5.
 It is an asymmetric boundary target; it does not demonstrate failure of every

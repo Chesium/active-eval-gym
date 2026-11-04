@@ -330,8 +330,8 @@ performance evaluations to choose a training law, and analyze one gain
 update $K^+=K+\Delta K$. The required conclusions are preservation of a
 positive decrease margin, descent of the selected training objective, and
 a bound on possible cost regression. Coverage expansion is not assumed.
-The statements below specify the intended results; proofs belong in
-Section~\ref{sec:theory}. Grey TBDs identify choices still to be fixed.
+The statements below specify the intended results; draft proofs are in
+Section~\ref{subsec:stage2_proofs}. Grey TBDs identify choices still to be fixed.
 
 \begin{definition}[Performance on a fixed reference domain]
 \label{def:stage2_performance}
@@ -673,9 +673,9 @@ search cap, numerical tolerances, and fresh-evaluation sample sizes.}
 \end{itemize}
 All choices must be declared before the corresponding experiments.
 
-Section~\ref{sec:theory} will justify the drift and sensitivity lemmas,
-the small-step acceptance argument, and the threshold-band conclusion;
-the constants above give one explicit conservative route.
+Section~\ref{subsec:stage2_proofs} contains draft proofs of the drift and
+sensitivity lemmas, the small-step acceptance argument, and the threshold-band
+conclusion; the constants above give one explicit conservative route.
 \stagetwotbd{Sharper cost constants and whether the final selected target
 rule admits a comparable regression example.}
 After returning $K^+$, fresh independent trajectories from the fixed
