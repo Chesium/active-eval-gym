@@ -1,5 +1,4 @@
 % Four-page main text; references start on a separate page.
-% Keep main_report.tex as the detailed research note.
 \documentclass{l4dc2026}
 \usepackage{times}
 \usepackage{tikz}
@@ -23,14 +22,14 @@ Can boundary-targeted training enlarge a controller's acceptable operating
 conditions? We connect trajectory-based certificate learning to a guarded
 linear-controller update. Progress includes an elementary generalization proof,
 an implemented update mechanism, and numerical comparisons. Certificate choice
-affects progress, while stability and selected-cost improvement do not ensure
-acceptance-set expansion.
+affects progress. Identifying when boundary targeting improves acceptance
+coverage is a major post-midterm goal.
 \end{abstract}
 
 \section{Question, feedback loop, and certificate loss}
 The intended outer loop is
 \[
- \underbrace{q_k}_{\text{training law}}
+ \underbrace{q_k}_{\text{training distribution}}
  \longrightarrow \underbrace{K_k}_{\text{controller}}
  \longrightarrow \text{evaluate acceptance boundary}
  \longrightarrow q_{k+1},
@@ -52,16 +51,16 @@ $K\in\mathbb R^{m\times n}$ and closed-loop matrix $\G(\theta)$:
 Dynamics are deterministic, fully observed, and unconstrained; inputs are
 continuous. Condition $z=(\theta,x_0)$ includes a reset in
 $\mathcal X_0=\{x:\|x\|_2\le r_0\}$ with radius $r_0>0$.
-Freeze $K$ and certificate-data law $\Dcert$, then draw $N$ i.i.d.\ conditions.
+Freeze $K$ and certificate-sampling distribution $\Dcert$, then draw $N$ i.i.d.\ conditions.
 Each trajectory $\tau_K(z)=(x_0,\ldots,x_H)$ has horizon $H$ transitions of one fixed
-plant. The independent sample count is $N$, \emph{not} $NH$.
+plant.
 Vector norms are Euclidean; matrix norms $\|\cdot\|_2,\|\cdot\|_F$ are operator
 and Frobenius norms.
 
 \textbf{From a transition to one loss per trajectory.}
 The certificate energy is $V_P(x)=x^\top Px$, with
 $\Pclass=\{P=P^\top:aI\preceq P\preceq bI\}$: $0<a<b$ bound eigenvalues,
-$I$ is identity, and $\preceq$ is positive-semidefinite order. Predeclare desired
+ and $\preceq$ is positive-semidefinite order. Predeclare desired
 decrease $\eta>0$ and extra fitting margin $\gamma>0$. For nonzero state $x$,
 successor $x^+$, and trajectory $\tau$, define
 \begin{align}\label{eq:mid_loss}
@@ -89,7 +88,6 @@ Here $\tau_i$ is sampled trajectory $i$; the probability uses a fresh condition.
 Risk counts a trajectory if \emph{any} transition violates desired decrease.
 The loss upper-bounds this event's indicator, so $e_{K,H}(P)\le L_K(P)$.
 Grid empirical risk minimization (ERM) fits $P$; ties use fixed candidate order.
-Continuous-class optimal fitting is not assumed below.
 
 \textbf{Completed foundation: a uniform bound.}
 Let $M_K=\max_{\theta\in\Theta}\|\G(\theta)\|_2$ be the known dynamics bound and
@@ -133,10 +131,8 @@ arrows, paying approximation twice. With probability at least $1-\delta$,
  \qquad e_{K,H}(\widehat P)\le
  \min\{1,\Lhat(\widehat P)+\Delta_N\}.
 \end{equation}
-Uniformity permits data-selected $\widehat P$ without optimal fitting.
-The proof net differs from the numerical fitting grid. This elementary discrete
-specialization does not reproduce Boffi et al.'s faster hard-margin rates or
-their conversion to global guarantees.
+The simultaneous bound therefore applies to the fitted matrix $\widehat P$
+selected using these same data.
 
 \textbf{A separate, deterministic verification.}
 For a declared nonempty retention set $\Theta_{\mathrm{ret}}\subseteq\Theta$, compute the
@@ -147,26 +143,27 @@ verified decrease margin
 Here $\lambda_{\min}$ is the smallest eigenvalue. Positive margins for all
 retained plants imply global exponential stability of each fixed-plant loop.
 The desired decrease holds everywhere if $\eta_\theta(P)\ge\eta$.
-Low trajectory risk alone implies neither claim. Known matrices supply this
-verification oracle; this is not system identification. New-controller statistical
-bounds need fresh certificate trajectories.
+We use known matrices for this all-state check and fresh certificate
+trajectories for each new controller's statistical assessment.
 
 \newpage
 \section{A concrete evaluation-guided controller update}
 \textbf{Performance and targeting.}
 Fix state-cost weight $Q\succeq0$, input-cost weight $R\succeq0$, cost threshold
-$h>0$, and performance-reference law $\mu$ on $\Theta\times\mathcal X_0$.
-The trajectory performance cost, acceptable set, and coverage are
+$h>0$, and evaluation distribution $\mu$ on $\Theta\times\mathcal X_0$.
+This distribution assigns the weights used to measure overall performance.
+The trajectory cost, acceptable set, and coverage (acceptable fraction) are
 \begin{equation}\label{eq:mid_cost}
  J_{H,K}(z)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t),\quad
  S_K^J=\{z:J_{H,K}(z)\le h\},\quad C_J(K)=\mu(S_K^J).
 \end{equation}
-Performance cost differs from certificate loss $\ell_P$.
-Keep $\mu$ fixed while training law $q$ changes. On finite grid $\mathcal Z$,
-restrict positive background weights $q_{\mathrm{base}}$ to
-$|J_{H,K}-h|\le w$, with band half-width $w>0$, then normalize to target
-$q_{\mathrm{tar}}$. Empty bands use background. With mixture weight
-$\lambda\in[0,1)$, set
+Keep $\mu$ fixed while adapting training distribution $q$ on finite grid
+$\mathcal Z$. Background distribution $q_{\mathrm{base}}$ assigns positive
+weight to every condition, maintaining broad training coverage. Target
+distribution $q_{\mathrm{tar}}$ concentrates on $|J_{H,K}-h|\le w$, where
+$w>0$ is the band half-width: restrict and normalize the background weights,
+using background if the band is empty. These conditions may become acceptable
+after modest improvement. With target mixture weight $\lambda\in[0,1)$, set
 \[
  q=(1-\lambda)q_{\mathrm{base}}+\lambda q_{\mathrm{tar}},\qquad
  F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z),\qquad
@@ -194,8 +191,9 @@ With $G=\G(\theta)$, expand the new drift:
  &\preceq-(\eta_\theta(P)-c_\theta(\Delta K))I
  \preceq-\rho\eta_\theta(P)I.
 \end{align*}
-The energy still decreases. Retaining desired $\eta$ requires
-$\rho\eta_\theta(P)\ge\eta$; the actual margin can increase.
+The preservation argument holds for any target map producing a distribution
+$q_{\mathrm{tar}}$. Targeting changes the proposed direction; the guard
+enforces verified decrease.
 
 Settings are initial step $s_0>0$, shrink factor $\beta\in(0,1)$, decrease
 coefficient $c_A\in(0,1)$, and maximum index $J_{\max}\ge0$ ($J_{\max}+1$ trials).
@@ -216,27 +214,25 @@ Evaluate old costs, construct $q$, freeze $q$, and compute $D=-\nabla F_q(K)$\;
 \Return{$K$ (search exhausted)}\;
 \end{algorithm2e}
 Strict margins and smooth costs make small steps pass an uncapped search.
-Neither stability nor descent ensures coverage expansion.
 
 \newpage
 \section{Preliminary evidence, limitations, and next steps}
 \textbf{Experimental setting.}
-The notebook's two closed loops are
+The two initial closed-loop matrices are
 $G_1=\left(\begin{smallmatrix}0.8&0.5\\0&0.6\end{smallmatrix}\right)$ and
 $G_2=\left(\begin{smallmatrix}0.7&0.6\\0&0.5\end{smallmatrix}\right)$.
 Realize them with $A_i=G_i+I$, $B_i=I$, and initial gain $K_0=I$.
 Use $H=10$, $a=0.5$, $b=2$, $\eta=0.02$, $\gamma=0.1$, $Q=I$, $R=0.1I$,
-and $h=3.5$. Certificate data and targeting use 64 unit-circle resets per
-plant; reference evaluation uses 256, all equally weighted.
+and $h=3.5$. Certificate sampling and $q_{\mathrm{base}}$ are uniform over
+64 unit-circle resets per plant; evaluation distribution $\mu$ uses 256 per plant.
 
 \begin{figure}[h]
  \centering
  \includegraphics[width=\linewidth]{midterm_assets/linear_results.pdf}
- \caption{(a) Maximum loss gap on the numerical fitting grid: median and
- 10th--90th percentiles across 500 datasets versus full-class allowance
- $\Delta_N$. Shading is not a confidence interval; grid observations do not
- prove full-class uniformity. (b) One-step coverage gains over both declared
- $N=32$ replicates; dots retain both observations.}
+ \caption{(a) Maximum loss gap on the fitting grid: median and 10th--90th
+ percentiles across 500 datasets, with uniform bound $\Delta_N$.
+ (b) One-step coverage gains for two $N=32$ replicates; dots show individual
+ observations.}
  \label{fig:mid_results}
 \end{figure}
 
@@ -248,8 +244,11 @@ Panel~(b) uses only the two stable plants, $\lambda=0.5$, $w=0.35$, and
 $(\rho,\kappa,s_0,\beta,c_A,J_{\max})=(0.5,0.25,1,0.5,0.1,30)$.
 High-cost targeting emphasizes the worst quarter. Min/max-capacity certificates
 resolve verified empirical ties by the background direction's step limit.
-Minimum capacity halves the boundary step and gain versus $P_0$; boundary
-targeting does not beat background. Three-round refitting effects are mixed.
+Minimum capacity halves the boundary step and gain versus $P_0$.
+Boundary and background tie after one update. After three rounds, boundary
+targeting adds $1.56$ percentage points over background with fixed $P_0$ and
+$3.13$ points with fixed maximum-capacity $P$, but loses $9.77$ points when
+the latter is refitted.
 
 \textbf{Why coverage can regress.}
 A uniform cost-drift bound $b_J(\theta)\ge|J_{H,K^+}(\theta,x)-J_{H,K}(\theta,x)|$
@@ -261,17 +260,15 @@ $Q=1$, $R=0$, $H=2$, $h=1.25$, $K=0.5$, $P=1$, uniform reference weights,
 and $q=(1/4,3/4)$. With $s_0=0.4$ and $c_A=0.5$, accepted change
 $\Delta K=0.2$ lowers $F_q$ from $1.25$ to $1.19$, but coverage falls from $1$
 to $1/2$; the smallest verified margin remains positive at $0.51$.
-This asymmetric boundary target refutes unconditional improvement; symmetric
-weighting gives zero gradient.
+Here the target favors one of two tied boundary conditions: improving the
+favored condition moves the other outside acceptance.
 
 \textbf{Post-midterm development.}
-Next: complete remaining update proofs, tighten trial-segment bounds, and seek
-expansion conditions from gradient alignment and feasible steps. Nominal-seeded
-plant-set expansion is an alternative; state-space safe-region results require
-additional assumptions \citep{berkenkamp2017safe}. CartPole/PPO is a later empirical
-test, outside these guarantees. Numerics are float64, not interval certificates.
-Code retains raw data; longer notes retain detailed proofs. Codex assisted with
-implementation and drafting.
+Building on stability preservation and selected-cost descent, post-midterm work
+will seek conditions under which boundary targeting increases acceptance coverage.
+We will study gradient alignment and feasible steps, tighten bounds, and broaden
+experiments. Nominal-seeded expansion relates to state-space safe-region methods
+\citep{berkenkamp2017safe}; CartPole with PPO will test the curriculum empirically.
 \label{midterm_body_end}
 
 \clearpage
