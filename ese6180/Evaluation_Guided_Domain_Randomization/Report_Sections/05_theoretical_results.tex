@@ -1,2 +1,464 @@
 \section{Theoretical Results}
 \label{sec:theory}
+
+This section proves the Stage~1 results of
+Section~\ref{subsec:linear_case}:
+Lemmas~\ref{lem:foundation_regular_loss} and~\ref{lem:foundation_cover}
+and Theorems~\ref{thm:foundation_generalization}
+and~\ref{thm:foundation_verification}. The arguments are elementary and
+are written to be checked line by line. Each proof opens with a short
+statement of its idea.
+
+The results fit together as follows. Lemma~\ref{lem:foundation_regular_loss}
+says that a small change of the certificate matrix makes only a small change
+in the loss. Lemma~\ref{lem:foundation_cover} says that finitely many
+matrices approximate every candidate. Theorem~\ref{thm:foundation_generalization}
+combines the two with Hoeffding's inequality: concentration is proved at the
+finitely many approximating matrices, and Lipschitz continuity carries it to
+the whole class. Theorem~\ref{thm:foundation_verification} is independent of
+the other three. It involves no data or probability and is the discrete-time
+quadratic Lyapunov argument of course Chapter~3.
+
+\subsection{Preliminaries}
+\label{subsec:theory_prelims}
+
+Let $\mathbb S^n$ denote the real symmetric $n\times n$ matrices, with
+Frobenius inner product $\langle A,B\rangle_F=\operatorname{tr}(A^\top B)$
+and norm $\|A\|_F=\langle A,A\rangle_F^{1/2}$. We use four standard facts.
+
+\begin{enumerate}
+\item[(F1)] \emph{Quadratic forms.} For $\Delta\in\mathbb S^n$ and
+$y\in\mathbb R^n$,
+\begin{equation}
+\label{eq:theory_quadratic_form}
+ |y^\top\Delta y|\le\|\Delta\|_F\|y\|_2^2 .
+\end{equation}
+Indeed, $y^\top\Delta y=\langle\Delta,yy^\top\rangle_F$, and Cauchy--Schwarz
+gives $|\langle\Delta,yy^\top\rangle_F|\le\|\Delta\|_F\|yy^\top\|_F$, where
+$\|yy^\top\|_F^2=\sum_{i,j}y_i^2y_j^2=\|y\|_2^4$.
+
+\item[(F2)] \emph{Rayleigh quotient.} For $S\in\mathbb S^n$ the spectral
+theorem gives an orthonormal eigenbasis, so
+\begin{equation}
+\label{eq:theory_rayleigh}
+ x^\top Sx\ge\lambda_{\min}(S)\|x\|_2^2\quad\text{for all }x,
+ \qquad\text{with equality at a unit eigenvector } v \text{ of }\lambda_{\min}(S).
+\end{equation}
+Applying the same fact to $-S$ gives $x^\top Sx\le\lambda_{\max}(S)\|x\|_2^2$.
+Together these are the bound
+$\lambda_{\min}(P)\|x\|^2\le x^\top Px\le\lambda_{\max}(P)\|x\|^2$ used in
+course Chapter~3, Example~3.12.
+
+\item[(F3)] \emph{Candidate bounds.} If $P\in\mathcal P$, then
+$a\|x\|_2^2\le V_P(x)\le b\|x\|_2^2$ for every $x$. Hence every
+eigenvalue of $P$ lies in $[a,b]$ (apply this at a unit eigenvector),
+$\|P\|_2\le b$, and
+\begin{equation}
+\label{eq:theory_frobenius_bound}
+ \|P\|_F^2=\operatorname{tr}(P^2)=\sum_{i=1}^n\lambda_i(P)^2\le nb^2 .
+\end{equation}
+
+\item[(F4)] \emph{Trajectories.} Within a trajectory the plant is fixed.
+Hence $x_{t+1}=G_K(\theta)x_t$ and,
+by~\eqref{eq:foundation_dynamics_bound},
+$\|x_{t+1}\|_2\le M_K\|x_t\|_2$. In particular $x_t=0$ implies $x_s=0$ for all
+$s\ge t$. The nonzero states among $x_0,\ldots,x_{H-1}$ therefore form an
+initial segment $x_0,\ldots,x_{T-1}$, where
+$T=T(\tau)=\#\{t<H:x_t\ne0\}\in\{0,\ldots,H\}$.
+\end{enumerate}
+
+\paragraph{Measurability.}
+Give $\Theta$ its discrete $\sigma$-algebra and $\mathcal X_0$ its Borel
+$\sigma$-algebra. Fix $P$. The map $z\mapsto s_P(\tau_K(z))$, with values
+in $[-\infty,\infty)$, is measurable. Hence the loss $\ell_P(\tau_K(z))$
+and the violation event $\{s_P(\tau_K(z))>0\}$ are measurable too, so
+$L_K(P)$ and $e_{K,H}(P)$ are well defined.
+
+To see this, first fix $\theta$ and write $G=G_K(\theta)$. The count
+$T=\sum_{t<H}\mathbf 1\{G^tx_0\ne0\}$ is a sum of indicators of Borel sets,
+so it is a measurable function of $x_0$. On $\{T=0\}$, $s_P=-\infty$. On
+$\{T=k\}$ with $k\ge1$, $s_P$ is the maximum of the $k$ functions
+$x_0\mapsto r_P(G^tx_0,G^{t+1}x_0)$, $t<k$. Each is continuous on the open
+set $\{G^tx_0\ne0\}$, which contains $\{T=k\}$. So $s_P$ is Borel on each
+of finitely many Borel pieces, and therefore Borel. Since $\Theta$ is
+finite, the preimage of any Borel set under $z\mapsto s_P(\tau_K(z))$ is a
+finite union of measurable rectangles $\{\theta\}\times(\text{Borel set})$,
+which is measurable. Finally, $\ell_P=\phi(s_P)$ with the continuous $\phi$
+of Step~3 below.
+
+\subsection{Proof of Lemma~\ref{lem:foundation_regular_loss}}
+\label{subsec:proof_regular_loss}
+
+\emph{Idea.} The residual is linear in $P$, so changing $P$ changes it by a
+quadratic form in $P-P'$, which (F1) controls. Taking a maximum and then
+clipping are both Lipschitz operations, so the bound passes to the loss.
+
+\begin{proof}
+\emph{Step 1: residual.} Let $\Delta=P-P'\in\mathbb S^n$, let $x\ne0$, and
+let $x^+=G_K(\theta)x$. The constant $\eta$ cancels in the difference:
+\[
+ r_P(x,x^+)-r_{P'}(x,x^+)
+ =\frac{x^{+\top}\Delta x^+-x^\top\Delta x}{\|x\|_2^2}.
+\]
+By (F1) and $\|x^+\|_2\le M_K\|x\|_2$
+(from~\eqref{eq:foundation_dynamics_bound}, since $\theta\in\Theta$), the
+absolute value of the numerator is at most
+\[
+ \|\Delta\|_F(\|x^+\|_2^2+\|x\|_2^2)\le\|\Delta\|_F(M_K^2+1)\|x\|_2^2 .
+\]
+Dividing by $\|x\|_2^2$ gives~\eqref{eq:foundation_residual_lipschitz}.
+
+\emph{Step 2: worst transition.} Fix a trajectory $\tau$. The set of times
+$\{t<H:x_t\ne0\}$ is determined by $\tau$ alone and is the same for $P$ and
+$P'$. If it is empty, then $\ell_P(\tau)=\ell_{P'}(\tau)=0$ by definition.
+Otherwise $s_P(\tau)$ and $s_{P'}(\tau)$ are maxima over the same finite
+index set. For real numbers, $|\max_t\alpha_t-\max_t\beta_t|\le
+\max_t|\alpha_t-\beta_t|$. To see this, let $t^*$ attain $\max_t\alpha_t$;
+then $\max_t\alpha_t-\max_t\beta_t\le\alpha_{t^*}-\beta_{t^*}$, and the other
+direction is symmetric. Step~1 then gives
+\[
+ |s_P(\tau)-s_{P'}(\tau)|\le(M_K^2+1)\|\Delta\|_F .
+\]
+
+\emph{Step 3: clipping.} Write $\ell_P(\tau)=\phi(s_P(\tau))$, where
+$\phi(s)=\min\{1,\max\{0,1+s/\gamma\}\}$ for real $s$ and
+$\phi(-\infty)=0$. This matches the all-zero convention of
+Definition~\ref{def:foundation_risk}. Step~2 has already handled that
+case, so only real arguments matter below. The map $s\mapsto1+s/\gamma$ is
+$(1/\gamma)$-Lipschitz, and clipping to $[0,1]$ is $1$-Lipschitz, so $\phi$
+is $(1/\gamma)$-Lipschitz. Combining this with Step~2
+gives~\eqref{eq:foundation_loss_lipschitz} with
+$L_{\mathrm{par}}=(M_K^2+1)/\gamma$.
+
+\emph{Step 4: range and domination.} The bound $0\le\ell_P\le1$ holds
+because $\phi$ takes values in $[0,1]$. If $s_P(\tau)>0$, then
+$1+s_P(\tau)/\gamma>1$, so $\ell_P(\tau)=1$. Otherwise the indicator is $0$,
+which is at most $\ell_P(\tau)$. This covers the all-zero case
+$s_P=-\infty$. So $\mathbf 1\{s_P(\tau)>0\}\le\ell_P(\tau)$ for every
+$\tau$, and taking expectations under $\mathcal D_{\mathrm{cert}}$ gives
+$e_{K,H}(P)\le L_K(P)$.
+\end{proof}
+
+Step~1 is the place where linear dynamics and the normalization by
+$\|x\|_2^2$ are used. Because the bound is stated relative to $\|x\|_2^2$,
+it does not depend on the size of the state or on the horizon $H$. This is
+why Theorem~\ref{thm:foundation_generalization} has constants independent
+of $H$. Step~1 holds for any symmetric $P,P'$, not only for members of
+$\mathcal P$.
+
+\subsection{Proof of Lemma~\ref{lem:foundation_cover}}
+\label{subsec:proof_cover}
+
+\emph{Idea.} We prove a volume (packing) bound in the $d$-dimensional
+space $\mathbb S^n$. Course Proposition~5.18 states the analogous bound for
+a Euclidean ball without proof. Course Proposition~5.20 rescales a cover of
+the unit ball. Its centers are guaranteed to lie in the parameter set only
+if that set contains the full ball of radius $B_\Theta$ about $0$.
+Otherwise the rescaled points still cover the set, but they need not be an
+$\varepsilon$-net in the sense of course Definition~5.15, which requires
+centers in the set. Our $\mathcal P$ excludes a neighborhood of $0$, so it
+does not contain such a ball. We therefore build the net from a maximal
+separated subset of $\mathcal P$, which guarantees centers in $\mathcal P$.
+
+\begin{proof}
+\emph{Step 1: norm bound.} The first claim
+in~\eqref{eq:foundation_cover} is (F3),
+equation~\eqref{eq:theory_frobenius_bound}. Write $R=b\sqrt n$, so
+$\mathcal P$ lies in the Frobenius ball of radius $R$ about $0$.
+
+\emph{Step 2: coordinates.} The matrices $E_{ii}$ ($1\le i\le n$) and
+$(E_{ij}+E_{ji})/\sqrt2$ ($i<j$), where $E_{ij}$ are the standard basis
+matrices, form an orthonormal basis of $(\mathbb S^n,\langle\cdot,\cdot
+\rangle_F)$. There are $n+n(n-1)/2=d$ of them. Expanding in this basis
+identifies $\mathbb S^n$ with $\mathbb R^d$ and takes $\|\cdot\|_F$ to the
+Euclidean norm. Let $\mathrm{vol}$ denote Lebesgue measure on $\mathbb R^d$.
+A ball of radius $\rho$ then has volume $\rho^d\,\mathrm{vol}(B_1)$, where
+$B_1$ is the unit ball.
+
+\emph{Step 3: separated sets are small.} Call a finite set
+$\{P_1,\ldots,P_k\}\subseteq\mathcal P$ \emph{$\varepsilon$-separated} if
+$\|P_i-P_j\|_F>\varepsilon$ for all $i\ne j$. The open balls of radius
+$\varepsilon/2$ about the $P_i$ are pairwise disjoint: a common point $Q$
+would give $\|P_i-P_j\|_F\le\|P_i-Q\|_F+\|Q-P_j\|_F<\varepsilon$. Each of
+these balls lies in the ball of radius $R+\varepsilon/2$ about $0$.
+Comparing volumes,
+\[
+ k\Big(\frac\varepsilon2\Big)^d\mathrm{vol}(B_1)
+ \le\Big(R+\frac\varepsilon2\Big)^d\mathrm{vol}(B_1),
+ \qquad\text{so}\qquad
+ k\le\Big(1+\frac{2R}{\varepsilon}\Big)^d .
+\]
+
+\emph{Step 4: a maximal separated set is a net.} The set $\mathcal P$ is
+nonempty, since $aI\in\mathcal P$. By Step~3 the sizes of
+$\varepsilon$-separated subsets are bounded, so we may choose one of largest
+size, say $\{P_1,\ldots,P_k\}$. Every $P\in\mathcal P$ satisfies
+$\|P-P_i\|_F\le\varepsilon$ for some $i$. Otherwise $P$ could be added to
+the set and it would stay $\varepsilon$-separated, contradicting
+maximality. Hence $\{P_i\}$ is a Frobenius $\varepsilon$-net with centers in
+$\mathcal P$, and $\mathcal N_F(\varepsilon,\mathcal P)\le k\le
+(1+2b\sqrt n/\varepsilon)^d$. Taking logarithms completes the proof.
+\end{proof}
+
+Steps~3--4, with $\mathcal P$ replaced by the unit ball of $\mathbb R^n$,
+give course Proposition~5.18. The dimension that matters is that of the
+symmetric matrices, $d=n(n+1)/2$. This matches the parameter count
+$k=d(d+1)/2$ of the class (4.3) of \citet{boffi2021learning}, whose $d$ is
+the feature dimension; with the feature map $m(x)=x$ their feature
+dimension is our $n$, and their $k$ is our $d$. The proof
+of Theorem~\ref{thm:foundation_generalization} would also work with centers
+outside $\mathcal P$, since the loss is defined and bounded for every
+symmetric matrix. Keeping the centers in $\mathcal P$ makes each center an
+admissible certificate.
+
+\subsection{Proof of Theorem~\ref{thm:foundation_generalization}}
+\label{subsec:proof_generalization}
+
+\emph{Idea.} This follows course Theorem~5.8 (uniform convergence over a
+finite class), applied to the finite net of Lemma~\ref{lem:foundation_cover}.
+Lemma~\ref{lem:foundation_regular_loss} then extends the result from the net
+to all of $\mathcal P$, at a cost of $L_{\mathrm{par}}\varepsilon$ on each
+of the two sides. As in course Section~5.6.2, one sample is one whole
+trajectory, so the sample size is $N$ rather than $NH$.
+
+\begin{proof}
+Write $\Delta_N=\Delta_N(\varepsilon,\delta)$ and
+\[
+ u=\sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)+\log(2/\delta)}{2N}}>0,
+ \qquad\text{so that}\qquad \Delta_N=2L_{\mathrm{par}}\varepsilon+u .
+\]
+
+\emph{Step 1: a fixed net.} Using Lemma~\ref{lem:foundation_cover}, choose
+an $\varepsilon$-net $\{P^1,\ldots,P^{M_\varepsilon}\}\subseteq\mathcal P$
+with $M_\varepsilon\le(1+2b\sqrt n/\varepsilon)^d$. The net depends only on $\mathcal P$ and
+$\varepsilon$, which are fixed before sampling, so it does not depend on the
+data. This is what allows Hoeffding's inequality to be applied at each
+center (course Remark~5.7).
+
+\emph{Step 2: concentration at one center.} Fix $j$ and set
+$X_i=\ell_{P^j}(\tau_i)$, for $i=1,\ldots,N$. Each $X_i$ is a fixed
+measurable function of $z_i$. The $z_i$ are i.i.d.\ draws from
+$\mathcal D_{\mathrm{cert}}$, so the $X_i$ are independent, lie in $[0,1]$
+by Lemma~\ref{lem:foundation_regular_loss}, and have mean $L_K(P^j)$. Their
+average is $\widehat L_{N,K}(P^j)$. Course Lemma~5.6, applied once to the
+$X_i$ and once to the $-X_i$, gives
+\[
+ \Pr\big\{|\widehat L_{N,K}(P^j)-L_K(P^j)|\ge u\big\}
+ \le2\exp(-2Nu^2).
+\]
+
+\emph{Step 3: union bound.} Let $E$ be the event that
+$|\widehat L_{N,K}(P^j)-L_K(P^j)|<u$ for every $j=1,\ldots,M_\varepsilon$.
+As in the proof of course Theorem~5.8, but with a two-sided bound (hence
+the factor $2$),
+\[
+ \Pr(E^c)\le2M_\varepsilon\exp(-2Nu^2)
+ =2M_\varepsilon\cdot\frac{\delta}{2}
+   \Big(1+\frac{2b\sqrt n}{\varepsilon}\Big)^{-d}
+ \le\delta .
+\]
+So $\Pr(E)\ge1-\delta$. The event $E$ involves only finitely many
+measurable functions of the sample, so it is measurable.
+
+\emph{Step 4: from the net to all of $\mathcal P$.} Assume $E$ occurs, and
+let $P\in\mathcal P$ be arbitrary. Choose $j$ with
+$\|P-P^j\|_F\le\varepsilon$. By Lemma~\ref{lem:foundation_regular_loss},
+$|\ell_P(\tau)-\ell_{P^j}(\tau)|\le L_{\mathrm{par}}\varepsilon$ for every
+trajectory $\tau$. This is the pointwise form of the Lipschitz transfer in
+course Proposition~5.19. Averaging the bound over the sample, or taking its
+expectation, gives
+\[
+ |\widehat L_{N,K}(P)-\widehat L_{N,K}(P^j)|\le L_{\mathrm{par}}\varepsilon,
+ \qquad
+ |L_K(P)-L_K(P^j)|\le L_{\mathrm{par}}\varepsilon .
+\]
+The triangle inequality and the definition of $E$ then give
+\[
+ |L_K(P)-\widehat L_{N,K}(P)|
+ \le L_{\mathrm{par}}\varepsilon+u+L_{\mathrm{par}}\varepsilon=\Delta_N .
+\]
+Since $P$ was arbitrary and $E$ does not depend on $P$, this
+proves~\eqref{eq:foundation_uniform_bound} simultaneously for all
+$P\in\mathcal P$.
+
+\emph{Step 5: the fitted certificate.} On $E$, the bound of Step~4 holds for
+every member of $\mathcal P$, including any $\widehat P$ chosen from the
+data. Lemma~\ref{lem:foundation_regular_loss} gives
+$e_{K,H}(\widehat P)\le L_K(\widehat P)\le\widehat L_{N,K}(\widehat P)
++\Delta_N$, and $e_{K,H}(\widehat P)\le1$ because it is a probability. This
+is~\eqref{eq:foundation_fitted_risk}.
+
+\emph{Step 6: near-optimality.} Assume also~\eqref{eq:foundation_erm}. For
+any $P\in\mathcal P$, on $E$,
+\begin{align*}
+ L_K(\widehat P)
+ &\le\widehat L_{N,K}(\widehat P)+\Delta_N
+ \le\inf_{P'\in\mathcal P}\widehat L_{N,K}(P')+\xi_{\mathrm{opt}}+\Delta_N\\
+ &\le\widehat L_{N,K}(P)+\xi_{\mathrm{opt}}+\Delta_N
+ \le L_K(P)+2\Delta_N+\xi_{\mathrm{opt}} .
+\end{align*}
+The first and last inequalities use Step~4. Taking the infimum over $P$
+gives~\eqref{eq:foundation_erm_population}.
+
+\emph{Step 7: rate.} Put $\varepsilon=N^{-1/2}$ and $c=2b\sqrt n$, and let
+$N\ge1$. Since $1+c\sqrt N\le(1+c)(1+N)$ and $\log(1+N)\ge\log2$,
+\[
+ \log(1+c\sqrt N)\le\log(1+c)+\log(1+N)
+ \le\Big(1+\frac{\log(1+c)}{\log2}\Big)\log(1+N).
+\]
+Write $\kappa=\log(1+c)/\log2$ and
+$Q_N=d\log(1+N)+\log(1/\delta)$. Since $d\ge1$,
+$\log(2/\delta)\le\log(1+N)+\log(1/\delta)\le Q_N$. The numerator of $u$
+is therefore at most $d(1+\kappa)\log(1+N)+Q_N\le(2+\kappa)Q_N$, so
+$u\le\sqrt{1+\kappa/2}\,\sqrt{Q_N/N}$. For the first term of $\Delta_N$,
+using $\log(1+N)\ge\log2$, $d\ge1$, and $\log(1/\delta)>0$,
+\[
+ 2L_{\mathrm{par}}N^{-1/2}
+ \le\frac{2L_{\mathrm{par}}}{\sqrt{\log2}}\sqrt{\frac{d\log(1+N)}{N}}
+ \le\frac{2L_{\mathrm{par}}}{\sqrt{\log2}}\sqrt{\frac{Q_N}{N}} .
+\]
+Adding the two bounds, for every $N\ge1$ and $\delta\in(0,1)$,
+\[
+ \Delta_N\le C\sqrt{\frac{d\log(1+N)+\log(1/\delta)}{N}},
+ \qquad
+ C=\frac{2L_{\mathrm{par}}}{\sqrt{\log2}}
+   +\sqrt{1+\frac{\log(1+2b\sqrt n)}{2\log2}} .
+\]
+The constant $C$ depends only on $b$, $n$, and $L_{\mathrm{par}}$.
+\end{proof}
+
+Two features of the proof deserve comment. First, we read ``with
+probability at least $1-\delta$'' as: there is a measurable event $E$ with
+$\Pr(E)\ge1-\delta$ on which all the stated bounds hold. The theorem's
+phrase ``on the same event'' uses this reading. Step~4 never takes a
+supremum over the uncountable class $\mathcal P$, so no measurability of a
+supremum is needed, and~\eqref{eq:foundation_fitted_risk}
+and~\eqref{eq:foundation_erm_population} do not need a measurable fitting
+map. (The supremum in~\eqref{eq:foundation_uniform_bound} is in fact
+measurable: both losses are $L_{\mathrm{par}}$-Lipschitz in $P$, so it
+equals a supremum over a countable dense subset of $\mathcal P$.) The
+measurability required in Definition~\ref{def:foundation_fitting} is needed
+only for statements about random quantities such as
+$\mathbb E[e_{K,H}(\widehat P)]$.
+
+Second, the proof uses only that the $N$ trajectories are independent with
+law $\mathcal D_{\mathrm{cert}}$, and that the net and the constants
+$K,\varepsilon,\delta,\gamma,\eta$ are fixed in advance. A data-dependent
+$\varepsilon$ breaks Step~1, because the net would depend on the data. A
+data-dependent $K$, $\gamma$, $\eta$, or sampling law breaks Step~2,
+because the $X_i$ would no longer be fixed functions of i.i.d.\ draws with
+mean $L_K(P^j)$. This is why the theorem must be re-applied with fresh data
+after the Stage~2 update.
+
+\subsection{Proof of Theorem~\ref{thm:foundation_verification}}
+\label{subsec:proof_verification}
+
+\emph{Idea.} For a linear system, the change in $V_P$ along one step is the
+quadratic form of $-(P-G^\top PG)$, by course Example~3.12,
+equation~(3.22). That example has $Q\succ0$ from a Lyapunov equation; here
+the matrix $P-G^\top PG$ plays the role of $Q$, and it is not assumed
+positive definite in advance. By (F2), the smallest eigenvalue of
+$P-G^\top PG$ is the exact worst-case normalized decrease. A uniform decrease, together with the
+sandwich $a\|x\|^2\le V_P\le b\|x\|^2$, makes $V_P$ contract geometrically.
+This is course Lemma~3.11 with $p=2$.
+
+\begin{proof}
+Fix a retained plant $\theta$. Write $G=G_K(\theta)$ and
+$S_\theta=P-G^\top PG\in\mathbb S^n$, so that
+$\eta_\theta(P)=\lambda_{\min}(S_\theta)$. For every $x$,
+\begin{equation}
+\label{eq:theory_drift_identity}
+ V_P(Gx)-V_P(x)=x^\top G^\top PGx-x^\top Px=-x^\top S_\theta x .
+\end{equation}
+
+\emph{Step 1: the eigenvalue test.} By~\eqref{eq:theory_drift_identity},
+condition~\eqref{eq:foundation_desired_decrease} holds for all $x$ if and
+only if $x^\top S_\theta x\ge\eta\|x\|_2^2$ for all $x$. If
+$\lambda_{\min}(S_\theta)\ge\eta$, this follows from (F2). Conversely, at a
+unit eigenvector $v$ of $\lambda_{\min}(S_\theta)$, the inequality reads
+$\lambda_{\min}(S_\theta)=v^\top S_\theta v\ge\eta$.
+
+\emph{Step 2: $0<\eta_*\le b$.} Positivity is assumed. The minimum
+in~\eqref{eq:foundation_verified_margin} is attained, since
+$\Theta_{\mathrm{ret}}$ is finite and nonempty. Let $u$ be a unit
+eigenvector of $\lambda_{\min}(P)$. For any retained $\theta$, (F2) and
+$P\succeq0$ give
+\[
+ \eta_*\le\eta_\theta(P)\le u^\top S_\theta u
+ =u^\top Pu-(Gu)^\top P(Gu)\le u^\top Pu=\lambda_{\min}(P)\le b .
+\]
+The sharper bound $\eta_*\le\lambda_{\min}(P)$ shows that the case
+$\eta_*=b$ is degenerate. It forces $\lambda_{\min}(P)=b$, hence $P=bI$
+because all eigenvalues lie in $[a,b]$. Then
+$S_\theta=b(I-G^\top G)$ has smallest eigenvalue $b(1-\|G\|_2^2)$, which
+equals $b$ only if $G_K(\theta)=0$ for every retained plant.
+
+\emph{Step 3: geometric contraction.} For every retained $\theta$ and every
+$x$, equation~\eqref{eq:theory_drift_identity} and (F2) give
+$V_P(Gx)\le V_P(x)-\eta_\theta\|x\|_2^2\le V_P(x)-\eta_*\|x\|_2^2$. By (F3),
+$\|x\|_2^2\ge V_P(x)/b$, so
+\[
+ V_P(Gx)\le\Big(1-\frac{\eta_*}{b}\Big)V_P(x),
+ \qquad 0\le1-\frac{\eta_*}{b}<1,
+\]
+where the range of the factor comes from Step~2. Write
+$\varrho=1-\eta_*/b$. Induction on $t$ gives
+$V_P(x_t)\le\varrho^{\,t}V_P(x_0)$. Applying (F3) on both sides,
+\[
+ a\|x_t\|_2^2\le V_P(x_t)\le\varrho^{\,t}V_P(x_0)\le\varrho^{\,t}b\|x_0\|_2^2,
+\]
+which is~\eqref{eq:foundation_exponential_bound}. The bound also holds at
+$t=0$, with the convention $\varrho^{\,0}=1$, because $b/a>1$. Taking
+square roots,
+$\|x_t\|_2\le\sqrt{b/a}\,(\sqrt\varrho)^{t}\|x_0\|_2$ for every initial
+state. This is global exponential stability in the sense of course
+Definition~3.8, with $C=\sqrt{b/a}$ and rate $\sqrt\varrho\in[0,1)$. In the
+notation of course Lemma~3.11 this is the case $p=2$,
+$\bar\alpha_1=a$, $\bar\alpha_2=b$, $\bar\alpha_3=\eta_*$. That lemma
+needs $\bar\alpha_3>0$ (so that $\bar\alpha_3r^2$ is a class~$\mathcal K$
+function), $\bar\alpha_1\le\bar\alpha_2$, and $\bar\alpha_3\le\bar\alpha_2$.
+These are the hypothesis $\eta_*>0$, the assumption $a<b$, and Step~2. If $\eta_*=b$, then $\varrho=0$, so
+$V_P(x_1)\le0$, and $x_1=0$ because $V_P(x_1)\ge a\|x_1\|_2^2$.
+
+\emph{Step 4: invariant ellipsoids.} If $V_P(x)\le c$, then
+$V_P(Gx)\le V_P(x)-\eta_*\|x\|_2^2\le c$. So each sublevel set
+$\mathcal E_c(P)$ is mapped into itself by every retained closed loop.
+
+\emph{Step 5: zero violation risk.} If $\eta_*\ge\eta$, then
+$\eta_\theta(P)\ge\eta$ for every retained $\theta$. By Step~1, the desired
+decrease holds at every state, so $r_P(x,G_K(\theta)x)\le0$ for every
+$x\ne0$. Any trajectory of a retained plant therefore has $s_P(\tau)\le0$,
+or $s_P(\tau)=-\infty$ if all its states are zero. Because $\Theta$ is
+discrete, $\Theta_{\mathrm{ret}}\times\mathcal X_0$ is closed, so
+``supported on'' means
+$\mathcal D_{\mathrm{cert}}(\Theta_{\mathrm{ret}}\times\mathcal X_0)=1$. Then
+$e_{K,H}(P)\le\Pr\{\theta\notin\Theta_{\mathrm{ret}}\}=0$, and this holds for
+every horizon $H$.
+\end{proof}
+
+The proof uses the known matrices $A(\theta)$ and $B(\theta)$, not
+sampled data. Its conclusion is therefore deterministic and does not
+depend on how $P$ was obtained, including fitting by
+Definition~\ref{def:foundation_fitting}. Fixing $\Theta_{\mathrm{ret}}$
+before inspecting results is a protocol requirement, not a mathematical
+hypothesis: the proof never uses that timing. What it protects is the
+honesty of the support condition in Step~5. Since
+$\mathcal D_{\mathrm{cert}}$ is a law on $\Theta\times\mathcal X_0$, that
+condition is the same as requiring the $\Theta$-marginal to put mass~$1$
+on $\Theta_{\mathrm{ret}}$. The fact that the decrease holds at every
+state, not only on $\mathcal X_0$, would matter only if the initial-state
+law were later extended beyond $\mathcal X_0$.
+
+In floating point the theorem is applied to computed quantities, and three
+checks are needed. First, the tolerance must cover the error in forming
+$S_\theta=P-G^\top PG$ as well as the eigensolver error; by Weyl's
+inequality the computed eigenvalue moves by at most the norm of the error
+in $S_\theta$. Second, the certified lower bound $\widehat\eta_\theta-
+\mathrm{tol}$, not $\widehat\eta_\theta$ itself, should be used: it must
+be positive for stability, at least $\eta$ for the claim of Step~5, and it
+is the value to use in the rate $\varrho$. Third, a fitted $P$ must itself
+be checked to be symmetric with $aI\preceq P\preceq bI$, since (F3) and
+Step~2 assume $P\in\mathcal P$ exactly.
+
+Proofs of the Stage~2 statements of Section~\ref{subsec:stage2_update} are
+not yet written.

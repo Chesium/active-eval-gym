@@ -319,3 +319,368 @@ candidate $P$, and finite-horizon acceptability does not establish stability.
 What generalizes when a quadratic certificate is fitted to trajectories of a
 frozen controller? Which verified margins survive an evaluation-guided update?
 When can targeted training reduce its objective yet lose acceptable coverage?
+
+\subsection{Main Theoretical Investigation: One Certified Controller Update}
+\label{subsec:stage2_update}
+\providecommand{\stagetwotbd}[1]{{\normalfont\color{gray}\textsf{[TBD: #1]}}}
+
+Stage~2 starts with a gain $K$ and a common certificate $P$ verified as in
+Theorem~\ref{thm:foundation_verification}. We hold $P$ fixed, use old
+performance evaluations to choose a training law, and analyze one gain
+update $K^+=K+\Delta K$. The required conclusions are preservation of a
+positive decrease margin, descent of the selected training objective, and
+a bound on possible cost regression. Coverage expansion is not assumed.
+The statements below specify the intended results; proofs belong in
+Section~\ref{sec:theory}. Grey TBDs identify choices still to be fixed.
+
+\begin{definition}[Performance on a fixed reference domain]
+\label{def:stage2_performance}
+Call $\Omega=\Theta\times\mathcal X_0$ the \emph{condition space}; a
+condition $z=(\theta,x)\in\Omega$ pairs a plant with an initial state
+$x_0=x$. Before comparing gains, fix the horizon $H$, a state-cost weight
+$Q\in\mathbb R^{n\times n}$ and an input-cost weight
+$R\in\mathbb R^{m\times m}$, both symmetric with $Q,R\succeq0$, an
+acceptability threshold $h>0$, and a reference probability measure $\mu$
+on $\Omega$. For any gain $\widetilde K$ (a generic gain; $K$ and $K^+$
+below are its instances), define
+\begin{align}
+\label{eq:stage2_cost_matrix}
+ W_{\widetilde K}&=Q+\widetilde K^\top R\widetilde K,
+ &P_H(\widetilde K,\theta)
+ &=\sum_{t=0}^{H-1}(G_{\widetilde K}(\theta)^t)^\top
+       W_{\widetilde K}G_{\widetilde K}(\theta)^t,\\
+\label{eq:stage2_cost_coverage}
+ J_{H,\widetilde K}(\theta,x)&=x^\top P_H(\widetilde K,\theta)x,
+ &S_{\widetilde K}^J&=\{z\in\Omega:J_{H,\widetilde K}(z)\le h\},
+ \qquad C_J(\widetilde K)=\mu(S_{\widetilde K}^J).
+\end{align}
+Here $W_{\widetilde K}$ is the \emph{closed-loop stage-cost weight}:
+with $u_t=-\widetilde Kx_t$, the per-step cost
+$x_t^\top Qx_t+u_t^\top Ru_t$ equals $x_t^\top W_{\widetilde K}x_t$.
+$P_H(\widetilde K,\theta)$ is the \emph{$H$-step cost matrix} of plant
+$\theta$, the stage-cost weight accumulated along the closed loop.
+$J_{H,\widetilde K}(\theta,x)$ is the \emph{$H$-step closed-loop cost}
+(finite-horizon LQ cost) of plant $\theta$ started at $x$, i.e., the sum
+of its first $H$ stage costs. A condition is \emph{acceptable} for
+$\widetilde K$ if this cost is at most $h$; $S_{\widetilde K}^J$ is the
+\emph{acceptable set}, and $C_J(\widetilde K)$ is the \emph{cost
+coverage}, the $\mu$-mass of acceptable conditions. The label $J$ records
+that acceptability is judged by the cost $J$, not by certificate violation.
+The finite-cost matrix $P_H$ is distinct from the fixed certificate $P$.
+The measure $\mu$ is unchanged by evaluation or training; it may be a
+declared grid measure or a distribution on the continuous initial-state
+domain, but these are different performance questions.
+\foundationsourcenote{Course Chapter~2, Sections~2.2--2.4, motivates
+policy-dependent trajectories; Chapter~3, Example~3.12, (3.20)--(3.22),
+explains quadratic Lyapunov functions. The finite-horizon cost and
+threshold-coverage criterion here are project definitions, not Boffi
+(3.3)'s certificate-violation probability or a consequence of their
+Theorem~5.1. Cost acceptability does not establish stability.}
+\end{definition}
+
+\begin{definition}[Evaluation-guided training law]
+\label{def:stage2_training_law}
+Fix a finite \emph{condition grid} $\mathcal Z\subseteq\Omega$, on which
+the old gain is evaluated and training is supported, and a \emph{background
+law} $q_{\mathrm{base}}$, a probability law with positive mass at every grid
+point. Evaluate the frozen old gain on $\mathcal Z$ and form
+\begin{equation}
+\label{eq:stage2_target_law}
+ q_{\mathrm{tar}}=\mathcal T_{\mathrm{TBD}}
+       \big(\{(z,J_{H,K}(z)):z\in\mathcal Z\}\big),
+ \qquad q=(1-\lambda)q_{\mathrm{base}}+\lambda q_{\mathrm{tar}},
+ \quad 0\le\lambda<1.
+\end{equation}
+Here the \emph{target map} $\mathcal T_{\mathrm{TBD}}$ turns the old
+evaluation record (each grid condition with its old cost) into the
+\emph{target law} $q_{\mathrm{tar}}$, and the \emph{training law} $q$
+mixes background and target with \emph{mixture weight} $\lambda$.
+The target map must return a probability law on $\mathcal Z$; its rule is
+to be declared before inspecting results. A candidate is weighting points
+in the \emph{boundary band}
+$\mathcal B_K(w)=\{z\in\mathcal Z:|J_{H,K}(z)-h|\le w\}$, the grid
+conditions whose old cost lies within \emph{band half-width} $w>0$ of the
+threshold.
+\stagetwotbd{target weights, tie-breaking, band width, and empty-band
+fallback; using $q_{\mathrm{base}}$ as fallback is one option.}
+Once selected, freeze $q$ and define the exact finite-sum objective
+\begin{equation}
+\label{eq:stage2_training_objective}
+ F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z),
+ \qquad D=-\nabla_K F_q(K).
+\end{equation}
+$F_q$ is the \emph{training objective}, the $q$-weighted $H$-step cost over
+the grid, and $D$ is the \emph{steepest-descent direction} at the old gain.
+The gradient uses the Frobenius inner product and differentiates the
+costs with $q$ fixed, not the procedure that constructed $q$.
+\foundationsourcenote{Course Chapter~2, (2.6) and Section~2.4, motivates
+the change in closed-loop trajectories when the policy changes. This
+target map, mixture, and gain objective are our design choices. Boffi
+Section~3.1, (3.1)--(3.3), instead studies a certificate for fixed dynamics
+and a fixed sampling law; its generalization theorem does not justify
+adaptive targeting or controller improvement. Background sampling provides
+exposure, while the next definition supplies the stability restriction.}
+\end{definition}
+
+\begin{definition}[Admissible gain change]
+\label{def:stage2_admissibility}
+Fix a nonempty retention set $\Theta_{\mathrm{ret}}$ before evaluation and
+require the \emph{old margins}
+$\eta_\theta=\lambda_{\min}(P-G_K(\theta)^\top PG_K(\theta))>0$
+for all $\theta\in\Theta_{\mathrm{ret}}$; these are the verified decrease
+margins of $P$ under $K$. Choose a retained fraction
+$\rho\in(0,1)$ and a gain-change radius $\kappa>0$. Set
+\begin{align}
+\label{eq:stage2_margin_consumption}
+ d_\theta(\Delta K)&=\|B(\theta)\Delta K\|_2,\\
+ c_\theta(\Delta K)&=2\|G_K(\theta)^\top P\|_2d_\theta(\Delta K)
+                    +\|P\|_2d_\theta(\Delta K)^2.
+\end{align}
+Here $d_\theta$ is the size of the \emph{closed-loop perturbation}
+$G_{K+\Delta K}(\theta)-G_K(\theta)=-B(\theta)\Delta K$, and $c_\theta$ is
+the \emph{margin consumption}, an upper bound on how much of $\eta_\theta$
+the change can use up (Lemma~\ref{lem:stage2_margin_drift}).
+A change is admissible if
+\begin{equation}
+\label{eq:stage2_admissibility}
+ \|\Delta K\|_2\le\kappa,\qquad
+ c_\theta(\Delta K)\le(1-\rho)\eta_\theta
+ \quad\text{for every }\theta\in\Theta_{\mathrm{ret}}.
+\end{equation}
+The radius permits uniform cost bounds over a declared gain neighborhood.
+If old verification fails, this certified update branch is not started.
+\foundationsourcenote{Course Chapter~3, Example~3.12, (3.22), supplies
+the quadratic drift to perturb. The norm budget, retention fraction, and
+gain neighborhood are project choices, not Boffi's fitting margin in
+(3.2). Here $\rho$ retains an old verified margin; it is unrelated to the
+class-$\mathcal K$ function in Boffi's Lyapunov residual. The test is
+sufficient and may reject a change that direct new-matrix verification
+would accept; such conservatism is to be reported.}
+\end{definition}
+
+\begin{lemma}[Perturbation of the verified decrease]
+\label{lem:stage2_margin_drift}
+For a retained plant, write $G=G_K(\theta)$ and
+$E=-B(\theta)\Delta K$ for the closed-loop perturbation, so
+$G_{K^+}(\theta)=G+E$. With $P$ unchanged,
+\begin{align}
+\label{eq:stage2_drift_expansion}
+ G_{K^+}^\top PG_{K^+}-P
+  &=(G^\top PG-P)+G^\top PE+E^\top PG+E^\top PE,\\
+\label{eq:stage2_drift_bound}
+ G^\top PE+E^\top PG+E^\top PE
+  &\preceq c_\theta(\Delta K)I.
+\end{align}
+Consequently an admissible change gives
+$G_{K^+}(\theta)^\top PG_{K^+}(\theta)-P
+\preceq-\rho\eta_\theta I$.
+\foundationsourcenote{This expands course Chapter~3's quadratic drift
+identity (3.22), then uses induced-norm bounds on the cross and quadratic
+terms. It is our discrete linear perturbation calculation. Boffi
+(3.1)--(3.3) provides the certificate-learning viewpoint, but no numbered
+result there supplies this controller-update inequality.}
+\end{lemma}
+
+\begin{definition}[One step with backtracking]
+\label{def:stage2_backtracking}
+After fixing $q$, take the exact direction $D$ in
+\eqref{eq:stage2_training_objective}. Fix an initial step size $s_0>0$, a
+backtracking (shrink) factor $\beta\in(0,1)$, an Armijo sufficient-decrease
+coefficient $c_A\in(0,1)$, and an integer search cap $J_{\max}\ge0$
+(a trial count, unrelated to the cost $J$). If $D=0$, return
+$K^+=K$ and record a zero-gradient no-op. Otherwise try
+$\Delta K=s_jD$ with trial step size $s_j=s_0\beta^j$, for
+$j=0,\ldots,J_{\max}$, accepting the first admissible change satisfying
+the \emph{Armijo condition}
+\begin{equation}
+\label{eq:stage2_armijo}
+ F_q(K+s_jD)\le F_q(K)-c_A s_j\|\nabla_KF_q(K)\|_F^2.
+\end{equation}
+If no trial passes, return $K^+=K$ and record the failed search. Freeze
+the returned gain before collecting any subsequent evaluation trajectories.
+\foundationsourcenote{The backtracking approach to sufficient decrease
+follows \citet{armijo1966minimization}, Corollary~2, equation~(2), using
+general geometric factor $\beta$ and sufficient-decrease coefficient $c_A$.
+The margin and radius guards are our additions. Course Chapter~2,
+Sections~2.2--2.4, motivates policy changes, but neither those notes nor
+Boffi's Lemma~4.1 proves this update rule. Exact finite-sum gradients are
+assumed; sampled gradients and numerical stopping tolerances need separate
+specification and analysis.}
+\end{definition}
+
+\begin{theorem}[Certified descent and small-step existence]
+\label{thm:stage2_certified_descent}
+Suppose the old retained margins are strictly positive and $q$ remains
+fixed. Every nonzero accepted step strictly decreases $F_q$ and satisfies
+\begin{equation}
+\label{eq:stage2_preserved_margin}
+ \lambda_{\min}(P-G_{K^+}(\theta)^\top PG_{K^+}(\theta))
+ \ge\rho\eta_\theta>0
+ \quad(\theta\in\Theta_{\mathrm{ret}}).
+\end{equation}
+Thus every retained plant remains globally exponentially stable under
+the same $V_P$, and every old ellipsoid $\mathcal E_c(P)$ remains invariant.
+The uniform squared-norm estimate of
+Theorem~\ref{thm:foundation_verification} holds with
+$\eta_*$ replaced by $\rho\min_{\theta\in\Theta_{\mathrm{ret}}}\eta_\theta$.
+The original desired coefficient $\eta$ is retained if, additionally,
+$\rho\eta_\theta\ge\eta$ for every retained plant.
+
+If $D\ne0$, an ideal search with no cap accepts after finitely many trials:
+the finite-horizon finite-sum $F_q$ is smooth and all sufficiently small
+positive steps satisfy both tests. A finite cap need not find such a step;
+the unchanged-gain fallback preserves the old margins and cost. These
+claims imply neither a useful progress rate nor increased cost coverage.
+\foundationsourcenote{Stability and invariance specialize course
+Chapter~3, Theorem~3.10 and Lemma~3.11, (3.17)--(3.19), after the preceding
+drift lemma. Small-step existence combines local smooth descent with
+$c_\theta(sD)\to0$ on a finite family; it is our one-update statement,
+not Armijo's global optimization theorem or Boffi Theorem~5.1.
+Boffi Section~4's fixed-dynamics guarantee does not transfer to $K^+$
+merely because the old sampled certificate had small loss.}
+\end{theorem}
+
+\begin{lemma}[Finite-horizon cost sensitivity]
+\label{lem:stage2_cost_sensitivity}
+For any $\|\Delta K\|_2\le\kappa$, not necessarily stabilizing, set
+\begin{align}
+\label{eq:stage2_uniform_cost_constants}
+ \overline M_\theta&=\max\{1,\|G_K(\theta)\|_2+\|B(\theta)\|_2\kappa\},\\
+ \mathcal L_H(\theta;\kappa)
+ &=2\|W_K\|_2\|B(\theta)\|_2
+       \sum_{t=1}^{H-1}t\overline M_\theta^{\,2t-1}
+   +\|R\|_2(2\|K\|_2+\kappa)
+       \sum_{t=0}^{H-1}\overline M_\theta^{\,2t}.
+\end{align}
+Here $\overline M_\theta$ bounds the closed-loop norm
+$\|G_{K+\Delta K}(\theta)\|_2$ uniformly over the gain neighborhood
+(floored at $1$ so its powers increase with $t$), and
+$\mathcal L_H(\theta;\kappa)$ is the \emph{cost-sensitivity constant}, a
+Lipschitz constant of $\widetilde K\mapsto P_H(\widetilde K,\theta)$ on that
+neighborhood. The first sum is zero for $H=1$. Then
+\begin{align}
+\label{eq:stage2_cost_matrix_drift}
+ \|P_H(K^+,\theta)-P_H(K,\theta)\|_2
+ &\le\mathcal L_H(\theta;\kappa)\|\Delta K\|_2,\\
+\label{eq:stage2_cost_drift}
+ |J_{H,K^+}(\theta,x)-J_{H,K}(\theta,x)|
+ &\le b_J(\theta;\Delta K)
+ :=r^2\mathcal L_H(\theta;\kappa)\|\Delta K\|_2
+ \quad(x\in\mathcal X_0).
+\end{align}
+We call $b_J(\theta;\Delta K)$ the \emph{cost-drift bound}: the largest
+change in $H$-step cost the update can cause on plant $\theta$, uniformly
+over initial states in $\mathcal X_0$.
+\foundationsourcenote{Course Chapter~2, Section~2.4, motivates comparing
+trajectories under different policies. The displayed bound is our finite
+matrix-power sensitivity calculation: telescope the powers of $G_{K^+}$
+and $G_K$, and account for
+$\|W_{K^+}-W_K\|_2\le\|R\|_2(2\|K\|_2+\kappa)\|\Delta K\|_2$.
+Course Chapter~5, Section~5.6.2, also studies parameter sensitivity of
+trajectory losses, but its predictor bound is not this controller bound.
+No Boffi formula is being invoked for finite-cost drift. This conservative
+constant requires no asymptotic stability and may grow strongly with $H$.}
+\end{lemma}
+
+\begin{theorem}[Cost regression is confined to a threshold band]
+\label{thm:stage2_cost_regression}
+For a change within radius $\kappa$, define the \emph{loss band}
+\begin{equation}
+\label{eq:stage2_loss_band}
+ \mathcal B_{\mathrm{loss}}(\Delta K)
+ =\{(\theta,x)\in\Omega:
+       h-b_J(\theta;\Delta K)<J_{H,K}(\theta,x)\le h\},
+\end{equation}
+the conditions acceptable under $K$ whose slack below the threshold is
+less than the cost-drift bound. Then the \emph{interior acceptable set}
+(conditions acceptable with slack at least $b_J$) is preserved, and every
+lost condition lies in the loss band:
+\begin{align}
+\label{eq:stage2_interior_preservation}
+ \{(\theta,x)\in\Omega:J_{H,K}(\theta,x)\le h-b_J(\theta;\Delta K)\}
+ &\subseteq S_{K^+}^J,\\
+\label{eq:stage2_losses}
+ S_K^J\setminus S_{K^+}^J&\subseteq\mathcal B_{\mathrm{loss}}(\Delta K).
+\end{align}
+Under the same fixed $\mu$,
+\begin{align}
+\label{eq:stage2_coverage_accounting}
+ C_J(K^+)-C_J(K)
+ &=\mu(S_{K^+}^J\setminus S_K^J)-\mu(S_K^J\setminus S_{K^+}^J)\\
+ &\ge-\mu(\mathcal B_{\mathrm{loss}}(\Delta K)).\nonumber
+\end{align}
+The two terms are the \emph{gained mass} (newly acceptable conditions) and
+the \emph{lost mass} (no longer acceptable conditions).
+The measure need not be uniform or continuous. This is a regression bound,
+not a nonnegative lower bound on coverage change.
+\foundationsourcenote{This is our threshold-set consequence of the
+pathwise cost bound, followed by a gained-mass-minus-lost-mass identity.
+Course Chapter~2's feedback distinction motivates the comparison; no
+course theorem or Boffi theorem is claimed as its source. Boffi (3.3)
+and Theorem~5.1 concern certificate violations and decrease regions, not
+preservation or expansion of the finite-cost sets defined here.}
+\end{theorem}
+
+\begin{proposition}[Stable training descent can lose coverage]
+\label{prop:stage2_counterexample}
+There are admissible choices of the training law and update parameters for
+which the first backtracking trial passes, $F_q(K^+)<F_q(K)$, and
+$C_J(K^+)<C_J(K)$. One witness uses scalar plants
+$A(\theta)=\theta$, $B(\theta)=1$, $\Theta=\Theta_{\mathrm{ret}}=\{0,1\}$,
+$x_0=1$, $r=1$, $Q=1$, $R=0$, $H=2$, $h=5/4$, $K=1/2$, and $P=1$
+(with, for example, $a=1/2$, $b=2$). Writing conditions as
+$(\theta,x_0)$, take $\mathcal Z=\{(0,1),(1,1)\}$, let $\mu$ and
+$q_{\mathrm{base}}$ give equal mass to both, select the point mass
+$q_{\mathrm{tar}}=\delta_{(1,1)}$, and take $\lambda=1/2$. Then
+$q$ assigns masses $(1/4,3/4)$ to $\big((0,1),(1,1)\big)$,
+$\nabla_KF_q(K)=-1/2$, and $s_0=2/5$ gives $K^+=7/10$.
+With $\rho=c_A=1/2$ and $\kappa=1/4$, this trial is accepted for any
+$\beta\in(0,1)$ and $J_{\max}\ge0$, with
+\begin{align}
+\label{eq:stage2_counterexample_values}
+ F_q(K)&=1.25,& F_q(K^+)&=1.19,& C_J(K)&=1,& C_J(K^+)&=1/2,\\
+ \min_\theta\eta_\theta&=0.75,
+ &\min_\theta\eta_\theta^+&=0.51,
+ &c_\theta(\Delta K)&=0.24\le(1-\rho)0.75.
+\end{align}
+Here
+$\eta_\theta^+=\lambda_{\min}(P-G_{K^+}(\theta)^\top PG_{K^+}(\theta))$
+denotes the new eigenvalue margin. Both old conditions
+are exactly on the cost boundary, so the chosen target is supported in
+any positive-width boundary band.
+\foundationsourcenote{This is a project-specific analytical witness,
+not a reported experiment or an adaptation of a Boffi theorem. It combines
+the Chapter~3 quadratic certificate test with our cost and update rules.
+The gains, target, and numerical search parameters in this witness are
+local choices, not experimental defaults. A symmetric target on both
+boundary points instead has zero gradient; this witness refutes a general
+implication from stability and descent to coverage improvement, not every
+possible target map.}
+\end{proposition}
+
+\paragraph{Unfixed choices and remaining proof tasks.}
+\begin{itemize}
+\item
+\stagetwotbd{Experimental plants and old gain, certificate and retention
+set, $H,Q,R,h,r$, reference measure $\mu$, condition grid, and evaluation
+budget.}
+\item
+\stagetwotbd{Background weights, mixture weight $\lambda$, final target
+map and band settings.}
+\item
+\stagetwotbd{Retention fraction $\rho$, gain radius $\kappa$, $s_0,\beta,c_A$,
+search cap, numerical tolerances, and fresh-evaluation sample sizes.}
+\end{itemize}
+All choices must be declared before the corresponding experiments.
+
+Section~\ref{sec:theory} will justify the drift and sensitivity lemmas,
+the small-step acceptance argument, and the threshold-band conclusion;
+the constants above give one explicit conservative route.
+\stagetwotbd{Sharper cost constants and whether the final selected target
+rule admits a comparable regression example.}
+After returning $K^+$, fresh independent trajectories from the fixed
+$\mathcal D_{\mathrm{cert}}$ permit a new application of
+Theorem~\ref{thm:foundation_generalization}, conditional on the completed
+update history; old-controller data do not supply that new guarantee.
+Showing that a specified rule generates enough gains to outweigh losses,
+or extending the result to nonlinear dynamics, remains Stage~3.
