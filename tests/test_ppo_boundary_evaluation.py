@@ -33,23 +33,7 @@ from active_eval_gym.serialization import (
     write_episode,
     write_episode_shard,
 )
-from tests.helpers import rollout_provenance, tiny_parent_config
-
-DISCOVERY_ANGLES = "[-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]"
-REFERENCE_ANGLES = """[
-    -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0,
-    5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
-]"""
-LENGTHS = (
-    "[0.02, 0.04, 0.05, 0.075, 0.10, 0.20, 0.30, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00]"
-)
-SMALL_GRID = (
-    (DISCOVERY_ANGLES, "[-10, 10]"),
-    (REFERENCE_ANGLES, "[-10, 0, 10]"),
-    (LENGTHS, "[0.5, 1.0]"),
-    ("discovery_episodes_per_condition = 32", "discovery_episodes_per_condition = 3"),
-    ("episodes_per_condition = 64", "episodes_per_condition = 2"),
-)
+from tests.helpers import SMALL_STUDY_GRID, rollout_provenance, tiny_parent_config
 
 
 class ConstantPolicy:
@@ -59,7 +43,7 @@ class ConstantPolicy:
 
 @pytest.fixture
 def study(tmp_path: Path) -> dict[str, Path]:
-    config, root = tiny_parent_config(tmp_path, *SMALL_GRID)
+    config, root = tiny_parent_config(tmp_path, *SMALL_STUDY_GRID)
     study_dir = tmp_path / "study"
     prepare_study(config, artifact_root=root, output_dir=study_dir, allow_dirty=True)
     return {"config": config, "root": root, "study": study_dir}

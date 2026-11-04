@@ -19,7 +19,27 @@ from active_eval_gym.policies.artifacts import (
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_ROOT = ROOT / "configs" / "envs"
 STUDY_CONFIG = ROOT / "configs/experiments/cartpole_ppo_boundary_v1.toml"
+STUDY_CONFIG_V2 = ROOT / "configs/experiments/cartpole_ppo_boundary_v2.toml"
 PARENT_DESIGN = ROOT / "configs/policies/cartpole_ppo_nominal_v1.toml"
+DISCOVERY_ANGLES = "[-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]"
+REFERENCE_ANGLES = """[
+    -50, -45, -40, -35, -30, -25, -20, -15, -10, -5, 0,
+    5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+]"""
+LENGTHS = (
+    "[0.02, 0.04, 0.05, 0.075, 0.10, 0.20, 0.30, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00]"
+)
+FRONTIER_RULE_EDIT = (
+    "boundary_half_width = 0.05",
+    'target_rule = "ppo-boundary-targets-v2"',
+)
+SMALL_STUDY_GRID = (
+    (DISCOVERY_ANGLES, "[-10, 10]"),
+    (REFERENCE_ANGLES, "[-10, 0, 10]"),
+    (LENGTHS, "[0.5, 1.0]"),
+    ("discovery_episodes_per_condition = 32", "discovery_episodes_per_condition = 3"),
+    ("episodes_per_condition = 64", "episodes_per_condition = 2"),
+)
 CONFIG_NAMES = {
     "CartPole-v1": "cartpole_v1_nominal.toml",
     "Pendulum-v1": "pendulum_v1_nominal.toml",

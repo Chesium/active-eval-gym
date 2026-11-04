@@ -184,6 +184,10 @@ must not be reused unchanged for a 0.9 acceptance boundary.
 
 ## 5. Three curriculum arms and the first outer phase
 
+This section defines configuration v1. Discovery left its boundary arm empty, so
+training uses the v2 target rule recorded under `S3` in Section 13.3. Everything
+else in this section still applies.
+
 Evaluate the shared frozen parent on all 143 discovery conditions using 32
 fresh episodes per condition. Reuse this initial discovery record across all
 arms and continuation replicates: the old policy is identical. Selection must
@@ -814,7 +818,8 @@ record outstanding.**
   is refused. Clopper–Pearson intervals cover recovery only, keeping `M` at the
   declared number of checkpoint–condition pairs.
 
-**`S3`: run discovery and construct targets.**
+**`S3`: run discovery and construct targets. Paused on the stop rule, then v2
+adopted 4 November 2026. The study's real v2 record awaits a commit.**
 
 - Work: run the parent on all 143 conditions with 32 role-1 episodes each, then
   serialize the three `q` vectors with their masks and provenance. Reference
@@ -830,6 +835,53 @@ record outstanding.**
   phase may not be able to test that hypothesis. Any response is a new versioned
   configuration applied to all arms before role-3 data exist, and the original
   discovery results stay on record.
+- Result: discovery ran at clean commit `aafc379`, with 143 of 143 jobs, 4,576
+  episodes, and no failures. Target rules were written and tested before the
+  results were opened. The stop rule fired on both counts:
+  - Recovery counts are almost binary: 123 conditions at 0/32, 15 at 32/32, and
+    only 5 mixed (1, 3, 5, 17, and 26 of 32). None falls in {28, 29, 30}, so
+    `k_B = 0` and `acceptance_boundary` is identical to `background`.
+  - `intermediate` has total-variation distance 0.107 from `background`, and only
+    14% of its episodes land on the 5 mixed conditions. The `p_tilde` floor gives
+    the 138 saturated conditions 75% of its target mass.
+  - The cause is structural: a deterministic policy with ±0.05 nuisance resets
+    gives few intermediate probabilities on this grid. Eleven conditions survive
+    at least 29/32 without recovering, including six on the acceptance frontier.
+    The +1 reward is saturated there and may carry no signal for recovery.
+- Alternatives costed on discovery counts only, before v2 was chosen:
+
+  | Target rule | Conditions | Total-variation distance from background | Largest `q` | Target mass already accepted |
+  |---|---|---|---|---|
+  | Band ±0.05, as declared | 0 | 0.000 | 0.007 | Not applicable |
+  | Band widened to ±0.10 | 16 | 0.444 | 0.035 | 94% |
+  | Frontier: unaccepted 4-neighbours of accepted conditions | 15 | 0.448 | 0.037 | 0% |
+  | Frontier: unaccepted 8-neighbours | 22 | 0.423 | 0.026 | 0% |
+  | `intermediate` as declared | 143 | 0.107 | 0.049 | 8% |
+  | `intermediate` restricted to mixed conditions | 5 | 0.483 | 0.185 | 0% |
+
+  Widening the band further adds nothing up to ±0.20: it holds the same 16
+  conditions, 15 already at 32/32.
+- Decision: the researcher adopted `configs/experiments/cartpole_ppo_boundary_v2.toml`
+  with rule `ppo-boundary-targets-v2`, applied to all arms.
+  - `acceptance_boundary`: conditions with `s/32 < 0.90` that are 4-neighbours, by
+    grid index, of a condition with `s/32 >= 0.90`, weighted equally.
+  - `intermediate`: `p_tilde * (1-p_tilde)` weights, restricted to `0 < s < 32`.
+  - Mixture weight, fallbacks, seeds, budgets, grids, and acceptance are unchanged.
+    Tests require v1 and v2 to differ only in study ID and target rule. The v1
+    config and its protocol and discovery records stay as they are.
+- Meaning of the change: "near the boundary" now means adjacent in condition
+  space, not close to probability 0.9. Eleven of the 15 frontier conditions are
+  at 0/32, so some may not be nearly acceptable. One grid step is not a fixed
+  physical distance, because the length grid is nonuniform.
+- Preview in temporary storage, on the real parent: rerunning discovery under v2
+  reproduced all 4,576 v1 trajectory digests and all recovery counts. The arms
+  have no fallbacks and 15 frontier conditions, so the phase is not thin-band.
+  Total-variation distances are 0.448 and 0.483 from `background` and 0.367
+  between the targeted arms. `intermediate` has effective support 14.7 and puts
+  18.5% of episodes on one condition (0 degrees, 0.3 m).
+- Remaining: commit v2, then run `prepare`, `evaluate`, `analyze`, and `targets`
+  for `artifacts/experiments/cartpole-ppo-boundary-v2`. The script now defaults
+  to the v2 config. `S6` may then start once `S4`–`S5` are complete.
 
 **`S4`: build the reset-level condition sampler.** The current recovery wrapper
 fixes length and angle at construction, so per-episode conditions need new code.
@@ -872,6 +924,9 @@ transitions per arm, and evaluation at 64 role-4 episodes per reference conditio
 
 - Review: realized episode and transition shares, regressions, failure causes,
   and whether the Section 10 checks hold at full budget.
+- Reward check: decide here whether the Section 11 reward ablation moves ahead of
+  the other extensions. Six frontier conditions already survive 32/32 without
+  being accepted, so a saturated +1 reward may give them no signal for recovery.
 - Change control: any substantive change gets a new versioned configuration, is
   applied to all arms, and restarts from the earliest affected stage.
 - Forecast check: confirmatory storage with twofold margin must fit the disk
@@ -899,7 +954,9 @@ transitions per arm, and evaluation at 64 role-4 episodes per reference conditio
 - Work: run `analyze` from saved data only to produce `metrics_v1/`, every
   Section 9 figure, and `report.md`. Report all ten replicates, including gained,
   lost, and unresolved conditions, and apply the Section 9 interpretation rules
-  without selecting a favorable metric, threshold, seed, or checkpoint.
+  without selecting a favorable metric, threshold, seed, or checkpoint. State
+  that the targeted arms follow v2, what "near" means there, and that the reward
+  may explain a null result.
 - Gate: a clean artifact-only rerun reproduces all reported numbers with no
   training or new rollouts. New metrics get new versions rather than overwriting
   `metrics_v1/`.

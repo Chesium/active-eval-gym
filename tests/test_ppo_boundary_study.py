@@ -1,6 +1,8 @@
+import hashlib
 import json
 import subprocess
 import tomllib
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +22,13 @@ from active_eval_gym.ppo_boundary import (
     support_conditions,
     training_policy_seed,
 )
-from tests.helpers import STUDY_CONFIG, edited_study_config, tiny_parent_config
+from tests.helpers import (
+    FRONTIER_RULE_EDIT,
+    STUDY_CONFIG,
+    STUDY_CONFIG_V2,
+    edited_study_config,
+    tiny_parent_config,
+)
 
 CONFIG = STUDY_CONFIG
 
@@ -276,6 +284,75 @@ def test_loader_rejects_protocol_changes(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         load_ppo_boundary_study(edited_study_config(tmp_path, (old, new)))
+
+
+def test_v2_changes_only_its_identity_and_target_rule(spec) -> None:
+    v2 = load_ppo_boundary_study(STUDY_CONFIG_V2)
+
+    assert v2.study_id == "cartpole-ppo-boundary-v2"
+    assert v2.curriculum.target_rule == "ppo-boundary-targets-v2"
+    assert v2.curriculum.boundary_half_width is None
+    assert spec.curriculum.target_rule == "ppo-boundary-targets-v1"
+    assert spec.curriculum.boundary_half_width == 0.05
+    assert (
+        replace(
+            v2,
+            study_id=spec.study_id,
+            curriculum=replace(
+                v2.curriculum,
+                target_rule=spec.curriculum.target_rule,
+                boundary_half_width=spec.curriculum.boundary_half_width,
+            ),
+        )
+        == spec
+    )
+
+
+def test_v2_keeps_the_declared_seeds_and_accounting(spec) -> None:
+    v2 = load_ppo_boundary_study(STUDY_CONFIG_V2)
+
+    assert seed_plan(v2) == seed_plan(spec)
+    assert job_accounting(v2) == job_accounting(spec)
+
+
+def test_v1_config_is_unchanged_from_its_recorded_protocol_digest() -> None:
+    assert (
+        hashlib.sha256(STUDY_CONFIG.read_bytes()).hexdigest()
+        == "32287f2ad97ef1951dc355d588498bcdf0aa6b76ac023d2ba5832a7aea6a4a8b"
+    )
+
+
+@pytest.mark.parametrize(
+    ("edits", "message"),
+    [
+        ([("boundary_half_width = 0.05", 'target_rule = "unknown"')], "target_rule"),
+        (
+            [
+                (
+                    "mixture_lambda = 0.5",
+                    f"mixture_lambda = 0.5\n{FRONTIER_RULE_EDIT[1]}",
+                )
+            ],
+            "does not use boundary_half_width",
+        ),
+        ([("boundary_half_width = 0.05", "")], "needs boundary_half_width"),
+        (
+            [
+                FRONTIER_RULE_EDIT,
+                (
+                    "[supports.reference]",
+                    "extra_points = [[5, 0.5]]\n\n[supports.reference]",
+                ),
+            ],
+            "complete discovery grid",
+        ),
+    ],
+)
+def test_loader_rejects_inconsistent_target_rules(
+    tmp_path: Path, edits, message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        load_ppo_boundary_study(edited_study_config(tmp_path, *edits))
 
 
 def test_prepare_writes_the_complete_protocol(

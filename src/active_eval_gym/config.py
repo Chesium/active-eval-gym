@@ -21,6 +21,8 @@ PPO_BOUNDARY_SUPPORTS = ("discovery", "reference", "smoke")
 PPO_BOUNDARY_SEED_ROLES = ("discovery", "training", "confirmatory", "pilot", "smoke")
 PPO_BOUNDARY_TIERS = ("smoke", "pilot", "confirmatory")
 PPO_BOUNDARY_SNAPSHOT_MODES = ("none", "if-s6-headroom")
+PPO_BOUNDARY_PROBABILITY_BAND_RULE = "ppo-boundary-targets-v1"
+PPO_BOUNDARY_FRONTIER_RULE = "ppo-boundary-targets-v2"
 
 
 @dataclass(frozen=True)
@@ -106,8 +108,9 @@ class CurriculumSpec:
 
     arms: tuple[str, ...]
     discovery_episodes_per_condition: int
+    target_rule: str
     mixture_lambda: float
-    boundary_half_width: float
+    boundary_half_width: float | None
     pseudocount_success: float
     pseudocount_total: float
     thin_band_min_conditions: int
@@ -467,8 +470,9 @@ def _curriculum_spec(data: dict[str, Any]) -> CurriculumSpec:
         discovery_episodes_per_condition=_required_int(
             data, "discovery_episodes_per_condition"
         ),
+        target_rule=data.get("target_rule", PPO_BOUNDARY_PROBABILITY_BAND_RULE),
         mixture_lambda=_required_number(data, "mixture_lambda"),
-        boundary_half_width=_required_number(data, "boundary_half_width"),
+        boundary_half_width=_optional_number(data.get("boundary_half_width")),
         pseudocount_success=_required_number(data, "pseudocount_success"),
         pseudocount_total=_required_number(data, "pseudocount_total"),
         thin_band_min_conditions=_required_int(data, "thin_band_min_conditions"),
@@ -544,6 +548,11 @@ def _validate_ppo_boundary_study(spec: PPOBoundaryStudySpec) -> None:
     _validate_recovery_metric(spec)
     _validate_supports(spec)
     _validate_curriculum(spec.curriculum)
+    if (
+        spec.curriculum.target_rule == PPO_BOUNDARY_FRONTIER_RULE
+        and spec.supports["discovery"].extra_points
+    ):
+        raise ValueError("The frontier rule requires a complete discovery grid.")
     _validate_continuation(spec)
     _validate_seed_roles(spec.seeds)
     _validate_tiers(spec)
@@ -593,8 +602,16 @@ def _validate_curriculum(curriculum: CurriculumSpec) -> None:
         raise ValueError("discovery_episodes_per_condition must be positive.")
     if not 0.0 <= curriculum.mixture_lambda <= 1.0:
         raise ValueError("mixture_lambda must lie in [0, 1].")
-    if curriculum.boundary_half_width <= 0.0:
-        raise ValueError("boundary_half_width must be positive.")
+    if curriculum.target_rule == PPO_BOUNDARY_PROBABILITY_BAND_RULE:
+        if curriculum.boundary_half_width is None:
+            raise ValueError("The probability-band rule needs boundary_half_width.")
+        if curriculum.boundary_half_width <= 0.0:
+            raise ValueError("boundary_half_width must be positive.")
+    elif curriculum.target_rule == PPO_BOUNDARY_FRONTIER_RULE:
+        if curriculum.boundary_half_width is not None:
+            raise ValueError("The frontier rule does not use boundary_half_width.")
+    else:
+        raise ValueError(f"Unknown target_rule {curriculum.target_rule!r}.")
     if not 0.0 < curriculum.pseudocount_success < curriculum.pseudocount_total:
         raise ValueError("Target pseudocounts must keep the score inside (0, 1).")
     if curriculum.thin_band_min_conditions <= 0:
