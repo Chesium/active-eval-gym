@@ -1207,6 +1207,185 @@ trained. Results are development records, and the choice is the researcher's.
   ID and learning rate, which a test enforces. The v2 config and its records stay
   as they are, and the v2 pilot remains development data. v3 restarts from `S5`.
 
+### 13.6 v3 stages `S5`-`S7`
+
+Status on 5 November 2026: the v3 pilot is complete and its review found no blocker.
+**No lock exists yet, and the researcher has not signed one.** All v3 records are
+in `artifacts/experiments/cartpole-ppo-boundary-v3`, at clean commit `d66424b`.
+
+- Protocol and targets: all 143 discovery conditions reproduce v2's trajectory
+  digests, and the `q` vectors equal v2's.
+- Smoke: passed. Killing only the parent during parallel training and parallel
+  evaluation left no workers, and resumes completed exactly. `analyze` refused the
+  incomplete campaign. There are 3 sealed children and 44 jobs with 352 episodes.
+- Pilot accounting: no failures. 9 children and 27 snapshots are sealed, with 2,730
+  `pilot` jobs and 7,371 `pilot-snapshots` jobs. Recovery and survival recomputed from
+  stored states match all 10,101 cells. All 9 children reproduce the sweep's `lr3e-5`
+  weights, optimizer state, and transitions exactly.
+- Stability: this fixed the collapse. The Section 13.5 rule gives 0 of 36 checkpoints
+  collapsed. All nine finals recover 64 of 64 at nominal. No coverage step falls by
+  0.10; the largest fall is 0.037.
+- Finals, against a parent at coverage 0.103 and mean recovery 0.120. This is
+  development data from three replicates, and it does not rank the arms:
+
+  | Arm | Coverage, replicates 0-2 | Mean coverage | Mean recovery | Mean survival |
+  |---|---|---|---|---|
+  | `background` | 0.121, 0.125, 0.158 | 0.134 | 0.164 | 0.230 |
+  | `acceptance_boundary` | 0.154, 0.132, 0.158 | 0.148 | 0.156 | 0.203 |
+  | `intermediate` | 0.154, 0.132, 0.139 | 0.142 | 0.166 | 0.223 |
+
+  Paired differences from `background` disagree across outcomes. For
+  `acceptance_boundary`, coverage is +0.033, +0.007, 0.000 while mean recovery is
+  -0.006, -0.014, -0.003. For `intermediate`, coverage is +0.033, +0.007, -0.018.
+- Main finding: coverage moved rather than extended, in the same way in every arm.
+  - Every final gained 26-29 conditions and lost 13-21 of the parent's 28, for a
+    net gain of 5-15.
+  - The same conditions change. Conditions gained by at least five finals are all
+    at half-lengths 0.2-0.3. Conditions lost by at
+    least five finals are at 0.5-1.5 m, nearly all at 0.75-1.0 m, and 13 are lost by
+    all nine.
+  - Losses are real: 88% of lost cells fall below a 10% recovery rate, and survival
+    in lost cells is 0.058. So coverage alone would hide this, and gains and losses
+    must stay in the `S9` report, as Section 9 requires.
+  - All arms show it, including `background`, so drift is not exclusive to targeted
+    training. Its cause, and any amplification by targeting, remain untested.
+  - `scripts/plot_ppo_boundary_shift.py` draws this from saved results into
+    `figures/pilot/` in the v3 study: `coverage-shift-maps` and `coverage-shift-bands`.
+  - Follow-up sampling audit: the boundary arm is uniform across its 15 frontier
+    cells at episode reset, but the lower five receive 50.5% of training
+    transitions and the upper five only 4.3%. Their completed episodes average
+    500 versus 41.8 steps. This establishes uneven exposure, while its causal
+    contribution to drift remains untested. See
+    [the sampling diagnosis](2026-11-04-cartpole-ppo-sampling-diagnosis.md).
+- Arms did train on different data. Between arms, transition shares differ by
+  total-variation distance 0.46-0.66, against 0.21 between replicates of one arm.
+  Half-length 0.3 receives 54-57% of transitions in the targeted arms and 18% in
+  `background`. So a tie in `S8` would be informative, not an empty comparison.
+- Other review items:
+  - Sampling: episode shares match `q` at total-variation distance 0.15-0.20.
+    Transition shares differ more, at 0.41-0.56. Episodes run 414-828 per child.
+  - Failure causes: finals are evenly split, with 46-49% of failures at the cart
+    limit against 59% for the parent. The v2 cart-drift pattern is gone.
+  - Signed asymmetry: positive angles recover more than negative in all nine
+    finals, as in the parent.
+  - Reward check: 6-28 conditions survive at 0.9 without being accepted, against 22
+    for the parent. Survival barely moved while recovery rose. This keeps the
+    reward question open but does not block `S8`, so the ablation stays after `S9`.
+- Point to watch: on average the final is 0.016 below the 76,800 snapshot (SD 0.014),
+  and steps between checkpoints have SD 0.020, about five conditions. That is similar
+  in size to the arm differences above. Section 6's fixed final budget stays, and
+  this noise limits how small a difference `S8` can resolve.
+- Costs: training took 31 s. `pilot` took 7.8 minutes and 2.21 GB at 85.0
+  bytes/transition, mean length 149. Snapshots took 19.8 minutes and 5.70 GB.
+- Forecast check passes: scaling `pilot` gives `S8` about 14 GB and 48 minutes of
+  evaluation at 12 workers. The 46 GB worst case with twofold margin fits 139 GB free.
+- Needed before `S8`: confirmatory `train` and `evaluate` still refuse
+  unconditionally, because no lock check exists. That code must be added and
+  committed first, so the lock record can bind the commit that runs `S8`.
+
+### 13.7 Transition-balanced development pilot (v4)
+
+The researcher requested an inverse-episode-length sampling experiment after the
+v3 exposure audit. Implementation and the complete development pilot are done;
+v3 remains unchanged and no confirmatory lock has been written.
+
+- Config: `configs/experiments/cartpole_ppo_boundary_v4.toml`. Frozen arm vectors,
+  parent, rewards, seeds, budgets, and evaluation grids match v3. Their unit is
+  now desired transition shares; reset probabilities adapt using stochastic
+  frozen-parent calibration and completed training episode lengths.
+- Exposure: boundary lower/upper/side transition shares changed from
+  50.5%/4.3%/13.7% to 18.4%/17.5%/17.2%, against 18.4% each intended.
+- Retention: boundary final losses of parent-accepted conditions are 3, 4, 1,
+  versus v3's 13, 18, 13. Mean accepted counts are close (40.7 versus 40.3),
+  because corrected runs gain fewer new short-pole conditions. The five upper
+  frontier cells still recover at 0/64 in every corrected boundary final.
+- Accounting: 9 children, 27 snapshots, all 10,101 checkpoint-condition cells,
+  and 646,464 pilot/snapshot evaluation episodes; no failed jobs. All checkpoints
+  retain 64/64 nominal recovery. Raw schedule replay, seals, seeds, budgets,
+  launch source hashes, and the unchanged parent verify.
+- The complete run took 32.6 minutes, within the 30–45 minute estimate. Coverage
+  shift maps and v3/v4 comparisons are in the v4 study's `figures/pilot/`.
+- Interpretation: balancing exposure reduced forgetting in these development
+  runs, but did not establish uniform outward expansion or a confirmatory arm
+  ranking. See the [protocol and full results](2026-11-04-cartpole-ppo-transition-balanced-pilot.md).
+
+### 13.8 Longer corrected-boundary training
+
+The researcher requested a 1,024,000-transition extension of the corrected
+boundary arm. All three pilot seeds were run with unchanged v4 targets, reward,
+PPO settings, and duration correction. The first 102,400 transitions reproduce
+the earlier runs exactly, including weights, optimizer, sampler state/raw data,
+and all 819 corresponding reference evaluation cells.
+
+- The promising short-budget result does not persist: accepted counts of
+  43, 44, 35 at 102,400 become 0, 0, 0 at 256,000 and remain zero at 512,000,
+  768,000, 896,000, and 1,024,000. Nominal recovery falls to 0/64 in all runs.
+- Mean final recovery is 0.000458, 0, 0.005895. Survival also collapses. Training
+  trajectories independently show no completed 500-step survivals in blocks
+  from 204,800 onward. Cart-limit failure is most common in the final evaluations.
+- Frontier transition exposure remains near-balanced: 18.2% lower, 19.8% upper,
+  19.0% sides. The late accepted sets are persistently empty; similarity 1 between
+  empty sets must not be interpreted as convergence to competent control.
+- All 18 checkpoints and 5,187 evaluation jobs / 331,968 episodes are retained.
+  The workflow took 13.2 minutes; there were no collection failures. The issue is
+  long-horizon learning stability, despite correcting the exposure imbalance.
+- Config: `configs/experiments/cartpole_ppo_boundary_v4_long.toml`. See the
+  [full long-run report and figures](2026-11-04-cartpole-ppo-boundary-long-run.md).
+  No mitigation or best-checkpoint selection was performed, and no confirmatory
+  lock or data were created.
+
+### 13.9 Dense checkpoints around the collapse
+
+A requested replay saves checkpoints every 25,600 transitions from 102,400
+through 256,000. All three original seeds reproduce the original trajectory
+exactly through 256,000, including all raw columns and policy/optimizer/sampler
+state at the two shared endpoints. All 1,638 shared endpoint evaluation cells
+also reproduce exactly.
+
+- Accepted counts at 128,000 are 50, 56, 42; at 153,600 they are 47, 59, 0;
+  by 179,200 all are zero. Nominal recovery collapses in the same sampled
+  interval for each seed. This narrows the first observed collapse to
+  (128,000, 153,600] for replicate 2 and (153,600, 179,200] for replicates 0/1.
+- Mean maps can hide this seed variation. Both mean/exposure maps and per-seed
+  maps are saved under `cartpole-ppo-boundary-v4-focus/figures/pilot/`.
+- All 6,006 pilot/snapshot jobs and 384,384 episodes completed in a 14.9-minute
+  workflow. All 21 learned checkpoint seals and launch source hashes verify.
+- The frontier target remains frozen; only duration-corrected reset probabilities
+  adapt. The unchanged black outline is the parent reference region. A repeated
+  discovery/retargeting curriculum remains a separate, unrun extension.
+- See the [focused replay report](2026-11-04-cartpole-ppo-collapse-focus.md) for
+  all checkpoints, exposure transients, verification, and figure links. These
+  development results do not establish the cause of collapse or select a model.
+
+### 13.10 Adaptive frontier pilot
+
+The researcher chose 10 rounds of 25,600 transitions, original parent, all three
+existing seeds, unchanged PPO/duration correction, historical controls only, and
+a stop if discovery acceptance becomes empty. The adaptive loop is implemented
+and the complete development experiment is done. All seeds used the full budget;
+none triggered the stop. Training state persists across discovery evaluations,
+and reference evaluation begins only after all training is sealed.
+
+- Final reference acceptance is 61, 68, 58 versus 0, 0, 0 in the fixed-frontier
+  historical run. However, all three lose all 28 parent-accepted conditions and
+  achieve 0/64 nominal recovery. By 230,400 the original region is fully lost.
+- Final acceptance concentrates at pole half-lengths 0.04–0.10 m, with four
+  additional 0.20 m conditions in seed 1. Refresh avoids zero total coverage
+  through this horizon but still permits pronounced drift and forgetting.
+- Exposure tracking also deteriorates: final-round original discovery-accepted
+  cells receive 0.86% actual transitions versus 9.78% intended. Mean interval
+  target/exposure total variation grows from 0.255 to 0.529. Frontier movement
+  and tracking error are observed together; causality is not isolated.
+- All 12,467 discovery/reference jobs and 669,760 evaluation episodes completed
+  without failures in a 43.8-minute workflow. All 30 checkpoint seals, raw
+  schedules, discovery-only targeting, and launch source hashes verify. The
+  first 25,600 training transitions and 1,092 shared reference cells reproduce
+  v4 exactly. All 390 tests and lint passed before launch.
+- Config: `configs/experiments/cartpole_ppo_boundary_v5_adaptive.toml`.
+  Per-seed maps show changing discovery outlines and desired/actual interval
+  exposure. See the [protocol, full results, and figures](2026-11-04-cartpole-ppo-adaptive-frontier-pilot.md).
+  No retention intervention, additional experiment, or confirmatory lock was run.
+
 **`S8`: confirmatory tier.** This is replicates 100–109 with all three arms.
 
 - Order: train and seal all 30 children before the first role-3 episode, so no
