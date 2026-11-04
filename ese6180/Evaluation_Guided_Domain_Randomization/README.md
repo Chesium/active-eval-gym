@@ -22,7 +22,7 @@ font size are retained.
 
 ## Figures and evidence
 
-The committed `midterm_assets/linear_results.pdf` permits compilation without the local experiment artifacts. The PNG is a preview.
+The committed `midterm_assets/linear_results.pdf` and `ppo_loop.pdf` permit compilation without the local experiment artifacts. The PNG is a preview.
 The accompanying `figure_provenance.json` identifies the retained inputs, SHA-256
 hashes, sample sizes, probability budget, replicate counts, and extracted results.
 `update_diagnostics.json` holds the step-size diagnostics quoted in the report.
@@ -49,7 +49,14 @@ uv run python scripts/linear_crossed_study.py analyze \
   --output artifacts/linear-crossed-study-v1-report
 ```
 
-These runs write about 2.9 GB. In WSL, check free space on the Windows drive first.
+Figure 2 comes from `midterm_assets/ppo_loop_data.json`, a compact record of the
+development PPO study `cartpole-ppo-boundary-v5-adaptive`, which lives on another
+machine. `scripts/extract_ppo_loop_data.py` produced it from that study's saved files.
+The record keeps all ten rounds; the figure plots through 153,600 transitions. Blue
+sets are held-out reference evaluations, and red frontiers are the discovery results
+that chose each round. The study has no matched control and is not confirmatory.
+
+The linear runs write about 2.9 GB. In WSL, check free space on the Windows drive first.
 
 The first command analyzes saved data and collects no new experiments. The second
 reruns deterministic linear rollouts. It stops unless every recorded round is

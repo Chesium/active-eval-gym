@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "script_sha256": "0c0e7238319857a6dea3debaeeab9cbe9b1b259c4fefc8a3b7680f7b8a5b737a",
+  "script_sha256": "404bc896e3cc2124746dfe4389f7335e4ff0b282b6d3990e4b14d19419b830c8",
   "source_sha256": {
     "artifacts/certificate_generalization/20261021T171258986368Z/metadata.json": "6ad173b0c3e4a2cf4e2d3feccaf2e50c07f1553254ec24de149a6a3fcd13d824",
     "artifacts/certificate_generalization/20261021T171258986368Z/metrics_v1.npz": "006d16ab761c9fae3debc82c7302a786bbc05635b4fa7b1d167330005cce250f",
@@ -289,5 +289,204 @@
       "mirrored": 196
     },
     "description": "Means over families with a shared certificate. Halted branches count at their current coverage. Panel (c) shows boundary minus uniform for fixed-P Max and Min arms; every arm is in the study summary."
+  },
+  "ppo_loop": {
+    "study_id": "cartpole-ppo-boundary-v5-adaptive",
+    "status": "development pilot on uncommitted source; no matched control",
+    "data_sha256": "b950a208be2b9b65f76c92169aa0833716a1b2872782d24f4b52f3589877687d",
+    "study_summary_sha256": "5076e976f120060c356baf2fdababbb303486c0b4c091412e4b8bb33669a38dc",
+    "plotted_window_transitions": 153600,
+    "held_out_counts_all_rounds": {
+      "parent": 28,
+      "seeds": {
+        "0": [
+          {
+            "transitions": 25600,
+            "accepted": 30,
+            "parent_lost": 0,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 51200,
+            "accepted": 29,
+            "parent_lost": 0,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 76800,
+            "accepted": 39,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 102400,
+            "accepted": 51,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 128000,
+            "accepted": 54,
+            "parent_lost": 5,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 153600,
+            "accepted": 58,
+            "parent_lost": 15,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 179200,
+            "accepted": 60,
+            "parent_lost": 25,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 204800,
+            "accepted": 68,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          },
+          {
+            "transitions": 230400,
+            "accepted": 59,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          },
+          {
+            "transitions": 256000,
+            "accepted": 61,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          }
+        ],
+        "1": [
+          {
+            "transitions": 25600,
+            "accepted": 27,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 51200,
+            "accepted": 31,
+            "parent_lost": 2,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 76800,
+            "accepted": 38,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 102400,
+            "accepted": 54,
+            "parent_lost": 4,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 128000,
+            "accepted": 50,
+            "parent_lost": 9,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 153600,
+            "accepted": 70,
+            "parent_lost": 6,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 179200,
+            "accepted": 72,
+            "parent_lost": 6,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 204800,
+            "accepted": 80,
+            "parent_lost": 13,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 230400,
+            "accepted": 75,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          },
+          {
+            "transitions": 256000,
+            "accepted": 68,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          }
+        ],
+        "2": [
+          {
+            "transitions": 25600,
+            "accepted": 29,
+            "parent_lost": 0,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 51200,
+            "accepted": 29,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 76800,
+            "accepted": 36,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 102400,
+            "accepted": 45,
+            "parent_lost": 1,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 128000,
+            "accepted": 56,
+            "parent_lost": 3,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 153600,
+            "accepted": 56,
+            "parent_lost": 6,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 179200,
+            "accepted": 65,
+            "parent_lost": 11,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 204800,
+            "accepted": 71,
+            "parent_lost": 19,
+            "nominal_recovery": 64
+          },
+          {
+            "transitions": 230400,
+            "accepted": 82,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          },
+          {
+            "transitions": 256000,
+            "accepted": 58,
+            "parent_lost": 28,
+            "nominal_recovery": 0
+          }
+        ]
+      }
+    },
+    "description": "Blue sets are held-out reference evaluations; red frontiers are the discovery results that chose each round. All three seeds are shown, and every later round remains in this record."
   }
 }
