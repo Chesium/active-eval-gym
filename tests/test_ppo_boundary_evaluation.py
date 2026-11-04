@@ -1,6 +1,11 @@
 import gzip
 import hashlib
 import json
+import os
+import signal
+import subprocess
+import sys
+import time
 from math import radians, sqrt
 from pathlib import Path
 
@@ -33,7 +38,12 @@ from active_eval_gym.serialization import (
     write_episode,
     write_episode_shard,
 )
-from tests.helpers import SMALL_STUDY_GRID, rollout_provenance, tiny_parent_config
+from tests.helpers import (
+    ROOT,
+    SMALL_STUDY_GRID,
+    rollout_provenance,
+    tiny_parent_config,
+)
 
 
 class ConstantPolicy:
@@ -304,6 +314,57 @@ def test_parallel_workers_write_identical_shards(study, tmp_path: Path) -> None:
     assert _collect(other, workers=2)["complete"] is True
 
     assert _shards(other) == serial
+
+
+POOL_DRIVER = """
+import sys
+from pathlib import Path
+from active_eval_gym.ppo_boundary_evaluation import run_jobs
+from tests.helpers import record_pid_and_wait
+run_jobs(sys.argv[2:], Path(sys.argv[1]), 1, 2, run=record_pid_and_wait)
+"""
+
+
+def _running(pid: int) -> bool:
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except FileNotFoundError:
+        return False
+    return stat.rsplit(")", 1)[1].split()[0] != "Z"
+
+
+def _wait_until(condition, seconds: float) -> bool:
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if condition():
+            return True
+        time.sleep(0.05)
+    return condition()
+
+
+def test_pool_workers_stop_when_their_parent_is_killed(tmp_path: Path) -> None:
+    jobs = [str(tmp_path / f"job-{index}") for index in range(4)]
+    announced = lambda: [Path(job) for job in jobs if Path(job).exists()]  # noqa: E731
+    driver = subprocess.Popen(
+        [sys.executable, "-c", POOL_DRIVER, str(tmp_path), *jobs], cwd=ROOT
+    )
+    workers: list[int] = []
+    try:
+        assert _wait_until(lambda: len(announced()) == 2, 60)
+        assert _wait_until(lambda: all(p.read_text() for p in announced()), 5)
+        workers = [int(path.read_text()) for path in announced()]
+        assert all(_running(pid) for pid in workers)
+
+        driver.kill()
+        driver.wait()
+
+        assert _wait_until(lambda: not any(map(_running, workers)), 20)
+        assert len(announced()) == 2
+    finally:
+        driver.kill()
+        driver.wait()
+        for pid in filter(_running, workers):
+            os.kill(pid, signal.SIGKILL)
 
 
 def test_interrupted_campaign_resumes_only_missing_jobs(

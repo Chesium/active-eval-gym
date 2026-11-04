@@ -7,6 +7,8 @@ This module records raw trajectories only; metrics belong to the analysis module
 
 import json
 import multiprocessing
+import os
+import threading
 import traceback
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
@@ -23,9 +25,12 @@ from active_eval_gym.policies.artifacts import (
     verify_evaluation_seal,
 )
 from active_eval_gym.ppo_boundary import (
+    SNAPSHOT_DIRECTORY,
+    SNAPSHOT_ROLE,
     child_artifact_dir,
     evaluation_episode_seeds,
     load_protocol,
+    snapshot_label,
     source_hashes,
     source_state,
     support_conditions,
@@ -43,16 +48,22 @@ from active_eval_gym.serialization import (
 
 DISCOVERY = "discovery"
 CONFIRMATORY = "confirmatory"
+PILOT_SNAPSHOTS = "pilot-snapshots"
 CAMPAIGN_DIRECTORIES = {
     DISCOVERY: "discovery",
     "smoke": "smoke",
     "pilot": "pilot",
+    PILOT_SNAPSHOTS: "pilot_snapshots",
     CONFIRMATORY: "reference_raw",
 }
+# A snapshot campaign shares its tier's support and paired resets, but stays apart
+# from it, so diagnostics change neither the primary comparison nor its family.
+SNAPSHOT_CAMPAIGNS = {PILOT_SNAPSHOTS: "pilot"}
 PLAN_FILENAME = "evaluation-plan.json"
 COLLECTION_FILENAME = "collection.json"
 SHARD_DIRECTORY = "shards"
 FAILURE_DIRECTORY = "failures"
+PARENT_LOST_EXIT_CODE = 70
 
 _LOADED_CHECKPOINTS: dict[str, tuple[Any, Any]] = {}
 
@@ -87,7 +98,7 @@ def campaign_design(spec: PPOBoundaryStudySpec, campaign: str) -> dict[str, Any]
         support = "discovery"
         episodes = spec.curriculum.discovery_episodes_per_condition
     else:
-        tier = spec.tier(campaign)
+        tier = spec.tier(SNAPSHOT_CAMPAIGNS.get(campaign, campaign))
         role = spec.seeds.roles[tier.seed_role]
         support = tier.evaluation_support
         episodes = tier.episodes_per_condition
@@ -106,7 +117,7 @@ def campaign_checkpoints(
     artifact_root: Path,
     allow_dirty: bool = False,
 ) -> tuple[EvaluationCheckpoint, ...]:
-    """Return the parent, then every planned child of a tier campaign.
+    """Return the parent then every planned child, or a campaign's snapshots.
 
     Every child must be sealed first, so no child can depend on this campaign's
     outcomes. A regressing child is sealed like any other and stays in the list.
@@ -120,28 +131,69 @@ def campaign_checkpoints(
     )
     if campaign == DISCOVERY:
         return (parent,)
+    tier = spec.tier(SNAPSHOT_CAMPAIGNS.get(campaign, campaign))
+    if campaign in SNAPSHOT_CAMPAIGNS and tier.snapshot_evaluation == "none":
+        raise ValueError(f"Tier {tier.name!r} declares no snapshot evaluation.")
     children = []
-    for child in tier_children(spec, campaign):
-        directory = child_artifact_dir(study_dir, campaign, child["policy_id"])
+    for child in tier_children(spec, tier.name):
+        directory = child_artifact_dir(study_dir, tier.name, child["policy_id"])
         if not directory.is_dir():
             raise ValueError(
                 f"Campaign {campaign!r} requires every child sealed first; "
                 f"{child['policy_id']} is missing."
             )
-        seal = verify_evaluation_seal(directory)
-        if seal["development_record"] and not allow_dirty:
-            raise ValueError(
-                f"Child {child['policy_id']} is a development record. "
-                "Pass allow_dirty only for temporary development runs."
-            )
-        if seal["parent_model_sha256"] != spec.parent_model_sha256:
-            raise ValueError(f"Child {child['policy_id']} has another parent.")
         children.append(
-            EvaluationCheckpoint(
-                child["policy_id"], directory, seal["model_sha256"], sealed=True
-            )
+            _sealed_checkpoint(spec, child["policy_id"], directory, allow_dirty)
         )
-    return (parent, *children)
+    if campaign not in SNAPSHOT_CAMPAIGNS:
+        return (parent, *children)
+    return tuple(
+        _sealed_snapshot(spec, child, transitions, allow_dirty)
+        for child in children
+        for transitions in tier.snapshot_transitions
+    )
+
+
+def _sealed_checkpoint(
+    spec: PPOBoundaryStudySpec,
+    checkpoint_id: str,
+    directory: Path,
+    allow_dirty: bool,
+    **expected: Any,
+) -> EvaluationCheckpoint:
+    seal = verify_evaluation_seal(directory)
+    if seal["development_record"] and not allow_dirty:
+        raise ValueError(
+            f"Child {checkpoint_id} is a development record. "
+            "Pass allow_dirty only for temporary development runs."
+        )
+    if seal["parent_model_sha256"] != spec.parent_model_sha256:
+        raise ValueError(f"Child {checkpoint_id} has another parent.")
+    if seal["policy_id"] != checkpoint_id:
+        raise ValueError(f"Directory for {checkpoint_id} holds another checkpoint.")
+    for name, value in expected.items():
+        if seal[name] != value:
+            raise ValueError(f"{checkpoint_id} has an unexpected {name}.")
+    return EvaluationCheckpoint(
+        checkpoint_id, directory, seal["model_sha256"], sealed=True
+    )
+
+
+def _sealed_snapshot(
+    spec: PPOBoundaryStudySpec,
+    child: EvaluationCheckpoint,
+    transitions: int,
+    allow_dirty: bool,
+) -> EvaluationCheckpoint:
+    label = snapshot_label(transitions)
+    return _sealed_checkpoint(
+        spec,
+        f"{child.checkpoint_id}-{label}",
+        child.artifact_dir / SNAPSHOT_DIRECTORY / label,
+        allow_dirty,
+        checkpoint_role=SNAPSHOT_ROLE,
+        additional_transitions=transitions,
+    )
 
 
 def plan_jobs(
@@ -358,7 +410,7 @@ def run_jobs(
     with ProcessPoolExecutor(
         max_workers=workers,
         mp_context=multiprocessing.get_context("spawn"),
-        initializer=_initialize_worker,
+        initializer=_initialize_pool_worker,
         initargs=(threads,),
     ) as executor:
         futures = [(job, executor.submit(run, job)) for job in jobs]
@@ -373,6 +425,22 @@ def _initialize_worker(threads: int) -> None:
     import torch
 
     torch.set_num_threads(threads)
+
+
+def _initialize_pool_worker(threads: int) -> None:
+    _initialize_worker(threads)
+    threading.Thread(target=_exit_with_parent, daemon=True).start()
+
+
+def _exit_with_parent() -> None:
+    """End a pool worker once its parent dies, so no job overlaps a resume.
+
+    Without this, a worker outliving its parent keeps taking queued jobs while
+    a resume plans the same ones, and both write the same partial output.
+    """
+
+    multiprocessing.parent_process().join()
+    os._exit(PARENT_LOST_EXIT_CODE)
 
 
 def _loaded_checkpoint(artifact_dir: str, *, sealed: bool) -> tuple[Any, Any]:

@@ -37,6 +37,8 @@ SOURCE_SUFFIXES = {".py", ".toml", ".json", ".lock"}
 RECORDED_PACKAGES = ("gymnasium", "numpy", "scipy", "stable-baselines3", "torch")
 PROTOCOL_SCHEMA_VERSION = 1
 POLICIES_DIRECTORY = "policies"
+SNAPSHOT_DIRECTORY = "snapshots"
+SNAPSHOT_ROLE = "diagnostic-snapshot"
 
 MAX_ROLE = 10
 MAX_OUTER_ROUND = 100
@@ -137,6 +139,12 @@ def child_artifact_dir(study_dir: Path, tier_name: str, policy_id: str) -> Path:
     """Return where a child's sealed artifact is published."""
 
     return study_dir / POLICIES_DIRECTORY / tier_name / policy_id
+
+
+def snapshot_label(transitions: int) -> str:
+    """Return the label naming a child's snapshot at a transition count."""
+
+    return f"t{transitions:06d}"
 
 
 def support_conditions(

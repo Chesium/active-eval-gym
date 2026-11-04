@@ -26,6 +26,7 @@ from active_eval_gym.ppo_boundary_evaluation import (
     CAMPAIGN_DIRECTORIES,
     COLLECTION_FILENAME,
     PLAN_FILENAME,
+    SNAPSHOT_CAMPAIGNS,
 )
 from active_eval_gym.serialization import (
     read_episode_shard,
@@ -130,6 +131,12 @@ def analyze_campaign(
         "coverage": _campaign_coverage(spec, plan, cells),
         "cells": cells,
     }
+    if campaign in SNAPSHOT_CAMPAIGNS:
+        summary["snapshot_evaluation"] = {
+            "label": "development-diagnostic",
+            "tier": SNAPSHOT_CAMPAIGNS[campaign],
+            "in_primary_comparison": False,
+        }
     write_json_new(output / SUMMARY_FILENAME, summary)
     return summary
 

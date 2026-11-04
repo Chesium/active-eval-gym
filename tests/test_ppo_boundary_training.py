@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import shutil
 from pathlib import Path
@@ -30,6 +31,7 @@ from active_eval_gym.ppo_boundary import (
 )
 from active_eval_gym.ppo_boundary_analysis import analyze_campaign
 from active_eval_gym.ppo_boundary_evaluation import (
+    PILOT_SNAPSHOTS,
     campaign_checkpoints,
     collect_campaign,
     plan_jobs,
@@ -49,7 +51,7 @@ from active_eval_gym.ppo_boundary_training import (
     state_sha256,
     train_campaign,
 )
-from active_eval_gym.serialization import read_transition_shard
+from active_eval_gym.serialization import read_episode_shard, read_transition_shard
 from tests.helpers import SMALL_STUDY_GRID, tiny_parent_config
 
 SMALL_BUDGETS = (
@@ -87,6 +89,24 @@ def study(base_study: dict[str, Path], tmp_path: Path) -> dict[str, Path]:
     copy = tmp_path / "study"
     shutil.copytree(base_study["study"], copy)
     return {**base_study, "study": copy}
+
+
+@pytest.fixture(scope="module")
+def base_pilot(
+    base_study: dict[str, Path], tmp_path_factory: pytest.TempPathFactory
+) -> dict[str, Path]:
+    copy = tmp_path_factory.mktemp("pilot") / "study"
+    shutil.copytree(base_study["study"], copy)
+    trained = {**base_study, "study": copy}
+    assert _train(trained, "pilot", workers=3)["complete"]
+    return trained
+
+
+@pytest.fixture
+def pilot(base_pilot: dict[str, Path], tmp_path: Path) -> dict[str, Path]:
+    copy = tmp_path / "study"
+    shutil.copytree(base_pilot["study"], copy)
+    return {**base_pilot, "study": copy}
 
 
 def _spec(study: dict[str, Path]):
@@ -982,3 +1002,163 @@ def test_child_ids_are_fresh_and_ordered(study) -> None:
     assert spec.parent_policy_id not in identifiers
     assert identifiers[0].endswith("pilot-r000-background")
     assert identifiers[-1].endswith("pilot-r002-intermediate")
+
+
+def _checkpoints(study: dict[str, Path], campaign: str, spec=None):
+    return campaign_checkpoints(
+        spec or _spec(study),
+        campaign,
+        study_dir=study["study"],
+        artifact_root=study["root"],
+        allow_dirty=True,
+    )
+
+
+def _plan(study: dict[str, Path], campaign: str):
+    return plan_jobs(
+        _spec(study),
+        campaign,
+        study_dir=study["study"],
+        artifact_root=study["root"],
+        allow_dirty=True,
+    )
+
+
+def _collect(study: dict[str, Path], campaign: str, **options):
+    return collect_campaign(
+        study["config"],
+        study_dir=study["study"],
+        campaign=campaign,
+        artifact_root=study["root"],
+        allow_dirty=True,
+        **options,
+    )
+
+
+def _snapshot_dir(study: dict[str, Path], index: int, label: str) -> Path:
+    job = _jobs(study, "pilot")[index]
+    return _child(study, job) / "snapshots" / label
+
+
+def test_snapshot_campaign_plans_exactly_the_accounted_checkpoints(pilot) -> None:
+    spec = _spec(pilot)
+    accounting = job_accounting(spec)["tiers"]["pilot"]
+    expected = [
+        f"{child['policy_id']}-t{transitions:06d}"
+        for child in tier_children(spec, "pilot")
+        for transitions in (256, 768)
+    ]
+
+    snapshots = _checkpoints(pilot, PILOT_SNAPSHOTS)
+
+    assert [item.checkpoint_id for item in snapshots] == expected
+    assert all(item.sealed for item in snapshots)
+    assert len(snapshots) == accounting["snapshot_evaluation"]["checkpoints"]
+    assert (
+        len(_plan(pilot, PILOT_SNAPSHOTS))
+        == (accounting["snapshot_evaluation"]["jobs"])
+    )
+
+
+def test_snapshots_stay_out_of_the_primary_pilot_campaign(pilot) -> None:
+    spec = _spec(pilot)
+    accounting = job_accounting(spec)["tiers"]["pilot"]["primary_evaluation"]
+    primary = _checkpoints(pilot, "pilot")
+
+    assert primary[0].checkpoint_id == spec.parent_policy_id
+    assert [item.checkpoint_id for item in primary[1:]] == [
+        child["policy_id"] for child in tier_children(spec, "pilot")
+    ]
+    assert len(_plan(pilot, "pilot")) == accounting["jobs"]
+
+
+def test_snapshot_campaign_pairs_resets_and_has_its_own_family(pilot) -> None:
+    assert _collect(pilot, PILOT_SNAPSHOTS, workers=2)["complete"]
+    assert _collect(pilot, "pilot", workers=2)["complete"]
+
+    snapshot_jobs = _plan(pilot, PILOT_SNAPSHOTS)
+    primary_jobs = {job.header["condition_id"]: job for job in _plan(pilot, "pilot")}
+    for job in snapshot_jobs:
+        other = primary_jobs[job.header["condition_id"]]
+        assert job.header["episode_seeds"] == other.header["episode_seeds"]
+        assert job.header["seed_role"] == other.header["seed_role"]
+        assert job.header["perturbation"] == other.header["perturbation"]
+        ours = read_episode_shard(Path(job.shard_path))
+        theirs = read_episode_shard(Path(other.shard_path))
+        for mine, parent in zip(ours, theirs, strict=True):
+            assert mine.reset["environment_state"] == parent.reset["environment_state"]
+
+    summary = analyze_campaign(
+        pilot["config"], study_dir=pilot["study"], campaign=PILOT_SNAPSHOTS
+    )
+    primary = analyze_campaign(
+        pilot["config"], study_dir=pilot["study"], campaign="pilot"
+    )
+    assert summary["snapshot_evaluation"] == {
+        "label": "development-diagnostic",
+        "tier": "pilot",
+        "in_primary_comparison": False,
+    }
+    assert "snapshot_evaluation" not in primary
+    family = summary["simultaneous_family"]["checkpoint_condition_pairs"]
+    assert family == len(snapshot_jobs)
+    assert primary["simultaneous_family"]["checkpoint_condition_pairs"] == (
+        len(primary_jobs) * 10
+    )
+    assert set(summary["coverage"]) == {
+        item.checkpoint_id for item in _checkpoints(pilot, PILOT_SNAPSHOTS)
+    }
+
+
+def test_snapshot_campaign_requires_every_child_sealed(pilot) -> None:
+    shutil.rmtree(_child(pilot, _jobs(pilot, "pilot")[-1]))
+
+    with pytest.raises(ValueError, match="every child sealed first"):
+        _checkpoints(pilot, PILOT_SNAPSHOTS)
+
+
+def test_snapshot_campaign_requires_every_snapshot(pilot) -> None:
+    shutil.rmtree(_snapshot_dir(pilot, 4, "t000768"))
+
+    with pytest.raises(FileNotFoundError):
+        _checkpoints(pilot, PILOT_SNAPSHOTS)
+
+
+def test_snapshot_from_another_child_is_refused(pilot) -> None:
+    target = _snapshot_dir(pilot, 0, "t000256")
+    shutil.rmtree(target)
+    shutil.copytree(_snapshot_dir(pilot, 1, "t000256"), target)
+
+    with pytest.raises(ValueError, match="another checkpoint"):
+        _checkpoints(pilot, PILOT_SNAPSHOTS)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("checkpoint_role", "final"), ("additional_transitions", 512)],
+)
+def test_snapshot_seal_must_declare_its_role_and_budget(pilot, field, value) -> None:
+    path = _snapshot_dir(pilot, 0, "t000256") / EVALUATION_SEAL_FILENAME
+    path.write_text(json.dumps({**json.loads(path.read_text()), field: value}))
+
+    with pytest.raises(ValueError, match=f"unexpected {field}"):
+        _checkpoints(pilot, PILOT_SNAPSHOTS)
+
+
+def test_snapshot_campaign_needs_a_tier_that_declares_it(pilot) -> None:
+    spec = _spec(pilot)
+    tiers = tuple(
+        dataclasses.replace(tier, snapshot_evaluation="none") for tier in spec.tiers
+    )
+
+    with pytest.raises(ValueError, match="no snapshot evaluation"):
+        _checkpoints(pilot, PILOT_SNAPSHOTS, dataclasses.replace(spec, tiers=tiers))
+
+
+def test_a_directory_holding_another_child_is_refused(pilot) -> None:
+    first, second = (_child(pilot, job) for job in _jobs(pilot, "pilot")[:2])
+    shutil.rmtree(first)
+    shutil.copytree(second, first)
+
+    with pytest.raises(ValueError, match="another checkpoint"):
+        _checkpoints(pilot, "pilot")

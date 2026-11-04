@@ -41,10 +41,13 @@ from active_eval_gym.policies.sb3 import SB3Policy
 from active_eval_gym.ppo_boundary import (
     POLICIES_DIRECTORY,
     RECORDED_PACKAGES,
+    SNAPSHOT_DIRECTORY,
+    SNAPSHOT_ROLE,
     child_artifact_dir,
     condition_seed_sequence,
     episode_seed,
     load_protocol,
+    snapshot_label,
     source_hashes,
     source_state,
     support_conditions,
@@ -69,7 +72,6 @@ from active_eval_gym.serialization import (
 TRAINING_RAW_DIRECTORY = "training_raw"
 WORK_DIRECTORY = ".work"
 ABANDONED_DIRECTORY = "abandoned"
-SNAPSHOT_DIRECTORY = "snapshots"
 POLICY_WORK_DIRECTORY = "policy"
 RAW_WORK_DIRECTORY = "raw"
 TRANSITIONS_FILENAME = "transitions.npz"
@@ -81,7 +83,6 @@ MIGRATION_BATCH_SIZE = 4096
 MIGRATION_BATCH_SEED = 61800
 MIGRATION_BATCH_BOUND = (2.4, 3.0, 1.6, 5.0)
 FINAL_ROLE = "final"
-SNAPSHOT_ROLE = "diagnostic-snapshot"
 OUTER_ROUND = 0
 DECLARED_MODEL_SETTINGS = (
     "n_envs",
@@ -743,7 +744,7 @@ def _write_snapshot(
     capture: TransitionCapture,
     boundary: int,
 ) -> None:
-    label = f"t{boundary:06d}"
+    label = snapshot_label(boundary)
     _write_checkpoint(
         paths["policy_work"] / SNAPSHOT_DIRECTORY / label,
         context,

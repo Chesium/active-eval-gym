@@ -33,7 +33,7 @@ ZERO_SCORE_FALLBACK = "zero-score-normalizer"
 DISTRIBUTIONS_DIRECTORY = "distributions"
 DISTRIBUTIONS_FILENAME = "distributions.json"
 CONTRAST_FILENAME = "contrast-report.json"
-LATER_EVALUATION_CAMPAIGNS = ("pilot", "confirmatory")
+LATER_EVALUATION_CAMPAIGNS = ("pilot", "pilot-snapshots", "confirmatory")
 
 
 @dataclass(frozen=True)

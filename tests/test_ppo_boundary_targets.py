@@ -383,7 +383,9 @@ def test_distributions_require_analyzed_discovery(study) -> None:
     [
         "pilot",
         "reference_raw",
+        "pilot_snapshots",
         "metrics_v1/pilot",
+        "metrics_v1/pilot-snapshots",
         "metrics_v1/confirmatory",
     ],
 )

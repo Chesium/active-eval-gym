@@ -888,7 +888,7 @@ adopted and gate passed 4 November 2026.**
   complete.
 
 **`S4`: build the reset-level condition sampler. Gate passed 5 November 2026;
-commit outstanding.** The current recovery wrapper fixes length and angle at
+committed at `9e00a43`.** The current recovery wrapper fixes length and angle at
 construction, so per-episode conditions need new code.
 
 - Work: move the angle, length, `polemass_length`, and cutoff logic into one
@@ -910,7 +910,7 @@ construction, so per-episode conditions need new code.
   reproduced all 4,576 stored trajectory digests.
 
 **`S5`: build continuation, capture, and sealing. Gate passed 5 November 2026;
-commit outstanding.**
+committed at `9e00a43`.**
 
 - Work: add the Section 6 migration, the `train` subcommand, raw transition
   shards, rollout-level policy hashes, child artifacts, `evaluation-ready.json`,
@@ -956,7 +956,7 @@ commit outstanding.**
   yet in evaluation planning, pending the D3 decision in `S6`. `S6` needs these
   changes committed, because `train` and `evaluate` refuse uncommitted source.
 
-**`S6`: smoke tier.** This is replicate 900 with all three arms, 8,192
+**`S6`: smoke tier. Gate passed 5 November 2026.** This is replicate 900 with all three arms, 8,192
 transitions each, and evaluation on the 11-point support. It makes no scientific
 claim.
 
@@ -966,10 +966,91 @@ claim.
   transitions/s, evaluation transitions/s, bytes/transition in the final format,
   and training-shard size. Re-forecast `S7` and `S8` using these values, and
   settle the D3 storage condition.
+- Result: `train`, `evaluate`, and `analyze` ran at clean commit `9e00a43` into
+  `artifacts/experiments/cartpole-ppo-boundary-v2`, reusing its `S3` protocol and
+  targets. That gave 3 sealed children, 44 of 44 jobs, 352 episodes, and no
+  failures. The study holds `smoke/`, `policies/smoke/`, `training_raw/smoke/`, and
+  `metrics_v1/smoke/`. Recovery was not compared across arms.
+- Control: a separate scratch study ran `prepare` through `analyze` uninterrupted
+  at the same commit. Fresh discovery shards matched byte for byte, and fresh
+  targets matched the frozen `q` vectors.
+- Interruptions: `SIGKILL` during the second training job left one sealed child;
+  the rerun skipped it, shelved the attempt, and trained the remaining two.
+  `SIGKILL` at 20 of 44 shards left a `.partial` file and no completion record.
+  `analyze` refused the incomplete campaign, and the resume ran only the other 24
+  jobs. Further `train` and `evaluate` calls ran nothing.
+- Checks against the control, with one-off scripts outside the repository:
+  - Every child's weights, optimizer state, and transition columns match. All 352
+    trajectory digests and all episode metrics match.
+  - All 11 parent shards match byte for byte. The 33 child shards and
+    `model.zip` files do not, and this is expected. SB3 embeds wall-clock
+    `start_time`, Monitor episode times, zip timestamps, and memory addresses in
+    the zip's `data` member. Shards then carry that model hash in their metadata.
+    So the same child trained twice has equal behavior but a different
+    `model_sha256`. Compare reruns by `final_policy_sha256` and trajectory digests.
+  - Each seal verifies. Each child gained exactly 8,192 transitions, 32 rollouts,
+    and 640 updates, starting at LR 0.0003 and clip 0.2.
+  - Training resets follow the role-2 stream and stay on each arm's support.
+  - Recovery and survival recomputed from stored states match all 44 cells. All
+    four checkpoints share identical resets at each of the 88 condition-seed pairs.
+  - The parent hash is unchanged.
+- Measured costs, from runs of only seconds, so `S7` must confirm them:
+
+  | Quantity | Measured |
+  |---|---|
+  | Evaluation, one core | 9,300 transitions/s, including per-job setup and compression |
+  | Evaluation, 12 workers | 57,600 transitions/s, 6.2× one core |
+  | Evaluation storage | 85 bytes/transition overall; 84.1 at most on 500-step shards |
+  | Compression | 494 to 85 bytes/transition, 5.8× |
+  | Training, one core | 6,100-8,200 transitions/s |
+  | Training storage | 93 bytes/transition; 0.76 MB per smoke child |
+
+- Re-forecast, replacing Section 13.1: every episode is taken as 500 steps at 84.1
+  bytes/transition. Totals include training shards and metrics at 150 bytes/episode
+  plus 3.5 KB/job. Core-hours use 9,300 and 6,100 transitions/s.
+
+  | Stage | Storage, max | Core-hours | Wall-clock at 12 workers |
+  |---|---|---|---|
+  | `S7` primary | 7.5 GB | 2.6 | 0.4 h |
+  | `S7` snapshots (D3) | 19.9 GB | 7.0 | 1.1 h |
+  | `S8` | 46.0 GB | 16.3 | 2.6 h |
+  | Total | 73.4 GB | 25.9 | 4.2 h |
+
+- D3 settled: there is room, so pilot snapshots proceed. With the twofold margin
+  the total needs 146.9 GB against 163.0 GB free, leaving 16 GB. Without snapshots
+  it needs 107.0 GB. Rechecking disk at `S7` still matters: these children barely
+  trained, so full-budget trajectories may compress differently.
+- Parallel runs, in scratch storage: training with 3 workers gave identical weights,
+  and evaluation with 6 workers gave all 352 trajectory digests.
+- Both `S7` prerequisites found here are done, as uncommitted code. They must be
+  committed before `S7` collects data, because `train` and `evaluate` refuse
+  uncommitted source:
+  - Snapshot evaluation is now its own `pilot-snapshots` campaign in
+    `pilot_snapshots/`. It uses the pilot's support, seed role, and episode list,
+    so its resets pair with `pilot`. It requires every child and snapshot sealed.
+    Keeping it apart leaves `pilot` at 2,730 jobs with its own `pair_alpha`, and
+    its summary is labelled `development-diagnostic`. The 27 checkpoints give the
+    7,371 jobs already in `job-accounting.json`. The config stays unchanged, so
+    the protocol hash holds; it still reads `if-s6-headroom`, settled above.
+  - Pool workers now exit when their parent dies, because a resume could otherwise
+    overlap them. In the `S6` scratch test they had finished about 12 queued jobs
+    and then idled until stopped. This covers both `train` and `evaluate`.
+- Verification of those changes: all 341 tests pass, and 14 deliberately broken
+  safeguards each fail a test. On the real parent, in scratch storage, on
+  uncommitted source:
+  - Smoke reproduced `S6` exactly: all 44 jobs by trajectory digest, plus weights,
+    optimizer state, transitions, and recovery and survival counts.
+  - Killing only the parent, during parallel training and parallel evaluation, left
+    no workers, and the shard count stopped at the kill. Resumes completed.
+  - A cut-down `pilot-snapshots` campaign through the command line, on an unassigned
+    seed role, planned and wrote the accounted 2,457 jobs and 4,914 episodes.
+    Pilot seeds were not used, and no recovery results were read.
 
 **`S7`: pilot tier and protocol lock.** This is replicates 0–2, with 102,400
 transitions per arm, and evaluation at 64 role-4 episodes per reference condition.
 
+- Campaigns: `evaluate` runs `pilot` and, per D3, `pilot-snapshots`, each analyzed
+  separately.
 - Review: realized episode and transition shares, regressions, failure causes,
   and whether the Section 10 checks hold at full budget.
 - Reward check: decide here whether the Section 11 reward ablation moves ahead of

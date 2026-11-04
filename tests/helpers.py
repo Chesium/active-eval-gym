@@ -1,5 +1,7 @@
 """Shared constructors for rollout-schema tests."""
 
+import os
+import time
 from pathlib import Path
 
 import gymnasium as gym
@@ -45,6 +47,13 @@ CONFIG_NAMES = {
     "Pendulum-v1": "pendulum_v1_nominal.toml",
     "MiniGrid-Empty-8x8-v0": "minigrid_empty8x8_v0_nominal.toml",
 }
+
+
+def record_pid_and_wait(path: str) -> None:
+    """Pool job that announces its worker, then outlasts any test deadline."""
+
+    Path(path).write_text(str(os.getpid()))
+    time.sleep(120)
 
 
 def rollout_provenance(env: gym.Env, env_id: str):
