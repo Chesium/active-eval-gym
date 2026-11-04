@@ -1,0 +1,280 @@
+% Four-page main text; references start on a separate page.
+% Keep main_report.tex as the detailed research note.
+\documentclass{l4dc2026}
+\usepackage{times}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\hypersetup{pdftitle={Evaluation-Guided Domain Randomization: Midterm Report},
+  pdfauthor={Shimin Chen}}
+\title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization:\newline
+  Certificates, Controller Updates, and Coverage}
+\author{\Name{Shimin Chen} \Email{cshimin@engineering.upenn.edu}}
+\makeatletter
+\g@addto@macro\ps@jmlrtps{\def\@oddhead{}\let\@evenhead\@oddhead}
+\makeatother
+\newcommand{\Lhat}{\widehat L_{N,K}}
+\newcommand{\Dcert}{\mathcal D_{\mathrm{cert}}}
+\newcommand{\Pclass}{\mathcal P}
+\newcommand{\G}{G_K}
+\begin{document}
+\maketitle
+\begin{abstract}
+Can boundary-targeted training enlarge a controller's acceptable operating
+conditions? We connect trajectory-based certificate learning to a guarded
+linear-controller update. Progress includes an elementary generalization proof,
+an implemented update mechanism, and numerical comparisons. Certificate choice
+affects progress, while stability and selected-cost improvement do not ensure
+acceptance-set expansion.
+\end{abstract}
+
+\section{Question, feedback loop, and certificate loss}
+The intended outer loop is
+\[
+ \underbrace{q_k}_{\text{training law}}
+ \longrightarrow \underbrace{K_k}_{\text{controller}}
+ \longrightarrow \text{evaluate acceptance boundary}
+ \longrightarrow q_{k+1},
+\]
+where $k$ indexes outer rounds. Certificate $P_k$ restricts updates and may be
+refitted between rounds. The L4DC connection is that changing the controller
+changes the trajectories on which learned guarantees are tested. We specialize
+Boffi et al.'s continuous-time framework \citep[Sections~3--4]{boffi2021learning};
+starting-state curricula \citep{florensa2017reverse} motivate boundary targeting.
+
+\textbf{Controlled setting.}
+Let $\theta\in\Theta$ index a finite known plant family. State $x_t\in\mathbb R^n$
+and input $u_t\in\mathbb R^m$ at time $t$ evolve under shared gain
+$K\in\mathbb R^{m\times n}$ and closed-loop matrix $\G(\theta)$:
+\begin{equation}\label{eq:mid_dynamics}
+ x_{t+1}=A(\theta)x_t+B(\theta)u_t=\G(\theta)x_t,
+ \quad u_t=-Kx_t,\quad \G(\theta)=A(\theta)-B(\theta)K.
+\end{equation}
+Dynamics are deterministic, fully observed, and unconstrained; inputs are
+continuous. Condition $z=(\theta,x_0)$ includes a reset in
+$\mathcal X_0=\{x:\|x\|_2\le r_0\}$ with radius $r_0>0$.
+Freeze $K$ and certificate-data law $\Dcert$, then draw $N$ i.i.d.\ conditions.
+Each trajectory $\tau_K(z)=(x_0,\ldots,x_H)$ has horizon $H$ transitions of one fixed
+plant. The independent sample count is $N$, \emph{not} $NH$.
+Vector norms are Euclidean; matrix norms $\|\cdot\|_2,\|\cdot\|_F$ are operator
+and Frobenius norms.
+
+\textbf{From a transition to one loss per trajectory.}
+The certificate energy is $V_P(x)=x^\top Px$, with
+$\Pclass=\{P=P^\top:aI\preceq P\preceq bI\}$: $0<a<b$ bound eigenvalues,
+$I$ is identity, and $\preceq$ is positive-semidefinite order. Predeclare desired
+decrease $\eta>0$ and extra fitting margin $\gamma>0$. For nonzero state $x$,
+successor $x^+$, and trajectory $\tau$, define
+\begin{align}\label{eq:mid_loss}
+ r_P(x,x^+)&=\frac{V_P(x^+)-V_P(x)}{\|x\|_2^2}+\eta
+ &&\text{(transition-wise residual)},\\
+ s_P(\tau)&=\max_{0\le t<H:\,x_t\ne0}r_P(x_t,x_{t+1})
+ &&\text{(trajectory-wise worst residual)},\\
+ \ell_P(\tau)&=\min\{1,\max\{0,1+s_P(\tau)/\gamma\}\}
+ &&\text{(trajectory-wise surrogate loss)}.\nonumber
+\end{align}
+Desired decrease means $r_P\le0$; zero loss requires decrease
+$V_P(x^+)-V_P(x)\le-(\eta+\gamma)\|x\|_2^2$ throughout the trajectory.
+Positive loss may mean insufficient slack without failure. Skip zero states;
+all-zero trajectories have $s_P=-\infty$ and $\ell_P=0$. Fit $P$ with $K$ frozen.
+
+\newpage
+\section{What generalizes, and what verifies stability?}
+Define population loss $L_K$, empirical loss $\Lhat$, and violation risk $e_{K,H}$:
+\begin{align}\label{eq:mid_risks}
+ L_K(P)&=\mathbb E_{z\sim\Dcert}\ell_P(\tau_K(z)),&
+ \Lhat(P)&=\frac1N\sum_{i=1}^N\ell_P(\tau_i),\\
+ e_{K,H}(P)&=\Pr_{z\sim\Dcert}\{s_P(\tau_K(z))>0\}.&&\nonumber
+\end{align}
+Here $\tau_i$ is sampled trajectory $i$; the probability uses a fresh condition.
+Risk counts a trajectory if \emph{any} transition violates desired decrease.
+The loss upper-bounds this event's indicator, so $e_{K,H}(P)\le L_K(P)$.
+Grid empirical risk minimization (ERM) fits $P$; ties use fixed candidate order.
+Continuous-class optimal fitting is not assumed below.
+
+\textbf{Completed foundation: a uniform bound.}
+Let $M_K=\max_{\theta\in\Theta}\|\G(\theta)\|_2$ be the known dynamics bound and
+$L_{\mathrm{par}}=(M_K^2+1)/\gamma$ the parameter-to-loss Lipschitz constant:
+\[
+ |\ell_P(\tau)-\ell_{P'}(\tau)|\le
+ L_{\mathrm{par}}\|P-P'\|_F \qquad(P,P'\in\Pclass).
+\]
+Quadratic differences give $M_K^2+1$, the time maximum preserves it, and the
+ramp contributes $1/\gamma$.
+
+Choose a net resolution $\varepsilon>0$ and failure probability $\delta\in(0,1)$
+before sampling. The symmetric parameter count is $d=n(n+1)/2$.
+A data-independent Frobenius $\varepsilon$-net $\mathcal N_\varepsilon\subset\Pclass$
+has size at most $(1+2b\sqrt n/\varepsilon)^d$. For any $P$, choose a net center
+$P_\varepsilon$ within distance $\varepsilon$. Each arrow bounds an absolute difference:
+\begin{center}
+\begin{tikzpicture}[>=Latex,baseline]
+ \node (a) at (0,0) {$L_K(P)$};
+ \node (b) at (3.7,0) {$L_K(P_\varepsilon)$};
+ \node (c) at (7.8,0) {$\Lhat(P_\varepsilon)$};
+ \node (d) at (12,0) {$\Lhat(P)$};
+ \draw[<->] (a) -- node[above] {$L_{\mathrm{par}}\varepsilon$}
+   node[below,font=\small,align=center] {population\\approximation} (b);
+ \draw[<->] (b) -- node[above] {$t_N$}
+   node[below,font=\small,align=center] {Hoeffding\\+ union bound} (c);
+ \draw[<->] (c) -- node[above] {$L_{\mathrm{par}}\varepsilon$}
+   node[below,font=\small,align=center] {sample\\approximation} (d);
+\end{tikzpicture}
+\end{center}
+The net concentration radius $t_N$ and total allowance $\Delta_N$ are
+\begin{equation}\label{eq:mid_bound}
+ t_N=\sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)+\log(2/\delta)}{2N}},
+ \qquad \Delta_N=2L_{\mathrm{par}}\varepsilon+t_N.
+\end{equation}
+Hoeffding controls each net center's bounded independent losses; a union bound
+controls all centers simultaneously. The triangle inequality adds the three
+arrows, paying approximation twice. With probability at least $1-\delta$,
+\begin{equation}\label{eq:mid_conclusion}
+ |L_K(P)-\Lhat(P)|\le\Delta_N\quad\text{for every }P\in\Pclass,
+ \qquad e_{K,H}(\widehat P)\le
+ \min\{1,\Lhat(\widehat P)+\Delta_N\}.
+\end{equation}
+Uniformity permits data-selected $\widehat P$ without optimal fitting.
+The proof net differs from the numerical fitting grid. This elementary discrete
+specialization does not reproduce Boffi et al.'s faster hard-margin rates or
+their conversion to global guarantees.
+
+\textbf{A separate, deterministic verification.}
+For a declared nonempty retention set $\Theta_{\mathrm{ret}}\subseteq\Theta$, compute the
+verified decrease margin
+\[
+ \eta_\theta(P)=\lambda_{\min}\!\left(P-\G(\theta)^\top P\G(\theta)\right).
+\]
+Here $\lambda_{\min}$ is the smallest eigenvalue. Positive margins for all
+retained plants imply global exponential stability of each fixed-plant loop.
+The desired decrease holds everywhere if $\eta_\theta(P)\ge\eta$.
+Low trajectory risk alone implies neither claim. Known matrices supply this
+verification oracle; this is not system identification. New-controller statistical
+bounds need fresh certificate trajectories.
+
+\newpage
+\section{A concrete evaluation-guided controller update}
+\textbf{Performance and targeting.}
+Fix state-cost weight $Q\succeq0$, input-cost weight $R\succeq0$, cost threshold
+$h>0$, and performance-reference law $\mu$ on $\Theta\times\mathcal X_0$.
+The trajectory performance cost, acceptable set, and coverage are
+\begin{equation}\label{eq:mid_cost}
+ J_{H,K}(z)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t),\quad
+ S_K^J=\{z:J_{H,K}(z)\le h\},\quad C_J(K)=\mu(S_K^J).
+\end{equation}
+Performance cost differs from certificate loss $\ell_P$.
+Keep $\mu$ fixed while training law $q$ changes. On finite grid $\mathcal Z$,
+restrict positive background weights $q_{\mathrm{base}}$ to
+$|J_{H,K}-h|\le w$, with band half-width $w>0$, then normalize to target
+$q_{\mathrm{tar}}$. Empty bands use background. With mixture weight
+$\lambda\in[0,1)$, set
+\[
+ q=(1-\lambda)q_{\mathrm{base}}+\lambda q_{\mathrm{tar}},\qquad
+ F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z),\qquad
+ D=-\nabla_K F_q(K).
+\]
+Here $\widetilde K$ is a candidate gain, $F_q$ the objective, and $D$ its exact
+Frobenius-gradient direction with $q$ frozen. $P$ affects step admissibility,
+not $D$ or performance at fixed $K$.
+
+\textbf{Certificate guard.}
+For new gain $K^+=K+\Delta K$, hold verified $P$ fixed. The closed-loop change is
+$E=-B(\theta)\Delta K$; its size $d_\theta$ and margin-consumption bound $c_\theta$ are
+\begin{equation}\label{eq:mid_guard}
+ d_\theta(\Delta K)=\|B(\theta)\Delta K\|_2,\qquad
+ c_\theta(\Delta K)=2\|\G(\theta)^\top P\|_2d_\theta(\Delta K)
+                 +\|P\|_2d_\theta(\Delta K)^2.
+\end{equation}
+Choose retained fraction $\rho\in(0,1)$ and radius $\kappa>0$.
+Require $\|\Delta K\|_2\le\kappa$ and
+$c_\theta(\Delta K)\le(1-\rho)\eta_\theta(P)$ on the retention set.
+With $G=\G(\theta)$, expand the new drift:
+\begin{align*}
+ (G+E)^\top P(G+E)-P
+ &=G^\top PG-P+G^\top PE+E^\top PG+E^\top PE\\
+ &\preceq-(\eta_\theta(P)-c_\theta(\Delta K))I
+ \preceq-\rho\eta_\theta(P)I.
+\end{align*}
+The energy still decreases. Retaining desired $\eta$ requires
+$\rho\eta_\theta(P)\ge\eta$; the actual margin can increase.
+
+Settings are initial step $s_0>0$, shrink factor $\beta\in(0,1)$, decrease
+coefficient $c_A\in(0,1)$, and maximum index $J_{\max}\ge0$ ($J_{\max}+1$ trials).
+
+\begin{algorithm2e}[H]
+\small
+\caption{One guarded Armijo-style update \citep{armijo1966minimization}.}
+\label{alg:mid_update}
+\KwIn{Gain $K$, verified $P$, grid, retention set, settings.}
+Evaluate old costs, construct $q$, freeze $q$, and compute $D=-\nabla F_q(K)$\;
+\If{$D=0$}{\Return{$K$ (zero-gradient no-op)}\;}
+\For{trial index $j=0,\ldots,J_{\max}$}{
+ Set trial size $s=s_0\beta^j$ and proposed change $\Delta K=sD$\;
+ \If{admissible and $F_q(K+sD)\le F_q(K)-c_A s\|\nabla F_q(K)\|_F^2$}{
+  \Return{$K+sD$}\;
+ }
+}
+\Return{$K$ (search exhausted)}\;
+\end{algorithm2e}
+Strict margins and smooth costs make small steps pass an uncapped search.
+Neither stability nor descent ensures coverage expansion.
+
+\newpage
+\section{Preliminary evidence, limitations, and next steps}
+\textbf{Experimental setting.}
+The notebook's two closed loops are
+$G_1=\left(\begin{smallmatrix}0.8&0.5\\0&0.6\end{smallmatrix}\right)$ and
+$G_2=\left(\begin{smallmatrix}0.7&0.6\\0&0.5\end{smallmatrix}\right)$.
+Realize them with $A_i=G_i+I$, $B_i=I$, and initial gain $K_0=I$.
+Use $H=10$, $a=0.5$, $b=2$, $\eta=0.02$, $\gamma=0.1$, $Q=I$, $R=0.1I$,
+and $h=3.5$. Certificate data and targeting use 64 unit-circle resets per
+plant; reference evaluation uses 256, all equally weighted.
+
+\begin{figure}[h]
+ \centering
+ \includegraphics[width=\linewidth]{midterm_assets/linear_results.pdf}
+ \caption{(a) Maximum loss gap on the numerical fitting grid: median and
+ 10th--90th percentiles across 500 datasets versus full-class allowance
+ $\Delta_N$. Shading is not a confidence interval; grid observations do not
+ prove full-class uniformity. (b) One-step coverage gains over both declared
+ $N=32$ replicates; dots retain both observations.}
+ \label{fig:mid_results}
+\end{figure}
+
+Panel~(a) uses $\delta=0.01$ per $N$ and $\varepsilon$ chosen from constants.
+It adds $G_3=1.02I$ with mass $0.1$, an unavoidable risk floor.
+The 874-matrix grid includes $P_0=\operatorname{diag}(0.6,1.6)$, known to give
+zero stable-plant loss.
+Panel~(b) uses only the two stable plants, $\lambda=0.5$, $w=0.35$, and
+$(\rho,\kappa,s_0,\beta,c_A,J_{\max})=(0.5,0.25,1,0.5,0.1,30)$.
+High-cost targeting emphasizes the worst quarter. Min/max-capacity certificates
+resolve verified empirical ties by the background direction's step limit.
+Minimum capacity halves the boundary step and gain versus $P_0$; boundary
+targeting does not beat background. Three-round refitting effects are mixed.
+
+\textbf{Why coverage can regress.}
+A uniform cost-drift bound $b_J(\theta)\ge|J_{H,K^+}(\theta,x)-J_{H,K}(\theta,x)|$
+for all resets confines lost acceptable conditions to
+$h-b_J(\theta)<J_{H,K}(\theta,x)\le h$.
+Its mass bounds lost coverage; narrow bands can have large mass.
+A scalar witness has $A(\theta)=\theta$, $B=1$, $\theta\in\{0,1\}$, $x_0=1$,
+$Q=1$, $R=0$, $H=2$, $h=1.25$, $K=0.5$, $P=1$, uniform reference weights,
+and $q=(1/4,3/4)$. With $s_0=0.4$ and $c_A=0.5$, accepted change
+$\Delta K=0.2$ lowers $F_q$ from $1.25$ to $1.19$, but coverage falls from $1$
+to $1/2$; the smallest verified margin remains positive at $0.51$.
+This asymmetric boundary target refutes unconditional improvement; symmetric
+weighting gives zero gradient.
+
+\textbf{Post-midterm development.}
+Next: complete remaining update proofs, tighten trial-segment bounds, and seek
+expansion conditions from gradient alignment and feasible steps. Nominal-seeded
+plant-set expansion is an alternative; state-space safe-region results require
+additional assumptions \citep{berkenkamp2017safe}. CartPole/PPO is a later empirical
+test, outside these guarantees. Numerics are float64, not interval certificates.
+Code retains raw data; longer notes retain detailed proofs. Codex assisted with
+implementation and drafting.
+\label{midterm_body_end}
+
+\clearpage
+\label{midterm_references_start}
+\bibliography{references.bib}
+\end{document}

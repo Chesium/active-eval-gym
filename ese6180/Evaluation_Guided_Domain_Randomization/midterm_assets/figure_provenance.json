@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "script_sha256": "04b2d93901c92573fac8c1daa6630be8646a8ec3716b17b516ab6e0a5ad2277f",
+  "source_sha256": {
+    "artifacts/certificate_generalization/20261021T171258986368Z/metadata.json": "6ad173b0c3e4a2cf4e2d3feccaf2e50c07f1553254ec24de149a6a3fcd13d824",
+    "artifacts/certificate_generalization/20261021T171258986368Z/metrics_v1.npz": "006d16ab761c9fae3debc82c7302a786bbc05635b4fa7b1d167330005cce250f",
+    "artifacts/linear-study-smoke-v2/manifest.json": "de3a4cf42161aeac4c31dd9e18402b5dc4e4939419b76fe32e983ce73f91b89e"
+  },
+  "certificate": {
+    "spec": {
+      "a": 0.5,
+      "b": 2.0,
+      "eta": 0.02,
+      "gamma": 0.1,
+      "horizon": 10,
+      "directions": 64,
+      "unsafe_probability": 0.1
+    },
+    "sample_sizes": [
+      32,
+      128,
+      512,
+      2048,
+      8192
+    ],
+    "replicates": 500,
+    "grid_candidates": 874,
+    "delta_per_sample_size": 0.01,
+    "epsilon": [
+      0.0008126248705969068,
+      0.000394098149479239,
+      0.000191125520572459,
+      9.269001811442859e-05,
+      4.517987811359832e-05
+    ],
+    "epsilon_selection": "Bound constants only, before sampled losses",
+    "grid_gap_median": [
+      0.12858280897185043,
+      0.0636811163858434,
+      0.030707659969480966,
+      0.014883164352642753,
+      0.007608682109919551
+    ],
+    "grid_gap_10_percentile": [
+      0.08142533429041122,
+      0.040976161714985304,
+      0.01954856215420039,
+      0.009752652670791806,
+      0.004777411307830515
+    ],
+    "grid_gap_90_percentile": [
+      0.19507895385636623,
+      0.09699245628667859,
+      0.04871574322321532,
+      0.024390047990688935,
+      0.011987589461837679
+    ],
+    "full_class_bound": [
+      0.7385324540189524,
+      0.3805911337749766,
+      0.19577998834183752,
+      0.10055123599484306,
+      0.051569217451749264
+    ],
+    "description": "Maximum observed loss gap over numerical grid; the theorem controls the full continuous class. Shading is dataset 10th\u201390th percentile, not a confidence interval."
+  },
+  "updates": {
+    "study_spec": {
+      "preset": "smoke",
+      "master_seed": 6180,
+      "replicates": 2,
+      "rounds": 3,
+      "sample_sizes": [
+        32
+      ],
+      "repeated_sample_size": 32,
+      "directions": 64,
+      "reference_directions": 256,
+      "band_width": 0.35,
+      "mixture": 0.5,
+      "landscape": false
+    },
+    "selection": "All one_step N=32 records for the three named selectors",
+    "coverage_gains_percentage_points": {
+      "known": {
+        "background": [
+          7.8125,
+          7.8125
+        ],
+        "boundary": [
+          7.8125,
+          7.8125
+        ],
+        "high_cost": [
+          6.25,
+          6.25
+        ]
+      },
+      "erm_small_step": {
+        "background": [
+          3.90625,
+          3.90625
+        ],
+        "boundary": [
+          3.90625,
+          3.90625
+        ],
+        "high_cost": [
+          2.34375,
+          2.34375
+        ]
+      },
+      "erm_large_step": {
+        "background": [
+          7.8125,
+          7.8125
+        ],
+        "boundary": [
+          7.8125,
+          7.8125
+        ],
+        "high_cost": [
+          6.25,
+          6.25
+        ]
+      }
+    },
+    "description": "Bars average both predeclared replicates; dots retain both observations. Initial reference coverage is 0.5390625."
+  }
+}
