@@ -1,0 +1,13 @@
+schema_version = 1
+study_id = "cartpole-ppo-boundary-v5-adaptive"
+# Reuse only declared scientific settings. This separate runner owns the rounds;
+# the historical single-round protocol and its saved data remain unchanged.
+base_config = "cartpole_ppo_boundary_v4_long.toml"
+baseline_study = "../../artifacts/experiments/cartpole-ppo-boundary-v4-long"
+historical_summary = "../../artifacts/experiments/cartpole-ppo-boundary-v4-focus/long-run/summary.json"
+rounds = 10
+transitions_per_round = 25600
+replicate_ids = [0, 1, 2]
+empty_frontier_action = "stop-seed"
+discovery_workers_per_seed = 4
+reference_workers = 12
