@@ -13,6 +13,12 @@ Training, rollout collection, perturbation generation, and metric computation
 remain separate so that evaluation never silently changes a policy and new metrics
 can be computed without rerunning an episode.
 
+The [interactive certificate generalization notebook](notebooks/certificate_generalization.ipynb)
+explores the report's finite-cover generalization bound using exact linear
+trajectories, adjustable certificate ellipses, dataset inspection, and repeated
+sample-size sweeps. Install its optional dependencies with
+`uv sync --group notebooks`, then select this repository's `.venv` kernel.
+
 ## What the sandbox has found
 
 **Setup**
@@ -491,6 +497,32 @@ angle, physical-length, and MiniGrid start-pose perturbations plus isolated
 CartPole mass, force, observation-noise, action-delay, and action-dropout
 diagnostics. Evaluation thresholds, simulator numerics, policy adaptation, and
 crossed stretch perturbations remain out of scope.
+
+## Linear target-map and certificate study
+
+The script-based companion to `notebooks/certificate_generalization.ipynb`
+compares background, boundary, and high-cost training weights, crossed with
+different quadratic certificates. It runs one-step comparisons and repeated
+rounds with either fixed or refitted certificates. It uses exact linear models,
+continuous actions, and quadratic costs; this experiment does not train PPO or
+transfer its guarantees to Gymnasium CartPole.
+
+```bash
+uv run python scripts/linear_update_study.py run --preset smoke \
+  --output artifacts/linear-study-smoke
+uv run python scripts/linear_update_study.py analyze \
+  --run artifacts/linear-study-smoke --output artifacts/linear-study-smoke-report
+```
+
+Use `--preset full` and a fresh output directory for all three sample sizes,
+ten replicates, twenty rounds, and the exhaustive certificate landscape.
+Both commands refuse to reuse an output directory. Analysis checks retained
+data hashes and rebuilds the metrics, plots, and `report.md` without collecting
+rollouts, fitting certificates, or updating controllers.
+
+See [the experiment guide](docs/linear-update-study.md) for the selection rules,
+curvature bounds, artifact format, and interpretation limits. The smoke study is
+a correctness check; no method is required to increase acceptance coverage.
 
 ## Development
 
