@@ -6,6 +6,7 @@ Collection, training, and analysis stay in later, separate commands.
 """
 
 import hashlib
+import json
 import os
 import platform
 import shutil
@@ -241,6 +242,23 @@ def source_state() -> dict[str, Any]:
     }
 
 
+def source_hashes() -> dict[str, str]:
+    """Return the digest of every file that can change a study result."""
+
+    hashes = {}
+    for entry in SOURCE_PATHS:
+        root = REPOSITORY_ROOT / entry
+        paths = sorted(root.rglob("*")) if root.is_dir() else [root]
+        for path in paths:
+            if (
+                path.is_file()
+                and path.suffix in SOURCE_SUFFIXES
+                and "__pycache__" not in path.parts
+            ):
+                hashes[str(path.relative_to(REPOSITORY_ROOT))] = _sha256(path)
+    return hashes
+
+
 def verify_parent(spec: PPOBoundaryStudySpec, artifact_root: Path) -> dict[str, Any]:
     """Verify the declared parent, refusing to continue from any other model."""
 
@@ -264,6 +282,24 @@ def verify_parent(spec: PPOBoundaryStudySpec, artifact_root: Path) -> dict[str, 
         "package_versions": metadata.package_versions,
         "package_version_differences": _version_differences(metadata.package_versions),
     }
+
+
+def load_protocol(
+    config_path: Path, study_dir: Path
+) -> tuple[PPOBoundaryStudySpec, dict[str, Any]]:
+    """Load a prepared study, refusing a config its protocol did not record."""
+
+    provenance_path = study_dir / "protocol" / "provenance.json"
+    if not provenance_path.is_file():
+        raise FileNotFoundError(f"Study has no prepared protocol: {study_dir}.")
+    provenance = json.loads(provenance_path.read_text())
+    actual = _sha256(config_path)
+    if actual != provenance["config_sha256"]:
+        raise ValueError(
+            f"Config {config_path} has digest {actual}, but the protocol recorded "
+            f"{provenance['config_sha256']}."
+        )
+    return load_ppo_boundary_study(config_path), provenance
 
 
 def prepare_study(
@@ -296,7 +332,7 @@ def prepare_study(
             "study_id": spec.study_id,
             "development_record": source["source_dirty"],
             "source": source,
-            "source_sha256": _source_hashes(),
+            "source_sha256": source_hashes(),
             "config_sha256": _sha256(config_path),
             "parent": verify_parent(spec, artifact_root),
             "runtime": _runtime_record(spec, output_dir),
@@ -369,21 +405,6 @@ def _conditions_record(spec: PPOBoundaryStudySpec) -> dict[str, Any]:
         "denominator": supports["reference"]["condition_count"],
     }
     return {"schema_version": PROTOCOL_SCHEMA_VERSION, "supports": supports}
-
-
-def _source_hashes() -> dict[str, str]:
-    hashes = {}
-    for entry in SOURCE_PATHS:
-        root = REPOSITORY_ROOT / entry
-        paths = sorted(root.rglob("*")) if root.is_dir() else [root]
-        for path in paths:
-            if (
-                path.is_file()
-                and path.suffix in SOURCE_SUFFIXES
-                and "__pycache__" not in path.parts
-            ):
-                hashes[str(path.relative_to(REPOSITORY_ROOT))] = _sha256(path)
-    return hashes
 
 
 def _runtime_record(spec: PPOBoundaryStudySpec, output_dir: Path) -> dict[str, Any]:

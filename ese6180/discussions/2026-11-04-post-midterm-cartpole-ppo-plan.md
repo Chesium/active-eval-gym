@@ -779,11 +779,11 @@ record outstanding.**
   broken seed limits, weights, accounting, and validation rules each fail a test.
   A development run on the real parent reproduced the Section 13.1 job counts.
 - Remaining: `prepare` refuses uncommitted source, so the study's real
-  `protocol/` waits for a commit. Then run
+  `protocol/` waits for a commit of `S1`–`S2`. Then run
   `uv run python scripts/cartpole_ppo_boundary_study.py prepare --output
   artifacts/experiments/cartpole-ppo-boundary-v1`. Do this before `S3`.
 
-**`S2`: build the evaluation path.**
+**`S2`: build the evaluation path. Gate passed 4 November 2026.**
 
 - Work: add the job collector, the D1 storage layer, the `evaluate` subcommand,
   and the `analyze` subcommand with cell counts, Wilson intervals,
@@ -793,6 +793,26 @@ record outstanding.**
   from stored states equals `episode-summary-v4`; a shard round-trips byte-exact
   to the existing digest; an interrupted run resumes without duplicates or
   omissions; `analyze` runs without environments or policies.
+- Result: added shard reading and writing to `serialization.py`, plus
+  `ppo_boundary_evaluation.py`, `ppo_boundary_analysis.py`, and the `evaluate` and
+  `analyze` subcommands. All 196 tests pass, and 17 deliberately broken safeguards
+  each fail a test.
+- Real-parent run, smoke seeds in temporary storage, integrity counters only: a
+  `SIGKILL` left 3 of 11 shards and no completion record. Resuming ran only the
+  8 missing jobs and produced shards byte-identical to an uninterrupted run.
+  Reanalysis was byte-identical, and an independent recovery recomputation from
+  stored states agreed on all 11 cells, with both outcomes present. Shards cost
+  85 bytes/transition, a 5.8× ratio, consistent with the Section 13.1 forecast.
+  `S6` still supplies the formal measurement.
+- Layout: derived results go in `metrics_v1/<campaign>/` for every campaign, and
+  smoke raw data goes in `smoke/`. Campaign directories otherwise follow Section 12.
+- Scope limits: the command line exposes only `discovery`. Tier campaigns open
+  once `S5` adds sealed children, which also extends job planning beyond the
+  parent. Confirmatory collection is refused until the `S7` lock exists.
+- Collection requires committed source and records its own source state, so
+  later `S4`–`S5` code does not invalidate discovery. A resume on changed source
+  is refused. Clopper–Pearson intervals cover recovery only, keeping `M` at the
+  declared number of checkpoint–condition pairs.
 
 **`S3`: run discovery and construct targets.**
 

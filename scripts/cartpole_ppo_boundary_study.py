@@ -1,9 +1,11 @@
-"""Prepare the CartPole PPO boundary-targeting study."""
+"""Prepare, evaluate, and analyze the CartPole PPO boundary-targeting study."""
 
 import argparse
 from pathlib import Path
 
 from active_eval_gym.ppo_boundary import prepare_study
+from active_eval_gym.ppo_boundary_analysis import analyze_campaign
+from active_eval_gym.ppo_boundary_evaluation import DISCOVERY, collect_campaign
 
 DEFAULT_CONFIG = Path("configs/experiments/cartpole_ppo_boundary_v1.toml")
 
@@ -22,16 +24,61 @@ def main() -> None:
         action="store_true",
         help="record uncommitted source as a development-only protocol",
     )
-    args = parser.parse_args()
-    result = prepare_study(
-        args.config,
-        artifact_root=args.artifact_root,
-        output_dir=args.output,
-        allow_dirty=args.allow_dirty,
+    evaluate = commands.add_parser("evaluate", help="collect or resume a campaign")
+    evaluate.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    evaluate.add_argument(
+        "--artifact-root", type=Path, default=Path("artifacts/policies")
     )
-    print(f"Protocol: {result['protocol_dir']}")
-    if result["development_record"]:
-        print("Development record: not valid for confirmatory results.")
+    evaluate.add_argument("--study", type=Path, required=True)
+    evaluate.add_argument("--campaign", choices=(DISCOVERY,), required=True)
+    evaluate.add_argument("--workers", type=int, default=1)
+    evaluate.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="allow a temporary development run on uncommitted source",
+    )
+    analyze = commands.add_parser("analyze", help="analyze saved shards only")
+    analyze.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    analyze.add_argument("--study", type=Path, required=True)
+    analyze.add_argument("--campaign", choices=(DISCOVERY,), required=True)
+    analyze.add_argument("--output", type=Path)
+    analyze.add_argument("--workers", type=int, default=1)
+    args = parser.parse_args()
+    if args.command == "prepare":
+        result = prepare_study(
+            args.config,
+            artifact_root=args.artifact_root,
+            output_dir=args.output,
+            allow_dirty=args.allow_dirty,
+        )
+        print(f"Protocol: {result['protocol_dir']}")
+        if result["development_record"]:
+            print("Development record: not valid for confirmatory results.")
+    elif args.command == "evaluate":
+        result = collect_campaign(
+            args.config,
+            study_dir=args.study,
+            campaign=args.campaign,
+            artifact_root=args.artifact_root,
+            workers=args.workers,
+            allow_dirty=args.allow_dirty,
+        )
+        print(
+            f"Campaign {result['campaign']}: {result['planned_jobs']} planned, "
+            f"{result['already_complete_jobs']} already complete, "
+            f"{len(result['failed_jobs'])} failed."
+        )
+        if not result["complete"]:
+            raise SystemExit(f"Incomplete campaign: {result['failed_jobs']}")
+    else:
+        analyze_campaign(
+            args.config,
+            study_dir=args.study,
+            campaign=args.campaign,
+            output_dir=args.output,
+            workers=args.workers,
+        )
+        print(f"Analyzed campaign {args.campaign}.")
 
 
 if __name__ == "__main__":

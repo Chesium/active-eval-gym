@@ -7,12 +7,8 @@ import numpy as np
 import pytest
 
 from active_eval_gym import ppo_boundary
-from active_eval_gym.config import QualityGate, load_ppo_boundary_study
+from active_eval_gym.config import load_ppo_boundary_study
 from active_eval_gym.envs.perturbations import CARTPOLE_RECOVERY_ANGLE_LENGTH
-from active_eval_gym.policies.artifacts import (
-    train_learned_artifact,
-    write_freeze_result,
-)
 from active_eval_gym.ppo_boundary import (
     condition_seed_sequence,
     episode_seed,
@@ -24,11 +20,9 @@ from active_eval_gym.ppo_boundary import (
     support_conditions,
     training_policy_seed,
 )
+from tests.helpers import STUDY_CONFIG, edited_study_config, tiny_parent_config
 
-ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "configs/experiments/cartpole_ppo_boundary_v1.toml"
-PARENT_DESIGN = ROOT / "configs/policies/cartpole_ppo_nominal_v1.toml"
-NOMINAL = ROOT / "configs/envs/cartpole_v1_nominal.toml"
+CONFIG = STUDY_CONFIG
 
 
 @pytest.fixture
@@ -36,46 +30,9 @@ def spec():
     return load_ppo_boundary_study(CONFIG)
 
 
-def _edited_config(tmp_path: Path, *replacements: tuple[str, str]) -> Path:
-    text = CONFIG.read_text().replace(
-        'design_config = "../policies/cartpole_ppo_nominal_v1.toml"',
-        f'design_config = "{PARENT_DESIGN}"',
-    )
-    for old, new in replacements:
-        assert old in text
-        text = text.replace(old, new)
-    path = tmp_path / "study.toml"
-    path.write_text(text)
-    return path
-
-
 @pytest.fixture
 def tiny_parent(tmp_path: Path) -> tuple[Path, Path]:
-    """Build a real, frozen, short-trained parent and a config declaring it."""
-
-    design = tmp_path / "tiny.toml"
-    design.write_text(
-        PARENT_DESIGN.read_text()
-        .replace('"cartpole_ppo_nominal_v1"', '"tiny_parent"')
-        .replace("training_steps = 100000", "training_steps = 256")
-        .replace('"../envs/cartpole_v1_nominal.toml"', f'"{NOMINAL}"')
-    )
-    root = tmp_path / "policies"
-    root.mkdir()
-    metadata = train_learned_artifact(design, root / "tiny_parent")
-    write_freeze_result(
-        root / "tiny_parent", passed=True, gate=QualityGate(), results={}
-    )
-    config = _edited_config(
-        tmp_path,
-        ('policy_id = "cartpole_ppo_nominal_v1"', 'policy_id = "tiny_parent"'),
-        (f'"{PARENT_DESIGN}"', f'"{design}"'),
-        (
-            "37c9bac10919b2d6bdc833fd5a3a920460d4b80f09392ef7fb758e4777a856e8",
-            metadata.model_sha256,
-        ),
-    )
-    return config, root
+    return tiny_parent_config(tmp_path)
 
 
 def _clean_source(monkeypatch: pytest.MonkeyPatch, *, dirty: bool = False) -> None:
@@ -318,7 +275,7 @@ def test_loader_rejects_protocol_changes(
     tmp_path: Path, old: str, new: str, message: str
 ) -> None:
     with pytest.raises(ValueError, match=message):
-        load_ppo_boundary_study(_edited_config(tmp_path, (old, new)))
+        load_ppo_boundary_study(edited_study_config(tmp_path, (old, new)))
 
 
 def test_prepare_writes_the_complete_protocol(
