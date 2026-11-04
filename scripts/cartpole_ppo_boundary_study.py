@@ -1,6 +1,7 @@
 """Prepare, train, evaluate, and analyze the CartPole PPO boundary study."""
 
 import argparse
+import json
 from pathlib import Path
 
 from active_eval_gym.ppo_boundary import prepare_study
@@ -9,10 +10,11 @@ from active_eval_gym.ppo_boundary_evaluation import (
     CAMPAIGN_DIRECTORIES,
     collect_campaign,
 )
+from active_eval_gym.ppo_boundary_stability import score_studies
 from active_eval_gym.ppo_boundary_targets import build_distributions
 from active_eval_gym.ppo_boundary_training import train_campaign
 
-DEFAULT_CONFIG = Path("configs/experiments/cartpole_ppo_boundary_v2.toml")
+DEFAULT_CONFIG = Path("configs/experiments/cartpole_ppo_boundary_v3.toml")
 CAMPAIGNS = tuple(CAMPAIGN_DIRECTORIES)
 TIERS = ("smoke", "pilot", "confirmatory")
 
@@ -70,6 +72,17 @@ def main() -> None:
         action="store_true",
         help="allow a temporary development run on uncommitted source",
     )
+    stability = commands.add_parser(
+        "stability", help="score continuation candidates, pooled across arms"
+    )
+    stability.add_argument(
+        "--candidate",
+        action="append",
+        required=True,
+        metavar="NAME=STUDY",
+        help="a candidate's analyzed study; repeat for each candidate",
+    )
+    stability.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "prepare":
         result = prepare_study(
@@ -113,6 +126,11 @@ def main() -> None:
         )
         if not result["complete"]:
             raise SystemExit(f"Incomplete tier: {result['failed_jobs']}")
+    elif args.command == "stability":
+        report = score_studies(
+            dict(item.split("=", 1) for item in args.candidate), args.output
+        )
+        print(json.dumps(report, indent=2, sort_keys=True))
     elif args.command == "targets":
         report = build_distributions(
             args.config,

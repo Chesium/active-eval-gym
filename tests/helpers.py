@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG_ROOT = ROOT / "configs" / "envs"
 STUDY_CONFIG = ROOT / "configs/experiments/cartpole_ppo_boundary_v1.toml"
 STUDY_CONFIG_V2 = ROOT / "configs/experiments/cartpole_ppo_boundary_v2.toml"
+STUDY_CONFIG_V3 = ROOT / "configs/experiments/cartpole_ppo_boundary_v3.toml"
 PARENT_DESIGN = ROOT / "configs/policies/cartpole_ppo_nominal_v1.toml"
 DISCOVERY_ANGLES = "[-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50]"
 REFERENCE_ANGLES = """[

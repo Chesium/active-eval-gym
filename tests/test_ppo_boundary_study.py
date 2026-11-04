@@ -26,6 +26,7 @@ from tests.helpers import (
     FRONTIER_RULE_EDIT,
     STUDY_CONFIG,
     STUDY_CONFIG_V2,
+    STUDY_CONFIG_V3,
     edited_study_config,
     tiny_parent_config,
 )
@@ -254,7 +255,7 @@ def test_seed_plan_lists_concrete_seeds(spec) -> None:
     ("old", "new", "message"),
     [
         ("mixture_lambda = 0.5", "mixture_lambda = 1.5", "mixture_lambda"),
-        ("n_epochs = 20", "n_epochs = 10", "preserve parent"),
+        ("batch_size = 256", "batch_size = 128", "preserve parent"),
         ("gamma = 0.98", "gamma = 0.99", "preserve parent"),
         ("additional_transitions = 8192", "additional_transitions = 8200", "multiples"),
         ("[25600, 51200, 76800]", "[25600, 25600]", "snapshot"),
@@ -284,6 +285,34 @@ def test_loader_rejects_protocol_changes(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         load_ppo_boundary_study(edited_study_config(tmp_path, (old, new)))
+
+
+def test_v3_changes_only_its_identity_and_learning_rate() -> None:
+    v2 = load_ppo_boundary_study(STUDY_CONFIG_V2)
+    v3 = load_ppo_boundary_study(STUDY_CONFIG_V3)
+
+    assert v3.study_id == "cartpole-ppo-boundary-v3"
+    assert v3.continuation.learning_rate == 0.00003
+    assert v2.continuation.learning_rate == 0.0003
+    assert v3 == replace(
+        v2,
+        study_id=v3.study_id,
+        continuation=replace(
+            v2.continuation, learning_rate=v3.continuation.learning_rate
+        ),
+    )
+
+
+def test_n_epochs_is_the_only_tunable_parent_setting(tmp_path: Path) -> None:
+    text = STUDY_CONFIG.read_text().replace("n_epochs = 20", "n_epochs = 5")
+    changed = tmp_path / "config.toml"
+    changed.write_text(
+        text.replace('"../policies/', f'"{STUDY_CONFIG.parents[1]}/policies/')
+    )
+
+    assert (
+        load_ppo_boundary_study(changed).continuation.hyperparameters["n_epochs"] == 5
+    )
 
 
 def test_v2_changes_only_its_identity_and_target_rule(spec) -> None:

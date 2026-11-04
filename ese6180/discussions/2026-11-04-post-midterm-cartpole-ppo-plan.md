@@ -1046,7 +1046,8 @@ claim.
     seed role, planned and wrote the accounted 2,457 jobs and 4,914 episodes.
     Pilot seeds were not used, and no recovery results were read.
 
-**`S7`: pilot tier and protocol lock.** This is replicates 0–2, with 102,400
+**`S7`: pilot tier and protocol lock. Pilot complete 5 November 2026; gate not
+passed, no lock written, researcher decision pending.** This is replicates 0–2, with 102,400
 transitions per arm, and evaluation at 64 role-4 episodes per reference condition.
 
 - Campaigns: `evaluate` runs `pilot` and, per D3, `pilot-snapshots`, each analyzed
@@ -1064,6 +1065,147 @@ transitions per arm, and evaluation at 64 role-4 episodes per reference conditio
 - Gate: write a lock record containing the commit, resolved-config hash, parent
   hash, vector-environment backend, seed plan, and forecast. Pilot metrics are
   never pooled with confirmatory results. **The researcher signs the lock.**
+- Result: `train`, `evaluate`, and `analyze` ran at clean commit `74f0666` with no
+  failures: 9 children, 27 snapshots, 2,730 `pilot` jobs with 174,720 episodes, and
+  7,371 `pilot-snapshots` jobs with 471,744 episodes. Everything is development data.
+- Integrity: recovery and survival recomputed from stored states match all 10,101
+  cells. Seals, budgets (102,400 transitions, 8,000 updates), first-update values,
+  and paired resets all hold. The parent reproduced `S3` on independent seeds: the
+  same 15 of 143 conditions accepted, with mean rate difference 0.002.
+- Main finding: continuation is unstable. Most children lost the parent's
+  competence, and coverage swings between checkpoints in every arm. Recovery
+  coverage at tau = 0.9, against 0.103 for the parent:
+
+  | New transitions | `background` | `acceptance_boundary` | `intermediate` | Zero coverage | Above parent |
+  |---|---|---|---|---|---|
+  | 25,600 | 0.000, 0.183, 0.212 | 0.256, 0.000, 0.150 | 0.282, 0.000, 0.242 | 3 of 9 | 6 of 9 |
+  | 51,200 | 0.000, 0.315, 0.000 | 0.000, 0.000, 0.289 | 0.293, 0.278, 0.341 | 4 of 9 | 5 of 9 |
+  | 76,800 | 0.000, 0.348, 0.000 | 0.000, 0.000, 0.000 | 0.150, 0.000, 0.000 | 7 of 9 | 2 of 9 |
+  | 102,400 (final) | 0.000, 0.000, 0.293 | 0.000, 0.000, 0.040 | 0.117, 0.000, 0.000 | 6 of 9 | 2 of 9 |
+
+  - Each cell lists replicates 0, 1, and 2. These three replicates cannot rank the
+    arms, and the 51,200 row is one post hoc row among four, not a finding.
+  - Coverage fell by at least 0.10 on 10 of 36 steps. Six of nine finals have zero
+    coverage, and six recover at 0 of 64 at nominal, where the parent recovers 64
+    of 64. Only one final, `r000-intermediate`, kept any of the parent's 28 accepted
+    conditions, and it kept 10.
+  - Mean survival falls with recovery: 0.199 for the parent, and at most 0.009 in
+    five of the six zero-coverage finals. So this is not only a settling problem.
+    The sixth, `r002-intermediate`, survives at 0.137 without recovering.
+  - The best final, `r002-background`, gained 80 conditions and lost all 28, so
+    its coverage moved rather than extended.
+- This is real policy behavior, not an evaluation artifact. Training trajectories
+  show it without the evaluator: in the affected runs episodes shorten and
+  time-limit survivals fall, in some runs to none. Last-quarter truncations and
+  final mean survival agree only moderately across children (Spearman 0.61, n = 9).
+- Mechanism, partly established:
+  - `cart_limit` is the leading failure in five of the six zero-coverage finals;
+    `r001-acceptance_boundary` fails mostly by angle. On the parent's states, five
+    of the six move `P(right)` from 0.52 to between 0.19 and 0.70, in either
+    direction. That fits a cart drifting off the track.
+  - Mean policy entropy is 0.03-0.21 against 0.16 for the parent, so policies stay
+    nearly deterministic. Weight norms stay at 28-30 against 27, so this is not
+    divergence.
+  - Untested hypothesis: constant LR 0.0003 with 20 epochs removes the annealing
+    that froze the parent, and half of each `q` is background, mostly hopeless
+    conditions. No run here separates these.
+- Consequence for `S8`: final-budget outcomes look close to all-or-nothing and depend
+  on where each run happens to stop. Ten replicates would then mostly measure that
+  instability, not targeting. Section 6 forbids selecting a better checkpoint.
+- Other review items:
+  - Sampling: episode shares match `q` with total-variation distance 0.12-0.21.
+    Transition shares differ more, at 0.27-0.44. Episodes run 458-1,127 per child.
+  - Reward check: the parent has 22 conditions that survive at 0.9 without being
+    accepted, and `r002-background` has 17. But survival itself collapses, so the
+    ablation would not address the main problem and should not move first yet.
+  - At 64 episodes, 64 of 64 has a simultaneous lower limit of 0.834, so no pilot
+    cell can be confidently accepted. All lower coverage bounds are zero, as designed.
+- Costs: training took 30 s for 9 children at 4,700-7,800 transitions/s each, with
+  9.5 MB per child. `pilot` took 6.8 minutes and 1.95 GB at 87.7 bytes/transition,
+  mean episode length 128. Snapshots took 23 minutes and 6.7 GB, mean length 166.
+- Forecast check passes: scaling `pilot` gives `S8` about 12 GB and 42 minutes at 12
+  workers, and the 46 GB worst case with twofold margin fits 154 GB free. Longer-
+  surviving children would cost more, up to that worst case.
+- Options for the researcher. Any change is a new versioned configuration for all
+  arms, and no role-3 data exist, so all remain open:
+  1. Stabilize continuation first, by testing a lower LR and fewer epochs or an
+     annealed schedule on all arms and pilot seeds. Recommended.
+  2. Run `S8` unchanged. It is valid, and instability would itself be the result,
+     but it probably cannot answer the targeting question.
+  3. Make continuation stability the question, comparing how often each arm
+     collapses. This redefines the primary outcome.
+- Decision, 5 November 2026: the researcher chose option 1, stabilize first.
+
+### 13.5 Continuation stability sweep
+
+This development sweep picks continuation settings for a v3 configuration. It runs
+under `S7`, before any lock. The rule below was written before any candidate
+trained. Results are development records, and the choice is the researcher's.
+
+- Context: the parent's LR fell linearly from 0.001 to zero and its clip range
+  from 0.2 to zero, so its last updates barely moved it. Continuation holds LR
+  0.0003 and clip 0.2 throughout. This motivates the sweep without proving a cause.
+- Candidates, each changing one setting from v2:
+
+  | Candidate | LR | `n_epochs` |
+  |---|---|---|
+  | `lr1e-4` | 0.0001 | 20 |
+  | `lr3e-5` | 0.00003 | 20 |
+  | `epochs5` | 0.0003 | 5 |
+
+  Clip range, budgets, targets, seeds, and grids stay as in v2. A true annealed
+  schedule needs new code, so it follows only if no candidate passes.
+- Design: replicates 0-2, all three arms, 102,400 transitions, and snapshots at the
+  same three points. Evaluation uses all 273 reference conditions at 16 episodes,
+  on the first 16 role-4 resets, which pair with the v2 pilot. Each candidate has
+  its own study under `artifacts/experiments/cartpole-ppo-boundary-v3dev/`.
+- Scoring is pooled across arms, so the choice cannot favor one curriculum. The
+  36 checkpoints are the 27 snapshots and 9 finals of a candidate.
+  - A checkpoint is **collapsed** if its nominal recovery (0 degrees, 0.5 m) is
+    below 0.90, or its tau = 0.9 coverage is below half the parent's 0.103.
+  - **Stability gate:** at most 1 of 9 finals and at most 3 of 36 checkpoints
+    collapsed. Without this, a run can pass by stopping at a lucky moment.
+  - **Learning gate:** pooled mean recovery of the finals is at least 0.02 above
+    the parent's 0.120. Without this, a frozen policy would pass.
+- Selection: among candidates passing both gates, take the highest pooled mean
+  final recovery. If none passes, stop and report, then test annealing.
+- Limits: three replicates give pilot-grade evidence only. The sweep does not test
+  targeting, and per-arm results stay unread until the v3 pilot.
+- Result, 5 November 2026: all three candidates ran with no failures, as
+  development records on uncommitted source. Recovery and survival recomputed from
+  stored states match all 30,303 cells. Budgets, LR, and update counts hold, and
+  `q` vectors equal v2's. The parent's 16-episode trajectories equal the first 16
+  of the v2 pilot in all 273 cells. The rule's report is `stability-report.json` in
+  the sweep directory. Results below stay pooled across arms.
+
+  | Setting | Collapsed finals | Collapsed checkpoints | Mean final recovery | Mean final coverage | SD of final coverage | Parent conditions kept | Rule |
+  |---|---|---|---|---|---|---|---|
+  | v2, LR 0.0003, 20 epochs | 8 of 9 | 22 of 36 | 0.070 | 0.050 | 0.099 | 4% | Fails both gates |
+  | `lr3e-5` | 0 of 9 | 0 of 36 | 0.162 | 0.141 | 0.015 | 41% | Passes |
+  | `epochs5` | 1 of 9 | 3 of 36 | 0.213 | 0.182 | 0.097 | 50% | **Selected** |
+  | `lr1e-4` | 2 of 9 | 7 of 36 | 0.252 | 0.214 | 0.116 | 57% | Fails stability |
+
+- Reading: lowering the update strength removes the collapse, so its link to
+  update strength now has direct support, though annealing itself stays untested.
+  Stronger settings gain more recovery but keep more instability.
+- The selection is fragile. `epochs5` sits exactly on both stability limits, and one
+  of its finals has exactly 14 accepted conditions, the collapse line. One fewer
+  would have failed it and selected `lr3e-5`. Final coverage also has about six
+  times the spread of `lr3e-5`, and the rule did not consider spread.
+- `lr3e-5` keeps all 36 checkpoints above the line, and its pooled coverage is flat
+  from 51,200 transitions (0.146, 0.157, 0.141). It may leave less room for
+  arms to differ, which the pooled data cannot show.
+- The v3 settings are the researcher's decision. Departing from the rule's pick is
+  allowed but must be recorded as a departure, because it follows these results.
+- Decision, 5 November 2026: the researcher adopted `lr3e-5` for v3. **This departs
+  from the declared rule, which selected `epochs5`,** and it was made after seeing
+  the pooled scores. Reasons: `epochs5` passed with zero margin, and `lr3e-5` has
+  about one-sixth of its spread in final coverage, which matters more for detecting
+  arm differences. Per-arm results were not read. The cost is less recovery gain
+  (0.042 against 0.094), and possibly less room for arms to differ.
+- `configs/experiments/cartpole_ppo_boundary_v3.toml` differs from v2 only in study
+  ID and learning rate, which a test enforces. The v2 config and its records stay
+  as they are, and the v2 pilot remains development data. v3 restarts from `S5`.
 
 **`S8`: confirmatory tier.** This is replicates 100–109 with all three arms.
 

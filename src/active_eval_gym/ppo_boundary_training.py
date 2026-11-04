@@ -431,6 +431,7 @@ def migrate_parent(
         custom_objects={"observation_space": environment.observation_space},
         learning_rate=continuation.learning_rate,
         clip_range=continuation.clip_range,
+        n_epochs=continuation.hyperparameters["n_epochs"],
         seed=seed,
         force_reset=True,
     )

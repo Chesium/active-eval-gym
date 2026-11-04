@@ -20,6 +20,8 @@ PPO_BOUNDARY_ARMS = ("background", "acceptance_boundary", "intermediate")
 PPO_BOUNDARY_SUPPORTS = ("discovery", "reference", "smoke")
 PPO_BOUNDARY_SEED_ROLES = ("discovery", "training", "confirmatory", "pilot", "smoke")
 PPO_BOUNDARY_TIERS = ("smoke", "pilot", "confirmatory")
+# How hard each rollout is optimized may change; the task and batch geometry may not.
+PPO_BOUNDARY_TUNABLE_SETTINGS = ("n_epochs",)
 PPO_BOUNDARY_SNAPSHOT_MODES = ("none", "if-s6-headroom")
 PPO_BOUNDARY_PROBABILITY_BAND_RULE = "ppo-boundary-targets-v1"
 PPO_BOUNDARY_FRONTIER_RULE = "ppo-boundary-targets-v2"
@@ -630,7 +632,7 @@ def _validate_continuation(spec: PPOBoundaryStudySpec) -> None:
     changed = sorted(
         name
         for name, value in continuation.hyperparameters.items()
-        if parent.get(name) != value
+        if parent.get(name) != value and name not in PPO_BOUNDARY_TUNABLE_SETTINGS
     )
     if changed:
         raise ValueError(f"Continuation must preserve parent settings: {changed}.")

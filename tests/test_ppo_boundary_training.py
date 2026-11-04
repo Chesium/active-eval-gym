@@ -994,6 +994,30 @@ def test_a_child_of_another_parent_is_refused(study) -> None:
         )
 
 
+def test_declared_n_epochs_reaches_the_optimizer(study, tmp_path: Path) -> None:
+    config = tmp_path / "config.toml"
+    config.write_text(
+        study["config"].read_text().replace("n_epochs = 20", "n_epochs = 5")
+    )
+    other = {**study, "config": config, "study": tmp_path / "other"}
+    prepare_study(
+        config, artifact_root=study["root"], output_dir=other["study"], allow_dirty=True
+    )
+    shutil.copytree(study["study"] / "distributions", other["study"] / "distributions")
+    record_path = other["study"] / "distributions/distributions.json"
+    record = json.loads(record_path.read_text())
+    provenance = json.loads((other["study"] / "protocol/provenance.json").read_text())
+    record["selection"]["protocol_config_sha256"] = provenance["config_sha256"]
+    record_path.write_text(json.dumps(record))
+
+    job = _jobs(other)[0]
+    run_training_job(job)
+
+    summary = _summary(_child(other, job))
+    assert summary["first_update"]["optimizer_steps"] == 5 * 512 // 256
+    assert summary["resolved_ppo"]["n_epochs"] == 5
+
+
 def test_child_ids_are_fresh_and_ordered(study) -> None:
     spec = _spec(study)
     identifiers = [child["policy_id"] for child in tier_children(spec, "pilot")]
