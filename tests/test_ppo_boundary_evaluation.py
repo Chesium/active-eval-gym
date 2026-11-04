@@ -584,10 +584,13 @@ def test_analysis_records_one_row_per_episode(study) -> None:
     assert all(row["metrics"]["metric_version"] == "episode-summary-v4" for row in rows)
 
 
-def test_coverage_is_only_reported_on_the_reference_support(study) -> None:
+def test_coverage_is_only_reported_on_the_reference_support(
+    study, monkeypatch: pytest.MonkeyPatch
+) -> None:
     _collect(study)
     assert _analyze(study)["coverage"] is None
 
+    monkeypatch.setattr(ppo_boundary_evaluation, "tier_children", lambda *_: ())
     _collect(study, campaign="pilot")
     summary = _analyze(study, campaign="pilot")
 

@@ -36,6 +36,7 @@ SOURCE_PATHS = ("src", "configs", "scripts", "pyproject.toml", "uv.lock")
 SOURCE_SUFFIXES = {".py", ".toml", ".json", ".lock"}
 RECORDED_PACKAGES = ("gymnasium", "numpy", "scipy", "stable-baselines3", "torch")
 PROTOCOL_SCHEMA_VERSION = 1
+POLICIES_DIRECTORY = "policies"
 
 MAX_ROLE = 10
 MAX_OUTER_ROUND = 100
@@ -112,6 +113,30 @@ def condition_seed_sequence(
             spec.seeds.condition_stream_tag,
         ]
     )
+
+
+def tier_children(
+    spec: PPOBoundaryStudySpec, tier_name: str
+) -> tuple[dict[str, Any], ...]:
+    """Return one tier's planned children in a fixed replicate and arm order."""
+
+    tier = spec.tier(tier_name)
+    return tuple(
+        {
+            "policy_id": f"{spec.study_id}-{tier.name}-r{replicate:03d}-{arm}",
+            "tier": tier.name,
+            "arm": arm,
+            "replicate_id": replicate,
+        }
+        for replicate in tier.replicate_ids
+        for arm in spec.curriculum.arms
+    )
+
+
+def child_artifact_dir(study_dir: Path, tier_name: str, policy_id: str) -> Path:
+    """Return where a child's sealed artifact is published."""
+
+    return study_dir / POLICIES_DIRECTORY / tier_name / policy_id
 
 
 def support_conditions(

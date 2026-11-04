@@ -23,6 +23,7 @@ MANIFEST_FILENAME = "manifest.json"
 TRAINING_SUMMARY_FILENAME = "training-summary.json"
 FREEZE_FILENAME = "freeze.json"
 FREEZE_FAILURE_FILENAME = "freeze-failure.json"
+EVALUATION_SEAL_FILENAME = "evaluation-ready.json"
 
 
 def build_lqr_artifact(config_path: Path, output_dir: Path) -> PolicyArtifactMetadata:
@@ -129,6 +130,78 @@ def write_freeze_result(
     path = artifact_dir / filename
     _write_json_new(path, payload)
     return path
+
+
+def write_continued_artifact(
+    design: PolicyDesignSpec, model_path: Path, summary: dict[str, Any]
+) -> PolicyArtifactMetadata:
+    """Record a model that continued another artifact's training."""
+
+    metadata = _artifact_metadata(design, model_path, "stable-baselines3-zip-v1")
+    _write_json_new(model_path.parent / MANIFEST_FILENAME, metadata)
+    _write_json_new(
+        model_path.parent / TRAINING_SUMMARY_FILENAME,
+        {"schema_version": 1, "policy_id": design.policy_id, **summary},
+    )
+    return metadata
+
+
+def write_evaluation_seal(artifact_dir: Path, completion: dict[str, Any]) -> Path:
+    """Bind a finished fixed training budget to its exact checkpoint files.
+
+    A seal records that training finished, not that the policy is any good.
+    Regressing checkpoints receive one too, so that they can still be measured.
+    """
+
+    manifest_bytes = _read_required_bytes(artifact_dir / MANIFEST_FILENAME)
+    metadata = _metadata_from_dict(json.loads(manifest_bytes))
+    path = artifact_dir / EVALUATION_SEAL_FILENAME
+    _write_json_new(
+        path,
+        {
+            **completion,
+            "schema_version": 1,
+            "policy_id": metadata.policy_id,
+            "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+            "model_sha256": metadata.model_sha256,
+            "training_summary_sha256": _sha256(
+                artifact_dir / TRAINING_SUMMARY_FILENAME
+            ),
+            "completed_fixed_budget": True,
+        },
+    )
+    return path
+
+
+def verify_evaluation_seal(artifact_dir: Path) -> dict[str, Any]:
+    """Return a seal after checking that it matches the files it binds."""
+
+    seal = json.loads(_read_required_bytes(artifact_dir / EVALUATION_SEAL_FILENAME))
+    manifest_bytes = _read_required_bytes(artifact_dir / MANIFEST_FILENAME)
+    metadata = _metadata_from_dict(json.loads(manifest_bytes))
+    if seal.get("completed_fixed_budget") is not True:
+        raise ValueError(f"Policy {metadata.policy_id!r} has no completed budget.")
+    if seal.get("policy_id") != metadata.policy_id:
+        raise ValueError("Evaluation seal policy ID does not match its manifest.")
+    if seal.get("manifest_sha256") != hashlib.sha256(manifest_bytes).hexdigest():
+        raise ValueError("Evaluation seal does not match the current manifest.")
+    if seal.get("model_sha256") != metadata.model_sha256:
+        raise ValueError("Evaluation seal does not match the manifest's model.")
+    if seal["model_sha256"] != _sha256(artifact_dir / metadata.model_filename):
+        raise ValueError("Evaluation seal does not match the model file.")
+    summary_hash = _sha256(artifact_dir / TRAINING_SUMMARY_FILENAME)
+    if seal.get("training_summary_sha256") != summary_hash:
+        raise ValueError("Evaluation seal does not match the training summary.")
+    return seal
+
+
+def load_evaluation_ready_artifact(
+    artifact_dir: Path,
+) -> tuple[Any, PolicyArtifactMetadata]:
+    """Load a sealed checkpoint, whether or not it would pass a nominal gate."""
+
+    verify_evaluation_seal(artifact_dir)
+    return load_policy_artifact(artifact_dir, require_frozen=False)
 
 
 def _artifact_metadata(

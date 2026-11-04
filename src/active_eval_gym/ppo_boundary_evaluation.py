@@ -8,6 +8,7 @@ This module records raw trajectories only; metrics belong to the analysis module
 import json
 import multiprocessing
 import traceback
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,13 +17,19 @@ from typing import Any
 from active_eval_gym.config import PPOBoundaryStudySpec
 from active_eval_gym.envs.perturbations import PerturbationSpec
 from active_eval_gym.evaluate import make_artifact_environment
-from active_eval_gym.policies.artifacts import load_policy_artifact
+from active_eval_gym.policies.artifacts import (
+    load_evaluation_ready_artifact,
+    load_policy_artifact,
+    verify_evaluation_seal,
+)
 from active_eval_gym.ppo_boundary import (
+    child_artifact_dir,
     evaluation_episode_seeds,
     load_protocol,
     source_hashes,
     source_state,
     support_conditions,
+    tier_children,
     verify_parent,
 )
 from active_eval_gym.rollout import collect_episode
@@ -59,6 +66,17 @@ class EvaluationJob:
     shard_path: str
     compression_level: int
     header: dict[str, Any]
+    sealed: bool = False
+
+
+@dataclass(frozen=True)
+class EvaluationCheckpoint:
+    """One checkpoint a campaign evaluates, and how it must be verified."""
+
+    checkpoint_id: str
+    artifact_dir: Path
+    model_sha256: str
+    sealed: bool
 
 
 def campaign_design(spec: PPOBoundaryStudySpec, campaign: str) -> dict[str, Any]:
@@ -80,12 +98,59 @@ def campaign_design(spec: PPOBoundaryStudySpec, campaign: str) -> dict[str, Any]
     }
 
 
+def campaign_checkpoints(
+    spec: PPOBoundaryStudySpec,
+    campaign: str,
+    *,
+    study_dir: Path,
+    artifact_root: Path,
+    allow_dirty: bool = False,
+) -> tuple[EvaluationCheckpoint, ...]:
+    """Return the parent, then every planned child of a tier campaign.
+
+    Every child must be sealed first, so no child can depend on this campaign's
+    outcomes. A regressing child is sealed like any other and stays in the list.
+    """
+
+    parent = EvaluationCheckpoint(
+        spec.parent_policy_id,
+        artifact_root / spec.parent_policy_id,
+        spec.parent_model_sha256,
+        sealed=False,
+    )
+    if campaign == DISCOVERY:
+        return (parent,)
+    children = []
+    for child in tier_children(spec, campaign):
+        directory = child_artifact_dir(study_dir, campaign, child["policy_id"])
+        if not directory.is_dir():
+            raise ValueError(
+                f"Campaign {campaign!r} requires every child sealed first; "
+                f"{child['policy_id']} is missing."
+            )
+        seal = verify_evaluation_seal(directory)
+        if seal["development_record"] and not allow_dirty:
+            raise ValueError(
+                f"Child {child['policy_id']} is a development record. "
+                "Pass allow_dirty only for temporary development runs."
+            )
+        if seal["parent_model_sha256"] != spec.parent_model_sha256:
+            raise ValueError(f"Child {child['policy_id']} has another parent.")
+        children.append(
+            EvaluationCheckpoint(
+                child["policy_id"], directory, seal["model_sha256"], sealed=True
+            )
+        )
+    return (parent, *children)
+
+
 def plan_jobs(
     spec: PPOBoundaryStudySpec,
     campaign: str,
     *,
     study_dir: Path,
     artifact_root: Path,
+    allow_dirty: bool = False,
 ) -> tuple[EvaluationJob, ...]:
     """Expand a campaign into its exact, deterministically ordered jobs."""
 
@@ -95,33 +160,44 @@ def plan_jobs(
         raise ValueError("The shard layout requires gzip compression.")
     design = campaign_design(spec, campaign)
     root = study_dir / CAMPAIGN_DIRECTORIES[campaign] / SHARD_DIRECTORY
-    checkpoint = spec.parent_policy_id
+    checkpoints = campaign_checkpoints(
+        spec,
+        campaign,
+        study_dir=study_dir,
+        artifact_root=artifact_root,
+        allow_dirty=allow_dirty,
+    )
+    conditions = support_conditions(spec, design["support"])
     return tuple(
         EvaluationJob(
-            job_id=f"{checkpoint}/{condition.condition_id}",
-            artifact_dir=str(artifact_root / checkpoint),
-            shard_path=str(root / checkpoint / f"{condition.condition_id}.jsonl.gz"),
+            job_id=f"{checkpoint.checkpoint_id}/{condition.condition_id}",
+            artifact_dir=str(checkpoint.artifact_dir),
+            shard_path=str(
+                root / checkpoint.checkpoint_id / f"{condition.condition_id}.jsonl.gz"
+            ),
             compression_level=spec.storage.compression_level,
             header={
                 "study_id": spec.study_id,
                 "campaign": campaign,
-                "checkpoint_id": checkpoint,
-                "model_sha256": spec.parent_model_sha256,
+                "checkpoint_id": checkpoint.checkpoint_id,
+                "model_sha256": checkpoint.model_sha256,
                 "condition_id": condition.condition_id,
                 "perturbation": to_jsonable(condition.perturbation),
                 "seed_role": design["seed_role"],
                 "episode_seeds": list(design["episode_seeds"]),
                 "deterministic": True,
             },
+            sealed=checkpoint.sealed,
         )
-        for condition in support_conditions(spec, design["support"])
+        for checkpoint in checkpoints
+        for condition in conditions
     )
 
 
 def run_evaluation_job(job: EvaluationJob) -> int:
     """Collect one job's episodes and publish its shard atomically."""
 
-    policy, metadata = _loaded_checkpoint(job.artifact_dir)
+    policy, metadata = _loaded_checkpoint(job.artifact_dir, sealed=job.sealed)
     if metadata.model_sha256 != job.header["model_sha256"]:
         raise ValueError(f"Job {job.job_id} loaded an unexpected checkpoint.")
     perturbation = PerturbationSpec(
@@ -171,12 +247,18 @@ def collect_campaign(
             "Pass allow_dirty only for temporary development runs."
         )
     verify_parent(spec, artifact_root)
-    jobs = plan_jobs(spec, campaign, study_dir=study_dir, artifact_root=artifact_root)
+    jobs = plan_jobs(
+        spec,
+        campaign,
+        study_dir=study_dir,
+        artifact_root=artifact_root,
+        allow_dirty=allow_dirty,
+    )
     directory = study_dir / CAMPAIGN_DIRECTORIES[campaign]
     _write_or_match_plan(directory, spec, campaign, jobs, provenance, source)
 
     pending = [job for job in jobs if not _shard_complete(job)]
-    failed = _run_jobs(pending, directory, spec.continuation.torch_threads, workers)
+    failed = run_jobs(pending, directory, spec.continuation.torch_threads, workers)
     complete = not failed
     if complete and not (directory / COLLECTION_FILENAME).exists():
         write_json_new(
@@ -196,6 +278,17 @@ def collect_campaign(
         "failed_jobs": failed,
         "complete": complete,
     }
+
+
+def write_or_match_json(path: Path, value: Any) -> None:
+    """Record a plan once, then refuse any resume that would differ from it."""
+
+    plan = to_jsonable(value)
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        write_json_new(path, plan)
+    elif json.loads(path.read_text()) != plan:
+        raise ValueError(f"Resume does not match the recorded plan: {path}.")
 
 
 def _write_or_match_plan(
@@ -230,12 +323,7 @@ def _write_or_match_plan(
             ],
         }
     )
-    path = directory / PLAN_FILENAME
-    if not path.exists():
-        directory.mkdir(parents=True, exist_ok=True)
-        write_json_new(path, plan)
-    elif json.loads(path.read_text()) != plan:
-        raise ValueError(f"Resume does not match the recorded plan: {path}.")
+    write_or_match_json(directory / PLAN_FILENAME, plan)
 
 
 def _shard_complete(job: EvaluationJob) -> bool:
@@ -248,15 +336,22 @@ def _shard_complete(job: EvaluationJob) -> bool:
     return True
 
 
-def _run_jobs(
-    jobs: list[EvaluationJob], directory: Path, threads: int, workers: int
+def run_jobs(
+    jobs: list[Any],
+    directory: Path,
+    threads: int,
+    workers: int,
+    run: Callable[[Any], Any] | None = None,
 ) -> list[str]:
+    """Run jobs serially or in processes, recording each failure by job ID."""
+
+    run = run or run_evaluation_job
     failed = []
     if workers == 1:
         _initialize_worker(threads)
         for job in jobs:
             try:
-                run_evaluation_job(job)
+                run(job)
             except Exception as error:
                 failed.append(_record_failure(directory, job, error))
         return failed
@@ -266,7 +361,7 @@ def _run_jobs(
         initializer=_initialize_worker,
         initargs=(threads,),
     ) as executor:
-        futures = [(job, executor.submit(run_evaluation_job, job)) for job in jobs]
+        futures = [(job, executor.submit(run, job)) for job in jobs]
         for job, future in futures:
             error = future.exception()
             if error is not None:
@@ -280,10 +375,13 @@ def _initialize_worker(threads: int) -> None:
     torch.set_num_threads(threads)
 
 
-def _loaded_checkpoint(artifact_dir: str) -> tuple[Any, Any]:
+def _loaded_checkpoint(artifact_dir: str, *, sealed: bool) -> tuple[Any, Any]:
     if artifact_dir not in _LOADED_CHECKPOINTS:
-        _LOADED_CHECKPOINTS[artifact_dir] = load_policy_artifact(
-            Path(artifact_dir), require_frozen=True
+        directory = Path(artifact_dir)
+        _LOADED_CHECKPOINTS[artifact_dir] = (
+            load_evaluation_ready_artifact(directory)
+            if sealed
+            else load_policy_artifact(directory, require_frozen=True)
         )
     return _LOADED_CHECKPOINTS[artifact_dir]
 

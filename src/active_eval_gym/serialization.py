@@ -29,6 +29,8 @@ EPISODE_SHARD_LAYOUT = "checkpoint-condition-shard-v1"
 SHARD_HEADER_ROW = "shard-header"
 SHARD_EPISODE_ROW = "episode"
 SHARD_FOOTER_ROW = "shard-footer"
+TRANSITION_SHARD_LAYOUT = "training-transition-shard-v1"
+TRANSITION_HEADER_ARRAY = "__header__"
 
 
 @dataclass(frozen=True)
@@ -204,6 +206,61 @@ def read_episode_shard(path: Path) -> Iterator[SavedEpisode]:
                 raise ValueError(f"Shard {path} does not match its footer.")
     except EOFError as error:
         raise ValueError(f"Shard {path} is truncated.") from error
+
+
+def write_transition_shard(
+    path: Path, header: Mapping[str, Any], arrays: Mapping[str, np.ndarray]
+) -> dict[str, str]:
+    """Write training columns to one new compressed file and return its digests.
+
+    The zip container embeds timestamps, so the file digest protects these bytes
+    only. The content digest covers the columns, so repeated runs can be compared.
+    """
+
+    if TRANSITION_HEADER_ARRAY in arrays:
+        raise ValueError(f"Column name {TRANSITION_HEADER_ARRAY!r} is reserved.")
+    content = transition_content_sha256(arrays)
+    text = json.dumps(
+        to_jsonable(
+            {**header, "layout": TRANSITION_SHARD_LAYOUT, "content_sha256": content}
+        ),
+        allow_nan=False,
+        sort_keys=True,
+    )
+    with path.open("xb") as file:
+        np.savez_compressed(file, **{TRANSITION_HEADER_ARRAY: np.array(text)}, **arrays)
+    return {
+        "file_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "content_sha256": content,
+    }
+
+
+def read_transition_shard(path: Path) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
+    """Load one training shard and verify its columns against their digest."""
+
+    with np.load(path, allow_pickle=False) as data:
+        arrays = {name: data[name] for name in data.files}
+    header = json.loads(str(arrays.pop(TRANSITION_HEADER_ARRAY)))
+    if header.get("layout") != TRANSITION_SHARD_LAYOUT:
+        raise ValueError(f"Unsupported training shard layout in {path}.")
+    actual = transition_content_sha256(arrays)
+    if actual != header["content_sha256"]:
+        raise ValueError(
+            f"Training shard digest mismatch in {path}: "
+            f"expected {header['content_sha256']}, received {actual}."
+        )
+    return header, arrays
+
+
+def transition_content_sha256(arrays: Mapping[str, np.ndarray]) -> str:
+    """Hash each column's name, type, shape, and values in a fixed order."""
+
+    digest = hashlib.sha256()
+    for name in sorted(arrays):
+        array = np.asarray(arrays[name])
+        digest.update(f"{name}|{array.dtype.str}|{array.shape}|".encode())
+        digest.update(array.tobytes())
+    return digest.hexdigest()
 
 
 def write_json_new(path: Path, value: Any) -> None:

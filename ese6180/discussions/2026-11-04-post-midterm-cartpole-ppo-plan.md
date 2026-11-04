@@ -819,7 +819,7 @@ record outstanding.**
   declared number of checkpoint–condition pairs.
 
 **`S3`: run discovery and construct targets. Paused on the stop rule, then v2
-adopted 4 November 2026. The study's real v2 record awaits a commit.**
+adopted and gate passed 4 November 2026.**
 
 - Work: run the parent on all 143 conditions with 32 role-1 episodes each, then
   serialize the three `q` vectors with their masks and provenance. Reference
@@ -879,12 +879,17 @@ adopted 4 November 2026. The study's real v2 record awaits a commit.**
   Total-variation distances are 0.448 and 0.483 from `background` and 0.367
   between the targeted arms. `intermediate` has effective support 14.7 and puts
   18.5% of episodes on one condition (0 degrees, 0.3 m).
-- Remaining: commit v2, then run `prepare`, `evaluate`, `analyze`, and `targets`
-  for `artifacts/experiments/cartpole-ppo-boundary-v2`. The script now defaults
-  to the v2 config. `S6` may then start once `S4`–`S5` are complete.
+- Real v2 record: `prepare`, `evaluate`, `analyze`, and `targets` ran at clean
+  commit `7e8c534` into `artifacts/experiments/cartpole-ppo-boundary-v2`. It is
+  not a development record. Its 143 jobs and 4,576 episodes match every v1
+  trajectory digest, and its contrast figures equal the preview above. The
+  researcher reviewed those figures. No smoke, pilot, or reference data exist.
+  The script now defaults to the v2 config. `S6` may start once `S4`–`S5` are
+  complete.
 
-**`S4`: build the reset-level condition sampler.** The current recovery wrapper
-fixes length and angle at construction, so per-episode conditions need new code.
+**`S4`: build the reset-level condition sampler. Gate passed 5 November 2026;
+commit outstanding.** The current recovery wrapper fixes length and angle at
+construction, so per-episode conditions need new code.
 
 - Work: move the angle, length, `polemass_length`, and cutoff logic into one
   shared function used by both the fixed wrapper and the sampler. Place the
@@ -895,8 +900,17 @@ fixes length and angle at construction, so per-episode conditions need new code.
   episode, the observation Box is common, auto-resets follow the declared stream,
   and every other Section 10 sampler check passes. Existing fixed-wrapper
   trajectories must not change.
+- Result: added `CartPoleRecoveryTask` in `envs/perturbations.py`, now used by
+  both the fixed wrapper and `CartPoleRecoveryConditionSampler` in
+  `envs/condition_sampler.py`. The sampler uses one uniform draw per episode
+  through the arm's inverse CDF, so arms share their underlying draws. Sixty
+  sampled episodes, crossing many conditions in one environment, match fresh
+  fixed-wrapper episodes exactly.
+- Existing trajectories: replaying all 143 `S3` conditions after the refactor
+  reproduced all 4,576 stored trajectory digests.
 
-**`S5`: build continuation, capture, and sealing.**
+**`S5`: build continuation, capture, and sealing. Gate passed 5 November 2026;
+commit outstanding.**
 
 - Work: add the Section 6 migration, the `train` subcommand, raw transition
   shards, rollout-level policy hashes, child artifacts, `evaluation-ready.json`,
@@ -907,6 +921,40 @@ fixes length and angle at construction, so per-episode conditions need new code.
   the new-transition count is exact; the same seed twice gives identical final
   weights; chunked and single-call runs give identical weights, or the chunking
   is dropped; the parent hash is unchanged; a regressing child seals and loads.
+- Result: added `ppo_boundary_training.py`, the `train` subcommand, transition
+  shards in `serialization.py`, and seals in `policies/artifacts.py`. Evaluation
+  now plans the parent plus every sealed child, and the command line opens
+  `smoke` and `pilot`. A tier campaign refuses to start until all its children
+  are sealed. Confirmatory training and collection stay refused until the `S7`
+  lock. All 328 tests pass, and 65 deliberately broken safeguards each fail a test.
+- Gaps those broken safeguards exposed, now closed: no test showed that a job
+  trains on its own arm's distribution, or that replicates apply their own seed.
+  Without `seed=`, SB3 reuses the parent's stored seed, so runs stay repeatable
+  while every replicate shares one action stream. Seals also now hash the model
+  file itself, not just the digest recorded in the manifest.
+- Real-parent run, pilot budget and replicate 0, temporary storage, development
+  source, no child evaluated:
+  - The first optimizer step used LR 0.0003 and clip 0.2, replacing the restored
+    -9.6e-07. Each arm gained exactly 102,400 transitions and 8,000 updates.
+  - Two runs with the same seed, and chunked against single-call training, gave
+    identical weights, optimizer state, and transition data. Chunking stays.
+  - The parent hash is unchanged. Snapshots equal the next rollout's recorded
+    behavior policy, which confirms that they are post-update.
+  - Cost: about 7,500 transitions/s on one core, 92 bytes/transition, and 9.5 MB
+    per child. `S6` supplies the formal measurement.
+- Point for `S7` review: realized episode shares match `q` to within sampling
+  noise (total-variation distance 0.13-0.19, against about 0.16 expected for
+  background). Transition shares differ more (0.27-0.38), because surviving
+  conditions run longer, as Section 5 expects. Arms also differ in episode count:
+  1,008 for `acceptance_boundary`, 879 for `background`, and 458 for `intermediate`.
+  PPO's updates therefore see less contrast than `q` suggests.
+- Layout: children go in `policies/<tier>/<policy_id>/`, with snapshots under
+  `snapshots/`, and transitions in `training_raw/<tier>/<policy_id>/`. An
+  interrupted attempt moves to `training_raw/<tier>/abandoned/` and reruns from
+  the parent with the same seeds. Publishing a sealed policy marks completion.
+- Scope limits: real children have not been evaluated. Pilot snapshots are not
+  yet in evaluation planning, pending the D3 decision in `S6`. `S6` needs these
+  changes committed, because `train` and `evaluate` refuse uncommitted source.
 
 **`S6`: smoke tier.** This is replicate 900 with all three arms, 8,192
 transitions each, and evaluation on the 11-point support. It makes no scientific

@@ -74,12 +74,18 @@ class CartPoleAngleLengthPerturbation(gym.Wrapper):
         return np.asarray(state, dtype=np.float32), info
 
 
-class CartPoleRecoveryAngleLengthPerturbation(gym.Wrapper):
-    """Set an exact reset angle, plant length, and recovery-study cutoff."""
+@dataclass(frozen=True)
+class CartPoleRecoveryTask:
+    """One recovery condition, shared by the fixed wrapper and condition sampler."""
 
-    def __init__(self, env: gym.Env, spec: PerturbationSpec) -> None:
-        super().__init__(env)
-        _require_cartpole(env, spec.name)
+    initial_theta: float
+    length: float
+    theta_threshold: float
+
+    @classmethod
+    def from_spec(cls, spec: PerturbationSpec) -> "CartPoleRecoveryTask":
+        """Validate a recovery specification and convert its angles to radians."""
+
         _require_parameters(
             spec, {"initial_theta_deg", "length", "theta_threshold_deg"}
         )
@@ -91,34 +97,59 @@ class CartPoleRecoveryAngleLengthPerturbation(gym.Wrapper):
         )
         if not isfinite(initial_theta) or abs(initial_theta) >= threshold:
             raise ValueError(
-                "abs(initial_theta_deg) must be strictly less than "
-                "theta_threshold_deg."
+                "abs(initial_theta_deg) must be strictly less than theta_threshold_deg."
             )
         length = _positive_number(spec.parameters["length"], "length")
-        base = env.unwrapped
-        base.length = length
-        base.polemass_length = base.masspole * base.length
-        base.theta_threshold_radians = radians(threshold)
+        return cls(radians(initial_theta), length, radians(threshold))
 
-        low = np.asarray(env.observation_space.low, dtype=np.float32).copy()
-        high = np.asarray(env.observation_space.high, dtype=np.float32).copy()
-        low[2] = -2.0 * base.theta_threshold_radians
-        high[2] = 2.0 * base.theta_threshold_radians
-        recovery_space = gym.spaces.Box(
-            low=low, high=high, dtype=env.observation_space.dtype
+    def apply_plant(self, env: gym.Env) -> None:
+        """Set the plant length, its cached product, and the failure cutoff."""
+
+        base = env.unwrapped
+        base.length = self.length
+        base.polemass_length = base.masspole * base.length
+        base.theta_threshold_radians = self.theta_threshold
+
+    def reset(self, env: gym.Env, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
+        """Reset, keeping the nuisance draws and replacing only the pole angle."""
+
+        _, info = env.reset(**kwargs)
+        base = env.unwrapped
+        state = np.asarray(base.state, dtype=float).copy()
+        state[2] = self.initial_theta
+        base.state = state
+        return np.asarray(state, dtype=np.float32), info
+
+
+def install_recovery_observation_space(
+    env: gym.Env, theta_threshold: float
+) -> gym.spaces.Box:
+    """Widen the pole-angle bounds to match a recovery-study cutoff."""
+
+    low = np.asarray(env.observation_space.low, dtype=np.float32).copy()
+    high = np.asarray(env.observation_space.high, dtype=np.float32).copy()
+    low[2] = -2.0 * theta_threshold
+    high[2] = 2.0 * theta_threshold
+    space = gym.spaces.Box(low=low, high=high, dtype=env.observation_space.dtype)
+    env.unwrapped.observation_space = space
+    return space
+
+
+class CartPoleRecoveryAngleLengthPerturbation(gym.Wrapper):
+    """Set an exact reset angle, plant length, and recovery-study cutoff."""
+
+    def __init__(self, env: gym.Env, spec: PerturbationSpec) -> None:
+        super().__init__(env)
+        _require_cartpole(env, spec.name)
+        self._task = CartPoleRecoveryTask.from_spec(spec)
+        self._task.apply_plant(env)
+        self.observation_space = install_recovery_observation_space(
+            env, self._task.theta_threshold
         )
-        base.observation_space = recovery_space
-        self.observation_space = recovery_space
-        self._initial_theta = radians(initial_theta)
         self.perturbation_spec = spec
 
     def reset(self, **kwargs: Any) -> tuple[np.ndarray, dict[str, Any]]:
-        _, info = self.env.reset(**kwargs)
-        base = self.env.unwrapped
-        state = np.asarray(base.state, dtype=float).copy()
-        state[2] = self._initial_theta
-        base.state = state
-        return np.asarray(state, dtype=np.float32), info
+        return self._task.reset(self.env, **kwargs)
 
 
 class CartPoleFixedInitialStatePerturbation(gym.Wrapper):

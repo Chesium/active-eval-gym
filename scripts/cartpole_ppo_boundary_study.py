@@ -1,14 +1,20 @@
-"""Prepare, evaluate, and analyze the CartPole PPO boundary-targeting study."""
+"""Prepare, train, evaluate, and analyze the CartPole PPO boundary study."""
 
 import argparse
 from pathlib import Path
 
 from active_eval_gym.ppo_boundary import prepare_study
 from active_eval_gym.ppo_boundary_analysis import analyze_campaign
-from active_eval_gym.ppo_boundary_evaluation import DISCOVERY, collect_campaign
+from active_eval_gym.ppo_boundary_evaluation import (
+    CAMPAIGN_DIRECTORIES,
+    collect_campaign,
+)
 from active_eval_gym.ppo_boundary_targets import build_distributions
+from active_eval_gym.ppo_boundary_training import train_campaign
 
 DEFAULT_CONFIG = Path("configs/experiments/cartpole_ppo_boundary_v2.toml")
+CAMPAIGNS = tuple(CAMPAIGN_DIRECTORIES)
+TIERS = ("smoke", "pilot", "confirmatory")
 
 
 def main() -> None:
@@ -31,7 +37,7 @@ def main() -> None:
         "--artifact-root", type=Path, default=Path("artifacts/policies")
     )
     evaluate.add_argument("--study", type=Path, required=True)
-    evaluate.add_argument("--campaign", choices=(DISCOVERY,), required=True)
+    evaluate.add_argument("--campaign", choices=CAMPAIGNS, required=True)
     evaluate.add_argument("--workers", type=int, default=1)
     evaluate.add_argument(
         "--allow-dirty",
@@ -41,7 +47,7 @@ def main() -> None:
     analyze = commands.add_parser("analyze", help="analyze saved shards only")
     analyze.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     analyze.add_argument("--study", type=Path, required=True)
-    analyze.add_argument("--campaign", choices=(DISCOVERY,), required=True)
+    analyze.add_argument("--campaign", choices=CAMPAIGNS, required=True)
     analyze.add_argument("--output", type=Path)
     analyze.add_argument("--workers", type=int, default=1)
     targets = commands.add_parser("targets", help="freeze training distributions")
@@ -52,6 +58,17 @@ def main() -> None:
         "--allow-dirty",
         action="store_true",
         help="allow a temporary development record on uncommitted source",
+    )
+    train = commands.add_parser("train", help="train or resume a tier's children")
+    train.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    train.add_argument("--artifact-root", type=Path, default=Path("artifacts/policies"))
+    train.add_argument("--study", type=Path, required=True)
+    train.add_argument("--tier", choices=TIERS, required=True)
+    train.add_argument("--workers", type=int, default=1)
+    train.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="allow a temporary development run on uncommitted source",
     )
     args = parser.parse_args()
     if args.command == "prepare":
@@ -80,6 +97,22 @@ def main() -> None:
         )
         if not result["complete"]:
             raise SystemExit(f"Incomplete campaign: {result['failed_jobs']}")
+    elif args.command == "train":
+        result = train_campaign(
+            args.config,
+            study_dir=args.study,
+            tier=args.tier,
+            artifact_root=args.artifact_root,
+            workers=args.workers,
+            allow_dirty=args.allow_dirty,
+        )
+        print(
+            f"Tier {result['tier']}: {result['planned_jobs']} planned, "
+            f"{result['already_complete_jobs']} already complete, "
+            f"{len(result['failed_jobs'])} failed."
+        )
+        if not result["complete"]:
+            raise SystemExit(f"Incomplete tier: {result['failed_jobs']}")
     elif args.command == "targets":
         report = build_distributions(
             args.config,

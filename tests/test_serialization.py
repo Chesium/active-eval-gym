@@ -13,9 +13,12 @@ from active_eval_gym.serialization import (
     METADATA_FILENAME,
     METRICS_FILENAME,
     TRAJECTORY_FILENAME,
+    read_transition_shard,
     to_jsonable,
+    transition_content_sha256,
     write_episode,
     write_metrics,
+    write_transition_shard,
 )
 from tests.helpers import rollout_provenance
 
@@ -138,3 +141,65 @@ def _collect(env_id: str, *, seed: int):
         )
     finally:
         env.close()
+
+
+def _columns() -> dict[str, np.ndarray]:
+    return {
+        "state": np.arange(8.0).reshape(2, 4),
+        "action": np.array([0, 1], dtype=np.uint8),
+        "rollout_policy_sha256": np.array(["a" * 64, "b" * 64], "U64"),
+    }
+
+
+def test_transition_shard_round_trips_columns_and_header(tmp_path: Path) -> None:
+    path = tmp_path / "transitions.npz"
+    digests = write_transition_shard(path, {"policy_id": "child"}, _columns())
+
+    header, arrays = read_transition_shard(path)
+
+    assert header["policy_id"] == "child"
+    assert header["layout"] == "training-transition-shard-v1"
+    assert header["content_sha256"] == digests["content_sha256"]
+    assert digests["file_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert set(arrays) == set(_columns())
+    for name, column in _columns().items():
+        np.testing.assert_array_equal(arrays[name], column)
+        assert arrays[name].dtype == column.dtype
+
+
+def test_transition_shard_refuses_to_overwrite(tmp_path: Path) -> None:
+    path = tmp_path / "transitions.npz"
+    write_transition_shard(path, {}, _columns())
+    original = path.read_bytes()
+
+    with pytest.raises(FileExistsError):
+        write_transition_shard(path, {}, _columns())
+    assert path.read_bytes() == original
+
+
+def test_transition_shard_detects_changed_columns(tmp_path: Path) -> None:
+    good = tmp_path / "good.npz"
+    write_transition_shard(good, {}, _columns())
+    with np.load(good) as data:
+        arrays = {name: data[name] for name in data.files}
+    arrays["action"] = np.array([1, 1], dtype=np.uint8)
+    bad = tmp_path / "bad.npz"
+    np.savez_compressed(bad, **arrays)
+
+    with pytest.raises(ValueError, match="digest mismatch"):
+        read_transition_shard(bad)
+
+
+def test_transition_content_digest_covers_type_shape_and_name() -> None:
+    base = np.zeros(4, dtype=np.float32)
+    digest = transition_content_sha256({"a": base})
+
+    assert digest != transition_content_sha256({"b": base})
+    assert digest != transition_content_sha256({"a": base.reshape(2, 2)})
+    assert digest != transition_content_sha256({"a": base.astype(np.int32)})
+    assert digest == transition_content_sha256({"a": base.copy()})
+
+
+def test_transition_shard_reserves_its_header_name(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="reserved"):
+        write_transition_shard(tmp_path / "x.npz", {}, {"__header__": np.zeros(1)})
