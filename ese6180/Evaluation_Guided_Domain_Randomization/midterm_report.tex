@@ -76,7 +76,7 @@ $\tau_K(z)=(x_0,\ldots,x_H)$ has $H$ transitions of that one plant.
 Matrix norms $\|\cdot\|_2$ and $\|\cdot\|_F$ are operator and Frobenius.
 
 \textbf{Performance.}
-Fix state-cost weight $Q\succeq0$, input-cost weight $R\succeq0$, cost threshold
+Fix state-cost weight $Q\succeq0$, input-cost weight $R\succ0$, cost threshold
 $h>0$, and evaluation distribution $\mu$ on $\Theta\times\mathcal X_0$, which
 weights conditions when measuring overall performance and never changes. The
 trajectory cost, acceptable set, and coverage (acceptable fraction) are
@@ -164,7 +164,7 @@ implies neither; the update uses this test, not the bound.
 Keep $\mu$ fixed while adapting a training distribution $q$ on a finite condition
 grid $\mathcal Z$. Background distribution $q_{\mathrm{base}}$ assigns positive
 weight to every condition, for broad training. Target distribution
-$q_{\mathrm{tar}}$ restricts these weights to the band $|J_{H,K}-h|\le w$, with
+$q_{\mathrm{tar}}$ restricts these weights to the \emph{boundary band} $|J_{H,K}-h|\le w$, with
 half-width $w>0$, and normalizes them (background if the band is empty). With target mixture weight $\lambda\in[0,1)$, set
 $q=(1-\lambda)q_{\mathrm{base}}+\lambda q_{\mathrm{tar}}$. The objective is
 $F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z)$ over candidate
@@ -199,6 +199,9 @@ $j=0,\ldots,J_{\max}$, that meets the Armijo condition
 $F_q(K+sD)\le F_q(K)-c_As\|D\|_F^2$ \citep{armijo1966minimization}. If none does,
 return $K$. With strict margins and smooth costs, an uncapped search succeeds. A fixed
 step grid would create false target effects.
+\emph{Safe descent need not preserve coverage:} in a two-plant scalar example with hand-set $q$,
+an accepted step lowers $F_q$ and keeps every verified margin positive, yet coverage falls from
+$1$ to $1/2$. Boundary targeting gives $D=0$ there, so this does not refute it.
 
 \section{Preliminary results}\label{sec:results}
 Experiments check the statements above and measure how components interact. Two-plant linear families run the update of Section~\ref{sec:approach} for
@@ -243,14 +246,6 @@ then shrinks under large steps but is still growing at round 3 under small ones.
 plants keep the lead, while background targeting trades gains for losses and makes no net
 progress. About a third of random and rotated pairs have no shared certificate on our grid.
 
-\textbf{Stability and descent do not imply coverage.}
-Take $A(\theta)=\theta$, $B=1$, $\theta\in\{0,1\}$, $x_0=1$, $Q=1$, $R=0$, $H=2$,
-$h=1.25$, $K=0.5$, $P=1$, uniform evaluation weights, and $q=(1/4,3/4)$. With $s_0=0.4$,
-$c_A=\rho=0.5$, and $\kappa=0.25$, the accepted $\Delta K=0.2$ lowers $F_q$ from $1.25$ to
-$1.19$, yet coverage falls from $1$ to $1/2$ while the smallest margin stays $0.51$. The
-band rule gives $D=0$ here, so this refutes ``stability plus descent implies coverage'',
-not boundary targeting.
-
 \textbf{CartPole with PPO (development pilot).}
 With no certificate, we ran the loop from a frozen PPO policy: evaluate recovery
 across initial angle and pole length, refresh the frontier, retrain. On held-out
@@ -273,8 +268,8 @@ not mean retained competence.
 \textbf{Challenges.}
 \emph{A conservative, sign-blind safety test:} it charges worst-case margin use even when an
 update raises the margin, so step capacity can fall far below what stability needs.
-\emph{A vacuous cost-drift bound:} losses lie within the largest possible cost change
-$b_J(\theta)$ below $h$, so that band's $\mu$-mass bounds lost coverage, but in our first
+\emph{A vacuous cost-drift bound:} only conditions within the largest possible cost change
+$b_J(\theta)$ below $h$ can be lost, so their $\mu$-mass bounds lost coverage, but in our first
 test $b_J$ was roughly 50 times the actual change.
 
 \textbf{Remaining work.}

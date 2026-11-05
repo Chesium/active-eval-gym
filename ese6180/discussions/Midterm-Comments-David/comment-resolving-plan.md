@@ -6,7 +6,8 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 
 - **Codes:** `M01`-`M14` are this tracker's items. `C001`-`C014` are the Overleaf
   comment IDs. All 14 comments are covered below.
-- **Line numbers:** these refer to `midterm_report.tex` as of the export.
+- **Line numbers:** item locations follow the current `midterm_report.tex`. The M02 and M03 edit
+  tables use the line numbers from when each edit was made.
 - **Owner:** Shimin, Agent, Discuss (Shimin and agent together), or Unassigned.
 - **Status:** todo, discussing, drafted, or done.
 - **Original notes:** these are kept verbatim from the first version of this plan.
@@ -18,24 +19,24 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 | --- | --- | --- | --- | --- | --- | --- |
 | [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | todo |
 | [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | done |
-| [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | todo |
+| [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | done |
 | [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | todo |
 | [M05](#m05---certificate-loss-intuition) | Certificate loss intuition | C006 | 88-114 | | Shimin, after discussion | todo |
 | [M06](#m06---uniform-bound-idea) | Uniform bound idea | C007 | 117 | | Agent | todo |
 | [M07](#m07---what-verifies-stability) | What verifies stability | C008 | 154 | | Discuss | todo |
 | [M08](#m08---targeting-idea) | Targeting idea | C009 | 163 | | Agent | todo |
 | [M09](#m09---one-guarded-update) | One guarded update | C010 | 193 | | Unassigned | todo |
-| [M10](#m10---linear-study-figure) | Linear study figure | C012 | 210-220 | | Discuss | todo |
-| [M11](#m11---ppo-experiment-contrast) | PPO experiment contrast | C013 | 254-270 | | Unassigned | todo |
-| [M12](#m12---references) | References | C014 | 291-293 | | Agent | todo |
+| [M10](#m10---linear-study-figure) | Linear study figure | C012 | 213-223 | | Discuss | todo |
+| [M11](#m11---ppo-experiment-contrast) | PPO experiment contrast | C013 | 249-265 | | Unassigned | todo |
+| [M12](#m12---references) | References | C014 | 286-288 | | Agent | todo |
 | [M13](#m13---appendix) | Appendix (not in original plan) | C014 | new | | Unassigned | todo |
 | [M14](#m14---proposal-introduction-and-motivation) | Proposal introduction and motivation (not in original plan) | C014 | new | Optional | Unassigned | todo |
 
 ## Constraints and dependencies
 
 - **Page limit:** the course limits the midterm to four pages, excluding references, and
-  `ese6180/build_report.py` fails above that. The main text already ends on page 4, so
-  added text needs matching cuts. This affects M04-M10 and M14.
+  `ese6180/build_report.py` fails above that. The main text ends on page 4 with about two lines
+  free, so added text needs matching cuts. This affects M04-M10 and M14.
 - **Due date:** the midterm report is due 2026-11-25. The course lists this date as
   tentative.
 - **M01 depends on M06-M09:** David suggests drafting much of the abstract from the
@@ -104,7 +105,7 @@ Use one name for each half of the update:
 - **Whole update:** "safe Armijo update" in the paragraph title and "safe update" elsewhere.
 
 "Safe" could be read as "keeps coverage", and it applies only to retained plants. The title
-"Safe means stable" and the existing paragraph "Stability and descent do not imply coverage"
+"Safe means stable" and the sentence "Safe descent need not preserve coverage" (added in M03)
 address the first risk. The "on the retention set" wording addresses the second.
 
 | Line | Before | After |
@@ -138,7 +139,6 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 **Follow-ups:**
 
 - Copy these edits to Overleaf.
-- Page 4 stays full, so this leaves no room for M04-M10.
 - Update the same term in `Report_Sections/02_problem_formulation.tex` line 504,
   `Report_Sections/05_theoretical_results.tex` lines 518 and 647, and `README.md` lines 7 and
   79. This matters most if M13 reuses that text.
@@ -148,7 +148,6 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 
 - **Comment:** C004
 - **Where:** line 79. Related uses of $R$:
-  - the counterexample with $R=0$ at line 247;
   - `Report_Sections/02_problem_formulation.tex`, lines 309, 342 and 630;
   - `Report_Sections/05_theoretical_results.tex`, line 640.
 - **Problem:** David says $R\succeq0$ is probably imprecise, because $R\succ0$ is almost
@@ -156,6 +155,68 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 - **Original note:**
 
 > R succ 0 or R succeq 0: todo (agent discuss)
+
+#### Findings
+
+- **Proofs:** none needs $R\succ0$. There is no $R^{-1}$, $\lambda_{\min}(R)$ or Riccati
+  equation in the midterm or research note, and the bounds use only $\|R\|_2$. So $R\succeq0$ is
+  not false, and every result also holds under $R\succ0$.
+- **Experiments:** the linear studies already use $Q=I$ and $R=0.1I$. Only the scalar examples
+  use $R=0$.
+- **Code:** nothing inverts $R$. `LinearFamily` only checks that $R$ is positive semidefinite.
+- **Literature:**
+  - Fujinami et al. (2025) assumes $Q\succeq I$ and $R=I$, and generalizes through
+    $B(\theta)\leftarrow B(\theta)R^{-1/2}$, which requires an invertible $R$.
+  - Hazan and Singh, *Introduction to Online Control*, assumes $Q\succ0$ and $R\succ0$.
+  - Mohammadi et al. states that $Q$ and $R$ are positive definite.
+  - The standard reason is the $(R+B^\top SB)^{-1}$ term in the optimal LQR gain.
+- **Degenerate cases at $R=0$:** the cost has no terminal term, so with $H=1$ it does not depend
+  on $K$ and the gradient is zero. A plant with an unused actuator gives Hessian eigenvalues
+  $(0, 0, 1.54, 1.64)$ at $R=0$, against $(0.11, 0.13, 1.63, 1.75)$ at $R=0.1I$.
+- **Main problem:** the worked counterexample did not survive $R>0$ as written. At $K=0.5$ both
+  costs rise above $h=1.25$, so even $R=0.01$ gives coverage $0\to1/2$, which is the opposite of
+  the claim. Moving $h$ restores the drop, but the numbers change and uniform weights no longer
+  give $D=0$.
+
+#### Applied fix
+
+The midterm now states $R\succ0$. Its worked example became one sentence in the "One safe Armijo
+update" paragraph, so the midterm no longer shows $R=0$. The "band" wording was tightened in the
+same change, because "band" named two different things.
+
+| Line | Before | After |
+| --- | --- | --- |
+| 79 | `$R\succeq0$` | `$R\succ0$` |
+| 167 | `to the band` | `to the \emph{boundary band}` |
+| after 201 | none | `\emph{Safe descent need not preserve coverage:} in a two-plant scalar example with hand-set $q$, an accepted step lowers $F_q$ and keeps every verified margin positive, yet coverage falls from $1$ to $1/2$. Boundary targeting gives $D=0$ there, so this does not refute it.` |
+| 246-252 | paragraph "Stability and descent do not imply coverage" | removed |
+| 276-277 | `losses lie within ... so that band's $\mu$-mass bounds lost coverage` | `only conditions within ... can be lost, so their $\mu$-mass bounds lost coverage` |
+
+**Example behind the sentence:** $A(\theta)=\theta-1/2$, $B=1$, $\theta\in\{0,1\}$, $x_0=1$, $Q=1$,
+$R=0.1$, $H=2$, $h=1.25$, $K=0$, $P=1$, uniform evaluation weights, $q=(1/4,3/4)$, $s_0=0.4$,
+$c_A=\rho=0.5$ and $\kappa=0.25$. The old gain is $K=0$, so $u=0$ and $R$ cannot change the
+starting costs or gradient.
+
+**Checked with `backtrack` in `linear_updates.py`, and exactly with fractions:** $\Delta K=0.2$
+passes the first trial, $F_q$ falls from $1.25$ to $1.19476$, coverage falls from $1$ to $1/2$, the
+smallest margin stays $0.51$, and $c_\theta=0.24\le0.375$. Uniform weights give $D=0$ at any $R$.
+The first trial passes up to $R\approx0.21$; above that the search halves the step, and coverage
+still falls at the values tested ($R=0.22$ and $R=1$). The full record and a runnable check are
+in [the example log](../2026-11-04-safe-descent-coverage-example.md).
+
+**Report check:** `midterm_report.tex` builds at four pages with no overfull boxes or undefined
+citations, and about two lines are free on page 4.
+
+**Follow-ups:**
+
+- Copy these edits to Overleaf.
+- `Report_Sections/02_problem_formulation.tex` lines 309, 342 and 630, including that example's
+  values at lines 636-643, still use $R\succeq0$ and $R=0$. See M13.
+- `Report_Sections/05_theoretical_results.tex` line 640 uses $R=0$. Using $A=0.6$, $K=0$, $R=0.1$
+  keeps the coverage result (boundary $0.75\to1$, background unchanged). The quoted bound of $0.25$
+  has not been recomputed.
+- `linear_study.py` (`_scalar_studies`) and `tests/test_linear_updates.py` pin $R=0$. Add the
+  $R=0.1$ cases beside them rather than overwriting the recorded fixtures.
 
 ### M04 - Performance metric intuition
 
@@ -237,7 +298,7 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 ### M10 - Linear study figure
 
 - **Comment:** C012
-- **Where:** Figure `fig:mid_results`, lines 210-220. Its discussion follows from line 222.
+- **Where:** Figure `fig:mid_results`, lines 213-223. Its discussion follows from line 225.
 - **Problem:** David says the meaning of these results is not clear, and that they need more
   detailed discussion if they stay in. David asks what the plot shows and how it ties into
   the story.
@@ -248,8 +309,8 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 ### M11 - PPO experiment contrast
 
 - **Comment:** C013
-- **Where:** "CartPole with PPO" paragraph at lines 254-260, and Figure `fig:ppo_loop` at lines
-  262-270.
+- **Where:** "CartPole with PPO" paragraph at lines 249-255, and Figure `fig:ppo_loop` at lines
+  257-265.
 - **Problem:** David finds this result very interesting because robustness is clearly
   increasing, and asks whether it can be falsified. David suggests running PPO with uniform
   data allocation to see how policy robustness evolves over training iterations.
@@ -263,7 +324,7 @@ overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as be
 ### M12 - References
 
 - **Comment:** C014 (first ask)
-- **Where:** lines 291-293, plus each new citation in the text.
+- **Where:** lines 286-288, plus each new citation in the text.
 - **Problem:** David finds it odd that this draft does not include the references from the
   proposal.
 - **Current gap:** the proposal cites `fujinami2025domain`, `howard2021timeuniform` and
@@ -282,6 +343,8 @@ Added from C014. The original plan did not list this item.
 - **Where:** new material after the main text.
 - **Problem:** when the Appendix with proofs is added, David recommends including the
   original proposal there as well.
+- **Requirement from M03:** the midterm states $R\succ0$, so the Appendix must prove the $R=0.1$
+  example in [the example log](../2026-11-04-safe-descent-coverage-example.md), not the research note's current $R=0$ version.
 - **Open questions:**
   - Which proposal copy is the original? `ese6180/proposal/latex/proposal.tex` and
     `Evaluation_Guided_Domain_Randomization/proposal.tex` differ.

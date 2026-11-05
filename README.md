@@ -524,6 +524,19 @@ See [the experiment guide](docs/linear-update-study.md) for the selection rules,
 curvature bounds, artifact format, and interpretation limits. The smoke study is
 a correctness check; no method is required to increase acceptance coverage.
 
+## ESE 6180 report PDFs
+
+Build the reports from the repository root. This requires `pdflatex` and `bibtex`.
+
+```bash
+python3 ese6180/build_report.py --target midterm
+python3 ese6180/build_report.py --target research
+```
+
+PDFs and logs go to the ignored `ese6180/Evaluation_Guided_Domain_Randomization/build/`
+folder; use `--output-dir PATH` to choose another location. The midterm build fails if
+its main text exceeds four pages.
+
 ## Development
 
 ```bash
