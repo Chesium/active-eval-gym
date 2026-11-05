@@ -107,11 +107,18 @@ which in practice we minimize the empirical loss
 $\Lhat(P)=\frac1N\sum_{i=1}^N\ell_P(\tau_i)$, where $\tau_i$ are the trajectories of $N$
 i.i.d.\ conditions.
 
+\textbf{Related work.}
+\citet{zhang2022adversarially} extend certificate learning to adversarial perturbations under
+incremental stability. How to choose a randomization distribution remains poorly understood
+\citep{fujinami2025sample}; automatic domain randomization gates expansion on performance
+\citep{akkaya2019solving}. None of these results implies coverage expansion for our update.
+
 \section{Solution approach}\label{sec:approach}
 \textbf{What generalizes: a uniform bound.}
-Following \citet{boffi2021learning}, we bound the gap between sampled and population
-certificate loss for a frozen controller. Comparing each $P$ with a nearby candidate
-$P_\varepsilon$ in a finite set splits the gap into three differences:
+Our foundation is the trajectory-margin framework of \citet{boffi2021learning}. Their fast rate
+needs a feasible certificate; our simpler cover-and-Hoeffding bound (course notes, Chapter~5)
+is slower, $1/\sqrt N$, but holds at any empirical loss. For a frozen controller, comparing each
+$P$ with a nearby candidate $P_\varepsilon$ in a finite set splits the gap into three differences:
 \begin{center}
 \vspace{-5pt}
 \begin{tikzpicture}[>=Latex,baseline]
@@ -164,12 +171,14 @@ $\eta_\theta^+(P)\ge\rho\eta_\theta(P)>0$. With this test, $P$ stays verified at
 and the next round can start from it. Keeping $\eta$ also requires $\rho\eta_\theta(P)\ge\eta$. The test also requires $\|\Delta K\|_2\le\kappa$, $\kappa>0$,
 for cost bounds, not stability.
 
-\textbf{What is new: evaluation-guided targeting.}
+\textbf{What is new: boundary targeting under a certificate.}
 This is our main novelty. By iterating certificate learning after
 \citet{boffi2021learning} and domain-randomized control after
-\citet{fujinami2025domain}, we seek to generate controllers and certificates while
-requiring only finite-horizon rollouts. Fujinami et al.\ weight plants uniformly or
-toward high cost; we target the acceptance boundary. Keep $\mu$ fixed and adapt a
+\citet{fujinami2025domain}, we seek to generate controllers and certificates, eventually from
+finite-horizon rollouts alone; the current update still uses known plants.
+\citeauthor{fujinami2025domain} analyze uniform plant
+weights and test high-cost weights numerically; we target the acceptance boundary, where $K$ has
+some ability but not mastery \citep{florensa2017reverse,rutherford2024noregrets}. Keep $\mu$ fixed and adapt a
 training distribution $q$ on a finite condition grid $\mathcal Z$: target $q_{\mathrm{tar}}$
 restricts a positive background $q_{\mathrm{base}}$ to the \emph{boundary band}
 $|J_{H,K}-h|\le w$, $w>0$, and normalizes it (background if empty), and for
@@ -182,7 +191,7 @@ is $F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z)$.
 \SetAlgoNoEnd
 \SetCommentSty{textit}
 \SetKwComment{Comment}{$\triangleright$ }{}
-\caption{One safe Armijo update \citep{armijo1966minimization}: one round of the loop.}
+\caption{One safe Armijo update \citep[Corollary~2]{armijo1966minimization}: one round of the loop.}
 \label{alg:mid_update}
 \KwIn{Gain $K$; $P$ verified at $K$, kept or refitted; maximum step $s_0>0$; $\beta,c_A\in(0,1)$; $J_{\max}\ge0$.}
 Roll out $K$ on $\mathcal Z$, build $q$ from the costs $J_{H,K}(z)$, and freeze it\Comment*[r]{data only}
@@ -199,12 +208,11 @@ example an accepted step lowers $F_q$ and keeps margins positive, yet coverage h
 targeting gives $D=0$).
 
 \section{Preliminary results}\label{sec:results}
-Experiments check the statements above and measure how components interact. Two-plant linear families run the update of Section~\ref{sec:approach} for
-three rounds from the same starting coverage. Four family types differ in how much their
-plants disagree: same-shape (similar plants), random stable pairs, random pairs with a
-rotated second actuator, and mirrored pairs ($G_2\approx-G_1$). We fit $P$ by exhaustive
-search over a fixed grid of 874 matrices, taking the first empirical minimizer in grid
-order. Every family runs every combination of refitting and target.
+Two-plant linear families run the update of Section~\ref{sec:approach} for three rounds
+from the same starting coverage. Four family types differ in how much their plants disagree:
+same-shape, random stable, random with a rotated second actuator, and mirrored
+($G_2\approx-G_1$). We fit $P$ by exhaustive search over 874 matrices, and every family runs
+every combination of refitting and target.
 
 \begin{figure}[t]
  \centering
@@ -242,11 +250,13 @@ so when it sets the step, a target acts only by turning $D$, which requires
 plants that disagree.
 
 \textbf{CartPole with PPO (development pilot).}
-With no certificate, we ran the loop from a frozen PPO policy: evaluate recovery
+With no certificate, we ran the loop from a frozen Stable-Baselines3 PPO policy
+\citep{schulman2017proximal,raffin2021stable}: evaluate recovery
 across initial angle and pole length, refresh the frontier, retrain. On held-out
 evaluations through 153K transitions (Figure~\ref{fig:ppo_loop}), the accepted set
 about doubles in all three seeds, while some of the parent's conditions are lost:
-later rounds drift to shorter poles and lose nominal recovery.
+later rounds drift to shorter poles and lose nominal recovery. Accepted sets are 64-episode
+point estimates, without the proposal's simultaneous bounds \citep{howard2021timeuniform}.
 
 \begin{figure}[!h]
  \centering

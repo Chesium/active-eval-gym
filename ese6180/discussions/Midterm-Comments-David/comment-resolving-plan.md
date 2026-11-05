@@ -28,7 +28,7 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 | [M09](#m09---one-guarded-update) | One guarded update | C010 | 190 | | Unassigned | √ |
 | [M10](#m10---linear-study-figure) | Linear study figure | C012 | 210-220 | | Discuss | largely √ |
 | [M11](#m11---ppo-experiment-contrast) | PPO experiment contrast | C013 | 246-262 | | Unassigned | ignored |
-| [M12](#m12---references) | References | C014 | 283-285 | | Agent | TODO |
+| [M12](#m12---references) | References | C014 | 292, plus citations | | Agent | √ |
 | [M13](#m13---appendix) | Appendix (not in original plan) | C014 | new | | Unassigned | TODO |
 | [M14](#m14---proposal-introduction-and-motivation) | Proposal introduction and motivation (not in original plan) | C014 | new | Optional | Unassigned | TODO |
 
@@ -426,16 +426,86 @@ later model-free version.
 ### M12 - References
 
 - **Comment:** C014 (first ask)
-- **Where:** lines 283-285, plus each new citation in the text.
+- **Where:** `\bibliography` at line 292, plus the citations in the table below.
 - **Problem:** David finds it odd that this draft does not include the references from the
   proposal.
-- **Current gap:** the proposal cites `fujinami2025domain`, `howard2021timeuniform` and
-  `zhang2022adversarially`; the midterm cites none of them. All three are already in
-  `references.bib`, but only cited entries are printed. M07 and M08 also rely on Fujinami.
-  M02 already added the fourth proposal citation, `berkenkamp2017safe`.
+- **Gap at review:** Boffi, Florensa, Berkenkamp and Fujinami were already cited. Only
+  `howard2021timeuniform` and `zhang2022adversarially` were missing. All six proposal
+  citations now appear in the midterm.
 - **Original note:**
 
 > reference: redo by agents, incorporating the references in the proposal
+
+#### Review
+
+Each cited claim was read against its source, and each record against Crossref, PMLR, NeurIPS or
+arXiv. Only `fujinami2025domain` had an outdated record. Fujinami quotes come from the arXiv
+versions.
+
+- **Boffi:** "continuous-time framework" and "Sections 3-4" are accurate. "Following Boffi" was
+  not, because it introduced the three-arrow diagram. Boffi's result uses Srebro's fast rate and
+  Rademacher complexity, and needs a feasible certificate (Lemma 4.1). The diagram is cover plus
+  Hoeffding, which the research note attributes to course Theorem 5.8. M06's removal of the rate
+  comparison had dropped this distinction.
+- **Howard:** Figure 2 uses point estimates, so Howard is cited as a stated gap, not a method.
+  Acceptance means at least 58/64, whose exact one-sided 95% lower limit is 0.823. Across Figure
+  2's 5,187 checkpoint-condition pairs (273 conditions, 19 checkpoints, Bonferroni), even 64/64
+  gives only 0.835, and a cell needs at least 110 episodes to clear 0.9. Howard's bounds are also
+  uniform over time, not across conditions, and the post-midterm plan uses Clopper-Pearson with
+  Bonferroni.
+- **Fujinami, CDC 2025:** only uniform weights are analyzed. High-cost (entropic-risk) weights are
+  one numerical test: "We lack theoretical convergence guarantees for this approach."
+- **Fujinami, L4DC 2025 (new):** states the project's gap: "it remains poorly understood how to
+  select the randomization distribution". Neither the proposal nor the midterm cited it.
+- **Novelty:** "evaluation-guided targeting" overclaimed. Florensa selects by performance,
+  Fujinami's entropic weights depend on current costs, and Akkaya's ADR gates range expansion on
+  performance thresholds. ADR's "boundary" is the edge of the parameter range, not a cost level.
+  C009 places the novelty in iterating Boffi and Fujinami. This was not an exhaustive search, so
+  the narrower claim is unproven too.
+- **C005:** "some ability but not mastery" was not in the text even though M04 is ticked. Florensa
+  Section 4.1 ("sometimes, but not always") and Rutherford Section 4.1 ("can solve sometimes but
+  have not yet mastered") support it, so it now sits in the Targeting paragraph.
+- **PPO:** Schulman and Raffin were uncited. Stable-Baselines3 is confirmed for the parent config
+  and for retraining, in `ppo_boundary_training.py` on chesiumx.
+
+#### Applied fix
+
+The related-work text follows the proposal and the course FAQ, which allows compressed related
+work. It sits at the end of Section 1 because three added lines on page 1 push `eq:mid_cost` to
+page 2 and lose about five lines there.
+
+| Line | Before | After |
+| --- | --- | --- |
+| 110-114 | none | new "Related work" paragraph: Zhang, Fujinami L4DC, Akkaya, and the proposal's closing sentence |
+| 118-121 | `Following \citet{boffi2021learning}, we bound the gap ...` | `Our foundation is the trajectory-margin framework ...`, with the rate and feasibility difference and `(course notes, Chapter~5)` |
+| 174 | `What is new: evaluation-guided targeting.` | `What is new: boundary targeting under a certificate.` |
+| 177-178 | `while requiring only finite-horizon rollouts` | `eventually from finite-horizon rollouts alone; the current update still uses known plants` |
+| 179-180 | `Fujinami et al.\ weight plants uniformly or toward high cost` | `\citeauthor{fujinami2025domain} analyze uniform plant weights and test high-cost weights numerically` |
+| 180-181 | `the acceptance boundary.` | `the acceptance boundary, where $K$ has some ability but not mastery \citep{florensa2017reverse,rutherford2024noregrets}.` |
+| 194 | `\citep{armijo1966minimization}` | `\citep[Corollary~2]{armijo1966minimization}` |
+| 211-215 | Section 3 opening | removed `Experiments check ...`, compacted the family list, and dropped `taking the first empirical minimizer in grid order` |
+| 253-254 | `a frozen PPO policy:` | `a frozen Stable-Baselines3 PPO policy \citep{schulman2017proximal,raffin2021stable}:` |
+| 258-259 | none | `Accepted sets are 64-episode point estimates, without the proposal's simultaneous bounds \citep{howard2021timeuniform}.` |
+
+**`references.bib`:** `fujinami2025domain` moves from arXiv to CDC 2025, pp. 4174-4181, DOI
+`10.1109/CDC57313.2025.11312642`. New entries are `fujinami2025sample`, `akkaya2019solving`,
+`schulman2017proximal` and `raffin2021stable`. `gotovos2013active`, `letham2022lookahead`,
+`jiang2021prioritized` and `fujinami2026history` stay uncited; `\nocite` is not used.
+
+**Checked:** four main-text pages, references starting on page 5, 12 printed references, no
+overfull boxes, undefined citations or BibTeX warnings. Page 4 is now full, so any added line
+needs a matching cut. Figure 2's caption is unchanged.
+
+**Follow-ups:**
+
+- Copy these edits to Overleaf.
+- Tell David why the opening differs from C007's "method of Boffi" wording.
+- Ask David whether "finite-horizon rollouts" means a later model-free version. The M07 open
+  question is handled for now by stating it as a goal.
+- Replace "our research note" (lines 60-61) when the M13 Appendix exists.
+- For the final report, consider Fujinami 2026 (its $a=\pm1.1$ example motivates the retention
+  set), Kenanian et al. 2019 (common quadratic Lyapunov function from data) and Mohammadi et al.
+  (stability-limited backtracking for LQR).
 
 ### M13 - Appendix
 
