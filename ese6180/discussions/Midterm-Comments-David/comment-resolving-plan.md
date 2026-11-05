@@ -17,20 +17,20 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 
 | Code | Item | Comments | Lines | David's priority | Owner | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | todo |
-| [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | done |
-| [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | done |
-| [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | todo |
-| [M05](#m05---certificate-loss-intuition) | Certificate loss intuition | C006 | 88-114 | | Shimin, after discussion | todo |
-| [M06](#m06---uniform-bound-idea) | Uniform bound idea | C007 | 117 | | Agent | todo |
-| [M07](#m07---what-verifies-stability) | What verifies stability | C008 | 154 | | Discuss | todo |
-| [M08](#m08---targeting-idea) | Targeting idea | C009 | 163 | | Agent | todo |
-| [M09](#m09---one-guarded-update) | One guarded update | C010 | 193 | | Unassigned | todo |
-| [M10](#m10---linear-study-figure) | Linear study figure | C012 | 213-223 | | Discuss | todo |
-| [M11](#m11---ppo-experiment-contrast) | PPO experiment contrast | C013 | 249-265 | | Unassigned | todo |
-| [M12](#m12---references) | References | C014 | 286-288 | | Agent | todo |
-| [M13](#m13---appendix) | Appendix (not in original plan) | C014 | new | | Unassigned | todo |
-| [M14](#m14---proposal-introduction-and-motivation) | Proposal introduction and motivation (not in original plan) | C014 | new | Optional | Unassigned | todo |
+| [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | TODO |
+| [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | √ |
+| [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | √ |
+| [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | TODO |
+| [M05](#m05---certificate-loss-intuition) | Certificate loss intuition | C006 | 88-114 | | Shimin, after discussion | √ |
+| [M06](#m06---uniform-bound-idea) | Uniform bound idea | C007 | 117 | | Agent | TODO |
+| [M07](#m07---what-verifies-stability) | What verifies stability | C008 | 152 | | Discuss | √ |
+| [M08](#m08---targeting-idea) | Targeting idea | C009 | 178 | | Agent | √ |
+| [M09](#m09---one-guarded-update) | One guarded update | C010 | 190 | | Unassigned | √ |
+| [M10](#m10---linear-study-figure) | Linear study figure | C012 | 210-220 | | Discuss | largely √ |
+| [M11](#m11---ppo-experiment-contrast) | PPO experiment contrast | C013 | 246-262 | | Unassigned | ignored |
+| [M12](#m12---references) | References | C014 | 283-285 | | Agent | TODO |
+| [M13](#m13---appendix) | Appendix (not in original plan) | C014 | new | | Unassigned | TODO |
+| [M14](#m14---proposal-introduction-and-motivation) | Proposal introduction and motivation (not in original plan) | C014 | new | Optional | Unassigned | TODO |
 
 ## Constraints and dependencies
 
@@ -262,8 +262,8 @@ citations, and about two lines are free on page 4.
 ### M07 - What verifies stability
 
 - **Comment:** C008
-- **Where:** "What verifies stability: a deterministic test" paragraph, starting at line 154.
-  The certificate guard definition, now titled "Safe means stable", starts at line 174.
+- **Where:** "What verifies stability: a deterministic test" paragraph, starting at line 152.
+  The certificate guard definition, now titled "Safe means stable", follows it at line 161.
 - **Problem:** David identifies this as the beginning of the novel continuation: building
   this into a feedback loop using the domain randomization ideas of Fujinami et al.
 - **Original note:**
@@ -271,14 +271,88 @@ citations, and about two lines are free on page 4.
 > What verifies stability: a deterministic test: (agent discuss)
 > - does the eta_theta(P)=lambda_min(P-GPG) directly leads to the Certificate Guard Definition? if so we should show that continuation
 
+#### Answer
+
+Yes for the margin half of the safety test. Let $\eta_\theta^+(P)$ be the same margin at
+$K^+=K+\Delta K$. Expanding $(G+E)^\top P(G+E)$ gives
+$\eta_\theta^+(P)\ge\eta_\theta(P)-c_\theta(\Delta K)$, so requiring
+$c_\theta(\Delta K)\le(1-\rho)\eta_\theta(P)$ gives $\eta_\theta^+(P)\ge\rho\eta_\theta(P)>0$. $P$
+is then still verified at $K^+$, which meets the next round's starting condition. This is the
+feedback loop David points to in C008. Without a refit, the guaranteed margin shrinks like
+$\rho^T$ over $T$ rounds, which is a natural place to bring in the Boffi refit step.
+
+Three things do not follow from $\eta_\theta$:
+
+- **$\kappa$:** it serves the cost-drift bound, not stability.
+- **$\rho$:** this is a design choice.
+- **The premise $\eta_\theta(P)>0$:** if a margin is negative, even $s=0$ fails the test and step
+  capacity is undefined. The code returns `verification_failed`; the midterm had not defined
+  "verified".
+
+**Checked:** in the M03 example, $0.75-0.24=0.51$ is an equality on one plant, and the other plant
+rises to $0.91$. On random stable two-plant families the inequality held in every sample. Along
+$D$, the exact stable step was a median of about 7 times the $c_\theta$-based capacity (10th-90th
+percentile 2.7-33). Those families are synthetic, not the study's, $\kappa$ was ignored, and the
+script was a throwaway check that is not kept in the repo.
+
+#### Applied fix
+
+The paragraph order is now verifies, Safe, Targeting, One safe Armijo update, because Targeting
+split the derivation and only the step-capacity sentence needs $D$.
+
+| Location | Before | After |
+| --- | --- | --- |
+| "Safe means stable" | after "Targeting", starting at line 174 | before "Targeting", starting at line 163 |
+| Safe, opening | `For new gain $K^+=K+\Delta K$, hold verified $P$ fixed.` | defines "verified", then derives $\eta_\theta^+\ge\eta_\theta-c_\theta$ |
+| Safe, `eq:mid_safety` | display of $d_\theta$ and $c_\theta$ | inline; the label is removed and nothing referenced it |
+| Safe, proof chain | `(G+E)^\top P(G+E)-P\preceq\ldots` | replaced by the inequality above and $\eta_\theta^+\ge\rho\eta_\theta>0$ |
+| Safe, $\kappa$ | listed with the margin condition | listed second, with `which serves cost bounds, not stability` |
+| Safe, closing | none | `So $P$ stays verified at $K^+$, and the next round can start from it.` |
+| Safe | `for any target map` | `however $\Delta K$ was chosen`, because the target is not defined yet at that point |
+| Targeting, end | step capacity defined in Safe | `$P$ limits the step, not $D$: the \emph{step capacity} of $P$ along $D$ is ...` |
+
+The inequality has to stay inline: a display version overflows to five pages, even with
+"Keeping $\eta$ ..." and "$P$ limits the step, not $D$" cut. It is a page-break effect, not a
+length one. The inline version builds at four pages with no overfull boxes, and page 4 ends at the
+same height as before this edit.
+
+#### Rephrase
+
+Both paragraphs now open with why they exist, and the second reads as a derivation from the margin:
+start from $\eta_\theta$, bound what the step can spend, set the safety test, conclude that $P$
+stays verified. They stay separate because David's C008 and the M02 title sit on them, and M01 builds
+the abstract from these paragraphs' opening lines.
+
+| Location | Before | After |
+| --- | --- | --- |
+| "What verifies stability", opening | `For a declared nonempty retention set ...` | `Low violation probability implies neither stability nor the desired decrease, so the update uses a deterministic test, not the bound.` |
+| "What verifies stability" | "verified" defined in Safe | defined here, with the margin |
+| "Safe means stable", opening | `Call $P$ \emph{verified} at $K$ ...` | `To keep $P$ verified when $K$ becomes $K^+=K+\Delta K$, we start from this margin and bound how much the step can lower it.` |
+| "Safe means stable" | `The margin is a budget and $c_\theta$ bounds what the step spends.` | removed; $c_\theta$ now `bounds the terms in $E$` |
+| "Safe means stable" | `however $\Delta K$ was chosen` | removed for the page limit |
+| "Safe means stable", $\kappa$ | inside the test sentence | closing sentence: `The test also requires ... for cost bounds, not stability.` |
+
+The main text ends on page 4 with no overfull boxes, at the same height as before this edit, but
+that page is now full. A display equation, or the explicit expansion of $(G+E)^\top P(G+E)$, overflows
+to five pages.
+
+#### Open question
+
+C009 says the method requires "only finite-horizon cost realizations", but $\eta_\theta$, $c_\theta$
+and the exact gradient $D$ all use the known $A(\theta),B(\theta)$. Only fitting $P$ is data-driven.
+Before that sentence goes into M01 or M08, either call it a goal or ask David whether he means a
+later model-free version.
+
 ### M08 - Targeting idea
 
 - **Comment:** C009
-- **Where:** "Targeting" paragraph, starting at line 163.
+- **Where:** "Targeting" paragraph, starting at line 178.
 - **Problem:** David identifies this as the big novel component: by iterating on Boffi for
   certificate learning and Fujinami for domain-randomized control, we seek to iteratively
   generate controllers and certificates while only requiring finite-horizon cost
   realizations.
+- **Before drafting:** see the M07 open question on "only requiring finite-horizon cost
+  realizations".
 - **Original note:**
 
 > Targeting Idea: todo (agent propose: emphasize the idea with passion)
@@ -287,7 +361,7 @@ citations, and about two lines are free on page 4.
 
 - **Comment:** C010
 - **Where:** "One safe Armijo update" paragraph (previously "One guarded update"), starting at
-  line 193.
+  line 190.
 - **Problem:** David sees a chance to clarify the procedure, and asks how a single iteration
   works.
 - **History:** an `algorithm2e` block was added in `f4c39bd` and removed in `9587bb6`.
@@ -298,7 +372,7 @@ citations, and about two lines are free on page 4.
 ### M10 - Linear study figure
 
 - **Comment:** C012
-- **Where:** Figure `fig:mid_results`, lines 213-223. Its discussion follows from line 225.
+- **Where:** Figure `fig:mid_results`, lines 210-220. Its discussion follows from line 222.
 - **Problem:** David says the meaning of these results is not clear, and that they need more
   detailed discussion if they stay in. David asks what the plot shows and how it ties into
   the story.
@@ -309,8 +383,8 @@ citations, and about two lines are free on page 4.
 ### M11 - PPO experiment contrast
 
 - **Comment:** C013
-- **Where:** "CartPole with PPO" paragraph at lines 249-255, and Figure `fig:ppo_loop` at lines
-  257-265.
+- **Where:** "CartPole with PPO" paragraph at lines 246-252, and Figure `fig:ppo_loop` at lines
+  254-262.
 - **Problem:** David finds this result very interesting because robustness is clearly
   increasing, and asks whether it can be falsified. David suggests running PPO with uniform
   data allocation to see how policy robustness evolves over training iterations.
@@ -324,7 +398,7 @@ citations, and about two lines are free on page 4.
 ### M12 - References
 
 - **Comment:** C014 (first ask)
-- **Where:** lines 286-288, plus each new citation in the text.
+- **Where:** lines 283-285, plus each new citation in the text.
 - **Problem:** David finds it odd that this draft does not include the references from the
   proposal.
 - **Current gap:** the proposal cites `fujinami2025domain`, `howard2021timeuniform` and

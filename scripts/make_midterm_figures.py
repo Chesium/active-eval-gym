@@ -20,18 +20,11 @@ FAMILIES = {
     "rotated_actuator": "Rotated",
     "mirrored": "Mirrored",
 }
-# Validated palette slots; each hue follows its rule across both panels.
-RULES = {
-    "erm_large_step": ("Max", "#2a78d6"),
-    "erm_first": ("First tie", "#1baf7a"),
-    "erm_small_step": ("Min", "#eb6834"),
-}
+# The midterm plots one selection rule; every other arm stays in the study summary.
+RULE = "erm_first"
 INK, MUTED = "#333333", "#6b6b6b"
 BLUE = "#2a78d6"
-# Target colors stay apart from panel (b): this red clears the separation checks
-# against its orange, which the palette's own red does not.
 BOUNDARY, UNIFORM = "#b3261e", "#8c8c8c"
-SHAPES = {"erm_large_step": "o", "erm_small_step": "s"}
 # Panel (c) keeps its legend above the axes; all titles clear that height.
 TITLE_PAD = 19
 # The plotted window; the data file keeps every checkpoint through 256,000.
@@ -51,11 +44,8 @@ def refit_values(summary: dict) -> dict:
     for family in FAMILIES:
         cells = summary["families"][family]["cells"]
         values[family] = {
-            rule: {
-                mode: cells[f"{rule}_{mode}_background"]["mean"]
-                for mode in ("fixed", "refit")
-            }
-            for rule in RULES
+            mode: cells[f"{RULE}_{mode}_background"]["mean"]
+            for mode in ("fixed", "refit")
         }
     return values
 
@@ -66,14 +56,11 @@ def target_values(summary: dict) -> dict:
     for family in FAMILIES:
         target = summary["families"][family]["target"]
         values[family] = {
-            rule: {
-                moment: {
-                    "mean": target[f"{rule}_fixed_{moment}"]["mean"],
-                    "ci95": target[f"{rule}_fixed_{moment}"]["mean_ci95"],
-                }
-                for moment in ("first", "last")
+            moment: {
+                "mean": target[f"{RULE}_fixed_{moment}"]["mean"],
+                "ci95": target[f"{RULE}_fixed_{moment}"]["mean_ci95"],
             }
-            for rule in ("erm_large_step", "erm_small_step")
+            for moment in ("first", "last")
         }
     return values
 
@@ -117,36 +104,27 @@ def refit_panel(axis, values: dict) -> None:
     axis.axvline(START_COVERAGE, color=MUTED, linewidth=0.6, linestyle=":")
     axis.text(START_COVERAGE + 0.8, -0.4, "Start", color=MUTED, fontsize=6.5)
     for row, family in enumerate(FAMILIES):
-        for offset, (rule, (_, color)) in zip(
-            (0.26, 0, -0.26), RULES.items(), strict=True
-        ):
-            fixed = values[family][rule]["fixed"]
-            refit = values[family][rule]["refit"]
-            y = row - offset
-            axis.plot([fixed, refit], [y, y], color=color, linewidth=0.8, zorder=2)
-            axis.plot(
-                fixed,
-                y,
-                "o",
-                markersize=3.4,
-                markerfacecolor="white",
-                markeredgecolor=color,
-                markeredgewidth=0.8,
-                zorder=3,
-            )
-            axis.plot(refit, y, "o", markersize=3.4, color=color, zorder=3)
+        fixed, refit = values[family]["fixed"], values[family]["refit"]
+        axis.plot([fixed, refit], [row, row], color=BLUE, linewidth=0.8, zorder=2)
+        axis.plot(
+            fixed,
+            row,
+            "o",
+            markersize=3.4,
+            markerfacecolor="white",
+            markeredgecolor=BLUE,
+            markeredgewidth=0.8,
+            zorder=3,
+        )
+        axis.plot(refit, row, "o", markersize=3.4, color=BLUE, zorder=3)
     axis.set(
         xlim=(50, 100),
         ylim=(len(FAMILIES) - 0.45, -0.55),
         xlabel="Final coverage (%)",
     )
-    axis.set_title("(b) Tie-break and refitting", pad=TITLE_PAD)
+    axis.set_title("(b) Refitting", pad=TITLE_PAD)
     axis.set_yticks(range(len(FAMILIES)), list(FAMILIES.values()))
     handles = [
-        Line2D([], [], color=color, marker="o", markersize=3, linewidth=0, label=name)
-        for name, color in RULES.values()
-    ]
-    handles += [
         Line2D(
             [],
             [],
@@ -164,7 +142,7 @@ def refit_panel(axis, values: dict) -> None:
     axis.legend(
         handles=handles,
         loc="lower right",
-        ncols=3,
+        ncols=2,
         frameon=False,
         columnspacing=0.5,
         handletextpad=0.05,
@@ -177,21 +155,16 @@ def target_panel(axis, values: dict) -> None:
     from matplotlib.lines import Line2D
 
     axis.axvline(0, color=UNIFORM, linewidth=1.2, zorder=1)
-    levels = {
-        ("erm_large_step", "first"): -0.3,
-        ("erm_large_step", "last"): -0.12,
-        ("erm_small_step", "first"): 0.12,
-        ("erm_small_step", "last"): 0.3,
-    }
+    levels = {"first": -0.15, "last": 0.15}
     for row, family in enumerate(FAMILIES):
-        for (rule, moment), offset in levels.items():
-            point = values[family][rule][moment]
+        for moment, offset in levels.items():
+            point = values[family][moment]
             y = row + offset
             axis.plot(point["ci95"], [y, y], color=BOUNDARY, linewidth=0.7, zorder=2)
             axis.plot(
                 point["mean"],
                 y,
-                SHAPES[rule],
+                "o",
                 markersize=3.2,
                 markeredgecolor=BOUNDARY,
                 markeredgewidth=0.8,
@@ -217,8 +190,6 @@ def target_panel(axis, values: dict) -> None:
     handles = [
         key("Boundary", color=BOUNDARY),
         Line2D([], [], color=UNIFORM, linewidth=1.2, label="Uniform"),
-        key("Max"),
-        key("Min", marker="s"),
         key("Round 1", face="white"),
         key("Round 3"),
     ]
@@ -226,7 +197,7 @@ def target_panel(axis, values: dict) -> None:
         handles=handles,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.99),
-        ncols=3,
+        ncols=2,
         frameon=False,
         columnspacing=0.7,
         handlelength=1.0,
@@ -515,7 +486,7 @@ def make_figures(output: Path) -> None:
         CROSSED_REPORT / "summary.json",
     )
     metadata = {
-        "schema_version": 2,
+        "schema_version": 3,
         "script_sha256": digest(Path(__file__)),
         "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in sources},
         "certificate": {
@@ -537,6 +508,7 @@ def make_figures(output: Path) -> None:
         "crossed_study": {
             "run_manifest_sha256": summary["manifest_sha256"],
             "study_spec": summary["study_spec"],
+            "selection_rule": RULE,
             "panel_b_mean_final_coverage_background": coverage,
             "panel_c_boundary_minus_background_fixed_p": gaps_by_target,
             "families_with_shared_certificate": {
@@ -545,7 +517,7 @@ def make_figures(output: Path) -> None:
             },
             "description": "Means over families with a shared certificate. Halted "
             "branches count at their current coverage. Panel (c) shows boundary minus "
-            "uniform for fixed-P Max and Min arms; every arm is in the study summary.",
+            "uniform for fixed P; every other selection rule is in the study summary.",
         },
         "ppo_loop": {
             "study_id": ppo_data["study_id"],

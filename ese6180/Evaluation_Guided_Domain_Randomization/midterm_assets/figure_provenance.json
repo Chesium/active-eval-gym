@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
-  "script_sha256": "404bc896e3cc2124746dfe4389f7335e4ff0b282b6d3990e4b14d19419b830c8",
+  "schema_version": 3,
+  "script_sha256": "c1332b2e3019464b8cef720d9b530359d3c21b5a46a628f7a09b74cc9cbd1d99",
   "source_sha256": {
     "artifacts/certificate_generalization/20261021T171258986368Z/metadata.json": "6ad173b0c3e4a2cf4e2d3feccaf2e50c07f1553254ec24de149a6a3fcd13d824",
     "artifacts/certificate_generalization/20261021T171258986368Z/metrics_v1.npz": "006d16ab761c9fae3debc82c7302a786bbc05635b4fa7b1d167330005cce250f",
@@ -86,199 +86,88 @@
       "bootstrap_resamples": 10000,
       "meaningful_gap": 1.0
     },
+    "selection_rule": "erm_first",
     "panel_b_mean_final_coverage_background": {
       "same_shape": {
-        "erm_large_step": {
-          "fixed": 90.919921875,
-          "refit": 91.904296875
-        },
-        "erm_first": {
-          "fixed": 90.673828125,
-          "refit": 89.205078125
-        },
-        "erm_small_step": {
-          "fixed": 77.27734375,
-          "refit": 70.546875
-        }
+        "fixed": 90.673828125,
+        "refit": 89.205078125
       },
       "general": {
-        "erm_large_step": {
-          "fixed": 78.10985949612403,
-          "refit": 79.0546269379845
-        },
-        "erm_first": {
-          "fixed": 77.05002422480621,
-          "refit": 76.26271802325581
-        },
-        "erm_small_step": {
-          "fixed": 65.47359496124031,
-          "refit": 63.10259205426357
-        }
+        "fixed": 77.05002422480621,
+        "refit": 76.26271802325581
       },
       "rotated_actuator": {
-        "erm_large_step": {
-          "fixed": 85.1287411971831,
-          "refit": 86.03928257042253
-        },
-        "erm_first": {
-          "fixed": 83.72579225352112,
-          "refit": 83.0050616197183
-        },
-        "erm_small_step": {
-          "fixed": 68.12279929577464,
-          "refit": 65.01980633802818
-        }
+        "fixed": 83.72579225352112,
+        "refit": 83.0050616197183
       },
       "mirrored": {
-        "erm_large_step": {
-          "fixed": 53.90824298469388,
-          "refit": 53.912228954081634
-        },
-        "erm_first": {
-          "fixed": 53.88432716836735,
-          "refit": 53.86439732142857
-        },
-        "erm_small_step": {
-          "fixed": 53.706951530612244,
-          "refit": 53.64516900510204
-        }
+        "fixed": 53.88432716836735,
+        "refit": 53.86439732142857
       }
     },
     "panel_c_boundary_minus_background_fixed_p": {
       "same_shape": {
-        "erm_large_step": {
-          "first": {
-            "mean": 0.02734375,
-            "ci95": [
-              -0.0078125,
-              0.0625
-            ]
-          },
-          "last": {
-            "mean": -0.01953125,
-            "ci95": [
-              -0.05078125,
-              0.009765625
-            ]
-          }
+        "first": {
+          "mean": 0.056640625,
+          "ci95": [
+            0.017578125,
+            0.099609375
+          ]
         },
-        "erm_small_step": {
-          "first": {
-            "mean": 0.009765625,
-            "ci95": [
-              -0.02734375,
-              0.052734375
-            ]
-          },
-          "last": {
-            "mean": -0.03515625,
-            "ci95": [
-              -0.0703125,
-              0.001953125
-            ]
-          }
+        "last": {
+          "mean": 0.0,
+          "ci95": [
+            -0.02734375,
+            0.02734375
+          ]
         }
       },
       "general": {
-        "erm_large_step": {
-          "first": {
-            "mean": 2.7555717054263567,
-            "ci95": [
-              2.028827519379845,
-              3.527737403100775
-            ]
-          },
-          "last": {
-            "mean": 1.159762596899225,
-            "ci95": [
-              0.14527313468992256,
-              2.1529796511627906
-            ]
-          }
+        "first": {
+          "mean": 2.374031007751938,
+          "ci95": [
+            1.695736434108527,
+            3.079654190891472
+          ]
         },
-        "erm_small_step": {
-          "first": {
-            "mean": 0.9084302325581395,
-            "ci95": [
-              0.6480135658914729,
-              1.2051841085271318
-            ]
-          },
-          "last": {
-            "mean": 2.4830426356589146,
-            "ci95": [
-              1.7380541424418605,
-              3.2673207364341086
-            ]
-          }
+        "last": {
+          "mean": 1.0780038759689923,
+          "ci95": [
+            -0.051477713178294575,
+            2.1227743459302317
+          ]
         }
       },
       "rotated_actuator": {
-        "erm_large_step": {
-          "first": {
-            "mean": 1.7908230633802817,
-            "ci95": [
-              1.1471170774647887,
-              2.462037852112676
-            ]
-          },
-          "last": {
-            "mean": -0.03851232394366197,
-            "ci95": [
-              -0.839018485915493,
-              0.75656084947183
-            ]
-          }
+        "first": {
+          "mean": 1.6890404929577465,
+          "ci95": [
+            1.1196082746478873,
+            2.2777288732394365
+          ]
         },
-        "erm_small_step": {
-          "first": {
-            "mean": 0.704225352112676,
-            "ci95": [
-              0.5171654929577465,
-              0.8967869718309859
-            ]
-          },
-          "last": {
-            "mean": 1.2956646126760563,
-            "ci95": [
-              0.7977552816901409,
-              1.8320862676056338
-            ]
-          }
+        "last": {
+          "mean": 0.0,
+          "ci95": [
+            -0.8142605633802817,
+            0.8362676056338029
+          ]
         }
       },
       "mirrored": {
-        "erm_large_step": {
-          "first": {
-            "mean": 1.5684789540816326,
-            "ci95": [
-              1.0403380102040816,
-              2.1345364317602034
-            ]
-          },
-          "last": {
-            "mean": 4.4184470663265305,
-            "ci95": [
-              3.631218112244898,
-              5.241549744897959
-            ]
-          }
+        "first": {
+          "mean": 1.5027104591836735,
+          "ci95": [
+            1.0163723692602042,
+            2.0268654336734695
+          ]
         },
-        "erm_small_step": {
-          "first": {
-            "mean": 0.7134885204081632,
-            "ci95": [
-              0.5699936224489796,
-              0.8629623724489796
-            ]
-          },
-          "last": {
-            "mean": 1.6521843112244898,
-            "ci95": [
-              1.2794961734693877,
-              2.05078125
-            ]
-          }
+        "last": {
+          "mean": 4.09359056122449,
+          "ci95": [
+            3.3522002551020407,
+            4.860939492984693
+          ]
         }
       }
     },
@@ -288,7 +177,7 @@
       "rotated_actuator": 142,
       "mirrored": 196
     },
-    "description": "Means over families with a shared certificate. Halted branches count at their current coverage. Panel (c) shows boundary minus uniform for fixed-P Max and Min arms; every arm is in the study summary."
+    "description": "Means over families with a shared certificate. Halted branches count at their current coverage. Panel (c) shows boundary minus uniform for fixed P; every other selection rule is in the study summary."
   },
   "ppo_loop": {
     "study_id": "cartpole-ppo-boundary-v5-adaptive",
