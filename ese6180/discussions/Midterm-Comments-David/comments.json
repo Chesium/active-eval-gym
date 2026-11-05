@@ -1,0 +1,717 @@
+{
+  "schema_version": "1.3",
+  "tool_version": "1.9.0-extension",
+  "report_language": "en",
+  "project": {
+    "id": "6aebb98346d901528b86fe55",
+    "title": "Evaluation-Guided Domain Randomization (1)"
+  },
+  "pulled_at": "2026-11-05T01:40:09.552Z",
+  "summary": {
+    "thread_count": 14,
+    "open_count": 14,
+    "resolved_count": 0,
+    "tracked_change_count": 0,
+    "stale_anchor_count": 0,
+    "file_count": 1,
+    "reviewer_count": 1
+  },
+  "threads": {
+    "6aebcf4bff44001869000001": {
+      "id": "6aebcf4bff44001869000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 1,
+      "messages": [
+        {
+          "id": "6aebcf4b181df3a1c36a4c6c",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "(High-priority edits): Rewrite the abstract in plain language, not LLM outputs. ",
+          "timestamp": "2026-11-05T00:35:23.573000+00:00",
+          "edited_at": null
+        },
+        {
+          "id": "6aebd29361acb16f4b6e3897",
+          "role": "reply",
+          "reply_index": 0,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Also, re: story, see my comments on the bold paragraph titles of Section 2. I think if you string the necessary sentences from there together, you'll have a good draft of a lot of the abstract",
+          "timestamp": "2026-11-05T00:49:23.671000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebcfc71d559f5b6b000001": {
+      "id": "6aebcfc71d559f5b6b000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebcfc7181df3a1c36a4c7c",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "\"Guarded\" is an odd term. We should use the term Armijo uses, because that is a technical term that will be recognized / is searchable. Alternatively, can use 'safe' here. ",
+          "timestamp": "2026-11-05T00:37:27.652000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd018ddcca959eb000001": {
+      "id": "6aebd018ddcca959eb000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd018076c6537f0d1a3ed",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is probably imprecise. For numerical reasons, it is almost always required that R \\succ 0",
+          "timestamp": "2026-11-05T00:38:48.673000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd06895bf603912000001": {
+      "id": "6aebd06895bf603912000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd068076c6537f0d1a3f8",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "(High-priority edits): This is an example of technical definition that is not clear intuitively. What is the idea of doing this? (To target the collection of new data to cases where the policy has some ability, but does not have mastery)",
+          "timestamp": "2026-11-05T00:40:08.286000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd0af9a10122bf8000001": {
+      "id": "6aebd0af9a10122bf8000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd0af181df3a1c36a4ca1",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Again, too technical and lacking insight for the reader. The idea (as I understand it) is that we will trade off some stability margin on easier cases in order to provably stabilize harder cases",
+          "timestamp": "2026-11-05T00:41:19.572000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd15a49bc20689e000001": {
+      "id": "6aebd15a49bc20689e000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd15ad3145188d18649aa",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "The idea here needs to be clear. Likely only requires maybe 2-3 sentences before the math to situate what's going on. \n\nE.g., most of the first block of text can be \"we follow the method of Boffi, et. al., which ultimately bounds sample error via bounding successive differences [your nice visual equation]\"\n\nThis should be posed as the foundation of what we are doing: following the ideas of Boffi! ",
+          "timestamp": "2026-11-05T00:44:10.714000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd1802ef20954f7000001": {
+      "id": "6aebd1802ef20954f7000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd180d3145188d18649b7",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is the beginning of novel continuation -- building this into a feedback loop using the domain randomization ideas of Fujinami, et. al., etc",
+          "timestamp": "2026-11-05T00:44:48.264000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd1c04000a91359000001": {
+      "id": "6aebd1c04000a91359000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd1c0d3145188d18649c2",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is the big novel component -- By iterating on Boffi for certificate learning and Fujinami for domain-randomized control, we seek to iteratively generate controllers and certificates while only requiring finite-horizon cost realizations!",
+          "timestamp": "2026-11-05T00:45:52.845000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd1fd0399ed5969000001": {
+      "id": "6aebd1fd0399ed5969000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd1fdd3145188d18649cb",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Again, see previous comment re: replacing \"guarded\"",
+          "timestamp": "2026-11-05T00:46:53.051000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd2143f12c03d98000001": {
+      "id": "6aebd2143f12c03d98000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd2143f5c2bd2a29d623c",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is a great opportunity to clarify the procedure! How does a single iteration work? ",
+          "timestamp": "2026-11-05T00:47:16.377000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd26dd1c6aa66e3000001": {
+      "id": "6aebd26dd1c6aa66e3000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd26d61acb16f4b6e3893",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "Important tip: every mathematical proof is obvious in hindsight. There is no need to devalue it by calling it 'elementary' (even if you think it is so)!",
+          "timestamp": "2026-11-05T00:48:45.727000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd2c3d303285303000001": {
+      "id": "6aebd2c3d303285303000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd2c3d3145188d18649e4",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "The meaning of these results is not clear to me, and they need to be discussed in more detail if they are going to be included. What is this plot showing, and how does it tie into the story? ",
+          "timestamp": "2026-11-05T00:50:11.491000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd31013b6e62f77000001": {
+      "id": "6aebd31013b6e62f77000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd310181df3a1c36a4d05",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "This is actually a very interesting result! The robustness is clearly increasing! \n\nIs there a way we can falsify this? Can we run PPO with uniform data allocation and see how the policy robustness evolves over training iterations? ",
+          "timestamp": "2026-11-05T00:51:28.756000+00:00",
+          "edited_at": null
+        }
+      ]
+    },
+    "6aebd3790386e416eb000001": {
+      "id": "6aebd3790386e416eb000001",
+      "resolved": false,
+      "resolved_at": null,
+      "resolved_by": null,
+      "reply_count": 0,
+      "messages": [
+        {
+          "id": "6aebd37961acb16f4b6e38b4",
+          "role": "comment",
+          "reply_index": null,
+          "user": {
+            "id": "5d7965291ff5bd00015b144c",
+            "name": "David Snyder",
+            "email": "dsnyder5@upenn.edu"
+          },
+          "content": "It's a little odd to me that this draft does not include the references included in the proposal. When you add the Appendix with proofs, etc, I recommend including the original proposal in the Appendix as well. If you have time, I would work in some of that introductory material and motivation into the doc, if you have space",
+          "timestamp": "2026-11-05T00:53:13.270000+00:00",
+          "edited_at": null
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "pathname": "midterm_report.tex",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "comment_count": 14,
+      "change_count": 0,
+      "comment_short_ids": [
+        "C001",
+        "C002",
+        "C003",
+        "C004",
+        "C005",
+        "C006",
+        "C007",
+        "C008",
+        "C009",
+        "C010",
+        "C011",
+        "C012",
+        "C013",
+        "C014"
+      ],
+      "change_short_ids": []
+    }
+  ],
+  "comments": [
+    {
+      "short_id": "C001",
+      "thread_id": "6aebcf4bff44001869000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 22,
+      "col": 0,
+      "offset": 766,
+      "nearest_heading": "Abstract",
+      "enclosing_float": null,
+      "anchored_text": "Can boundary-targeted training enlarge a controller's acceptable operating\nconditions? We connect trajectory-based certificate learning to a guarded\nlinear-controller update, with an elementary generalization proof, a\nstability-preserving update, and a numerical study of how its components interact.\nThe chosen certificate sets how far each update can go, while the training target\nmatters only when plants disagree. Our main goal is now to prove when an update\nenlarges coverage.",
+      "stale": false,
+      "created_at": "2026-11-05T00:35:23.573000+00:00",
+      "last_activity_at": "2026-11-05T00:49:23.671000+00:00",
+      "reply_count": 1,
+      "context": {
+        "line": 22,
+        "before": "hat L_{N,K}} \\newcommand{\\Dcert}{\\mathcal D_{\\mathrm{cert}}} \\newcommand{\\Pclass}{\\mathcal P} \\newcommand{\\G}{G_K} \\begin{document} \\maketitle \\begin{abstract}",
+        "anchor": "Can boundary-targeted training enlarge a controller's acceptable operating conditions? We connect trajectory-based certificate learning to a guarded linear-controller update, with an elementary generalization proof, a stability-preserving update, and a numerical study of how its components interact. The chosen certificate sets how far each update can go, while the training target matters only when plants disagree. Our main goal is now to prove when an update enlarges coverage.",
+        "after": "\\end{abstract} \\section{Question, feedback loop, and setting} Domain randomization trains one controller across varying plants and initial conditions. We ask",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C002",
+      "thread_id": "6aebd26dd1c6aa66e3000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 24,
+      "col": 26,
+      "offset": 941,
+      "nearest_heading": "Abstract",
+      "enclosing_float": null,
+      "anchored_text": "with an elementary generalization proof,",
+      "stale": false,
+      "created_at": "2026-11-05T00:48:45.727000+00:00",
+      "last_activity_at": "2026-11-05T00:48:45.727000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 24,
+        "before": "rgeted training enlarge a controller's acceptable operating conditions? We connect trajectory-based certificate learning to a guarded linear-controller update,",
+        "anchor": "with an elementary generalization proof,",
+        "after": "a stability-preserving update, and a numerical study of how its components interact. The chosen certificate sets how far each update can go, while the training",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C003",
+      "thread_id": "6aebcfc71d559f5b6b000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 63,
+      "col": 43,
+      "offset": 2784,
+      "nearest_heading": "Question, feedback loop, and setting",
+      "enclosing_float": null,
+      "anchored_text": "guarded",
+      "stale": false,
+      "created_at": "2026-11-05T00:37:27.652000+00:00",
+      "last_activity_at": "2026-11-05T00:37:27.652000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 63,
+        "before": "f{Progress since the proposal.} We proved the bound and verification test of Section~\\ref{sec:approach} (full proofs are in our research note), implemented the",
+        "anchor": "guarded",
+        "after": "update, and measured how certificate choice, refitting, targets, and plant families interact, and ran the loop on CartPole with PPO. Proofs of the cost-drift b",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C004",
+      "thread_id": "6aebd018ddcca959eb000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 79,
+      "col": 53,
+      "offset": 3793,
+      "nearest_heading": "Question, feedback loop, and setting",
+      "enclosing_float": null,
+      "anchored_text": "$R\\succeq0$",
+      "stale": false,
+      "created_at": "2026-11-05T00:38:48.673000+00:00",
+      "last_activity_at": "2026-11-05T00:38:48.673000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 79,
+        "before": "one plant. Matrix norms $\\|\\cdot\\|_2$ and $\\|\\cdot\\|_F$ are operator and Frobenius. \\textbf{Performance.} Fix state-cost weight $Q\\succeq0$, input-cost weight",
+        "anchor": "$R\\succeq0$",
+        "after": ", cost threshold $h>0$, and evaluation distribution $\\mu$ on $\\Theta\\times\\mathcal X_0$, which weights conditions when measuring overall performance and never c",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C005",
+      "thread_id": "6aebd06895bf603912000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 81,
+      "col": 73,
+      "offset": 3972,
+      "nearest_heading": "Question, feedback loop, and setting",
+      "enclosing_float": null,
+      "anchored_text": "The\ntrajectory cost, acceptable set, and coverage (acceptable fraction) are",
+      "stale": false,
+      "created_at": "2026-11-05T00:40:08.286000+00:00",
+      "last_activity_at": "2026-11-05T00:40:08.286000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 81,
+        "before": "hreshold $h>0$, and evaluation distribution $\\mu$ on $\\Theta\\times\\mathcal X_0$, which weights conditions when measuring overall performance and never changes.",
+        "anchor": "The trajectory cost, acceptable set, and coverage (acceptable fraction) are",
+        "after": "\\begin{equation}\\label{eq:mid_cost} J_{H,K}(z)=\\sum_{t=0}^{H-1}(x_t^\\top Qx_t+u_t^\\top Ru_t),\\quad S_K^J=\\{z:J_{H,K}(z)\\le h\\},\\quad C_J(K)=\\mu(S_K^J). \\end{",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C006",
+      "thread_id": "6aebd0af9a10122bf8000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 91,
+      "col": 1,
+      "offset": 4389,
+      "nearest_heading": "Question, feedback loop, and setting",
+      "enclosing_float": null,
+      "anchored_text": "redeclare a desired decrease $\\eta>0$ and an extra fitting margin $\\gamma>0$.",
+      "stale": false,
+      "created_at": "2026-11-05T00:41:19.572000+00:00",
+      "last_activity_at": "2026-11-05T00:41:19.572000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 91,
+        "before": "tificate loss and risk.} The certificate energy is $V_P(x)=x^\\top Px$, with $\\Pclass=\\{P=P^\\top:aI\\preceq P\\preceq bI\\}$, where $0<a<b$ bound the eigenvalues. P",
+        "anchor": "redeclare a desired decrease $\\eta>0$ and an extra fitting margin $\\gamma>0$.",
+        "after": "For nonzero state $x$, successor $x^+$, and trajectory $\\tau$, define \\begin{align}\\label{eq:mid_loss} r_P(x,x^+)&=\\frac{V_P(x^+)-V_P(x)}{\\|x\\|_2^2}+\\eta &&\\",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C007",
+      "thread_id": "6aebd15a49bc20689e000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 117,
+      "col": 8,
+      "offset": 5717,
+      "nearest_heading": "Solution approach",
+      "enclosing_float": null,
+      "anchored_text": "What generalizes: a uniform bound.}",
+      "stale": false,
+      "created_at": "2026-11-05T00:44:10.714000+00:00",
+      "last_activity_at": "2026-11-05T00:44:10.714000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 117,
+        "before": "A trajectory with a violating transition counts toward risk and has loss 1, so $e_{K,H}(P)\\le L_K(P)$. \\section{Solution approach}\\label{sec:approach} \\textbf{",
+        "anchor": "What generalizes: a uniform bound.}",
+        "after": "Let $M_K=\\max_{\\theta\\in\\Theta}\\|\\G(\\theta)\\|_2$. The loss is Lipschitz in $P$ under the Frobenius norm, with constant $L_{\\mathrm{par}}=(M_K^2+1)/\\gamma$. Bef",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C008",
+      "thread_id": "6aebd1802ef20954f7000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 154,
+      "col": 8,
+      "offset": 7580,
+      "nearest_heading": "Solution approach",
+      "enclosing_float": null,
+      "anchored_text": "What verifies stability: a deterministic test.",
+      "stale": false,
+      "created_at": "2026-11-05T00:44:48.264000+00:00",
+      "last_activity_at": "2026-11-05T00:44:48.264000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 154,
+        "before": "to frozen $K$ and trajectories from $\\Dcert$, so each new controller needs fresh trajectories, and it does not reproduce Boffi et al.'s faster rates. \\textbf{",
+        "anchor": "What verifies stability: a deterministic test.",
+        "after": "} For a declared nonempty retention set $\\Theta_{\\mathrm{ret}}\\subseteq\\Theta$, the verified decrease margin is the smallest eigenvalue $\\eta_\\theta(P)=\\lambda_",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C009",
+      "thread_id": "6aebd1c04000a91359000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 163,
+      "col": 8,
+      "offset": 8151,
+      "nearest_heading": "Solution approach",
+      "enclosing_float": null,
+      "anchored_text": "Targeting",
+      "stale": false,
+      "created_at": "2026-11-05T00:45:52.845000+00:00",
+      "last_activity_at": "2026-11-05T00:45:52.845000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 163,
+        "before": "ant, and $\\eta_\\theta(P)\\ge\\eta$ gives the desired decrease everywhere. Low trajectory risk implies neither; the update uses this test, not the bound. \\textbf{",
+        "anchor": "Targeting",
+        "after": ".} Keep $\\mu$ fixed while adapting a training distribution $q$ on a finite condition grid $\\mathcal Z$. Background distribution $q_{\\mathrm{base}}$ assigns posi",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C010",
+      "thread_id": "6aebd2143f12c03d98000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 193,
+      "col": 8,
+      "offset": 9901,
+      "nearest_heading": "Solution approach",
+      "enclosing_float": null,
+      "anchored_text": "One guarded update.",
+      "stale": false,
+      "created_at": "2026-11-05T00:47:16.377000+00:00",
+      "last_activity_at": "2026-11-05T00:47:16.377000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 193,
+        "before": "also requires $\\rho\\eta_\\theta(P)\\ge\\eta$. The \\emph{step capacity} of $P$ along $D$ is the largest $s\\ge0$ for which $\\Delta K=sD$ passes the guard. \\textbf{",
+        "anchor": "One guarded update.",
+        "after": "} Fix maximum step $s_0>0$, shrink factor $\\beta\\in(0,1)$, decrease coefficient $c_A\\in(0,1)$, and maximum index $J_{\\max}\\ge0$. Construct and freeze $q$ from o",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C011",
+      "thread_id": "6aebd1fd0399ed5969000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 193,
+      "col": 12,
+      "offset": 9905,
+      "nearest_heading": "Solution approach",
+      "enclosing_float": null,
+      "anchored_text": "guarded",
+      "stale": false,
+      "created_at": "2026-11-05T00:46:53.051000+00:00",
+      "last_activity_at": "2026-11-05T00:46:53.051000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 193,
+        "before": "o requires $\\rho\\eta_\\theta(P)\\ge\\eta$. The \\emph{step capacity} of $P$ along $D$ is the largest $s\\ge0$ for which $\\Delta K=sD$ passes the guard. \\textbf{One",
+        "anchor": "guarded",
+        "after": "update.} Fix maximum step $s_0>0$, shrink factor $\\beta\\in(0,1)$, decrease coefficient $c_A\\in(0,1)$, and maximum index $J_{\\max}\\ge0$. Construct and freeze $q",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C012",
+      "thread_id": "6aebd2c3d303285303000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 212,
+      "col": 0,
+      "offset": 11075,
+      "nearest_heading": "Preliminary results",
+      "enclosing_float": {
+        "kind": "figure",
+        "number": 1,
+        "label": "fig:mid_results",
+        "caption": "(a) Median largest loss gap and 10th--90th dataset percentiles, with a risk floor added. (b) Mean coverage under background targeting; Max and Min pick the largest or smallest step capacity among verified ties. (c) Mean gain of boundary over uniform background (grey line), fixed $P$, 95\\% intervals; First tie tracks Max."
+      },
+      "anchored_text": " \\includegraphics[width=\\linewidth]{midterm_assets/linear_results.pdf}\n \\vspace{-8pt}\n \\caption{(a) Median largest loss gap and 10th--90th dataset percentiles, with a risk\n floor added. (b) Mean coverage under background targeting; Max and Min pick the largest or\n smallest step capacity among verified ties. (c) Mean gain of boundary over uniform\n background (grey line), fixed $P$, 95\\% intervals; First tie tracks Max.}\n \\label{fig:mid_results}\n \\vspace{-22pt}\n\\end{figure}",
+      "stale": false,
+      "created_at": "2026-11-05T00:50:11.491000+00:00",
+      "last_activity_at": "2026-11-05T00:50:11.491000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 212,
+        "before": "second actuator, and mirrored pairs ($G_2\\approx-G_1$). Every family runs every combination of tie-break, refitting, and target. \\begin{figure}[t] \\centering",
+        "anchor": "\\includegraphics[width=\\linewidth]{midterm_assets/linear_results.pdf} \\vspace{-8pt} \\caption{(a) Median largest loss gap and 10th--90th dataset percentiles, with a risk floor added. (b) Mean coverage under background targeting; Max and Min pick the largest or smallest step capacity among verified ties. (c) Mean gain of boundary over uniform background (grey line), fixed $P$, 95\\% intervals; First tie tracks Max.} \\label{fig:mid_results} \\vspace{-22pt} \\end{figure}",
+        "after": "\\textbf{The bound holds.} In Figure~\\ref{fig:mid_results}(a) the gap stays below $\\Delta_N$, and both shrink like $1/\\sqrt N$. \\textbf{Tie-breaking.} The bou",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C013",
+      "thread_id": "6aebd31013b6e62f77000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 262,
+      "col": 0,
+      "offset": 13991,
+      "nearest_heading": "Preliminary results",
+      "enclosing_float": {
+        "kind": "figure",
+        "number": 2,
+        "label": "fig:ppo_loop",
+        "caption": "Interleaved loop, left to right: each held-out accepted set (recovery rate at least 0.9) precedes the frontier for the next 25,600 transitions. Axes: angle, pole length."
+      },
+      "anchored_text": "\\begin{figure}[!h]\n \\centering\n \\includegraphics[width=\\linewidth]{midterm_assets/ppo_loop.pdf}\n \\vspace{-8pt}\n \\caption{Interleaved loop, left to right: each held-out accepted set (recovery rate at\n least 0.9) precedes the frontier for the next 25,600 transitions. Axes: angle, pole length.}\n \\label{fig:ppo_loop}\n \\vspace{-26pt}\n\\end{figure}",
+      "stale": false,
+      "created_at": "2026-11-05T00:51:28.756000+00:00",
+      "last_activity_at": "2026-11-05T00:51:28.756000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 262,
+        "before": "5 of the parent's 28 conditions are lost. Later rounds drift to shorter poles and lose nominal recovery, so larger coverage need not mean retained competence.",
+        "anchor": "\\begin{figure}[!h] \\centering \\includegraphics[width=\\linewidth]{midterm_assets/ppo_loop.pdf} \\vspace{-8pt} \\caption{Interleaved loop, left to right: each held-out accepted set (recovery rate at least 0.9) precedes the frontier for the next 25,600 transitions. Axes: angle, pole length.} \\label{fig:ppo_loop} \\vspace{-26pt} \\end{figure}",
+        "after": "\\section{Challenges and remaining work} \\textbf{Challenges.} \\emph{A conservative, sign-blind guard:} it charges worst-case margin use even when an update rai",
+        "truncated_before": true,
+        "truncated_after": true
+      }
+    },
+    {
+      "short_id": "C014",
+      "thread_id": "6aebd3790386e416eb000001",
+      "doc_id": "6aebb98346d901528b86fe6d",
+      "pathname": "midterm_report.tex",
+      "line": 291,
+      "col": 0,
+      "offset": 15422,
+      "nearest_heading": "Challenges and remaining work",
+      "enclosing_float": null,
+      "anchored_text": "\\clearpage\n\\label{midterm_references_start}\n\\bibliography{references.bib}\n\\end{document}",
+      "stale": false,
+      "created_at": "2026-11-05T00:53:13.270000+00:00",
+      "last_activity_at": "2026-11-05T00:53:13.270000+00:00",
+      "reply_count": 0,
+      "context": {
+        "line": 291,
+        "before": "city. Experiments then test it. \\noindent\\textit{AI assistance:} Codex \\& Claude assisted with drafting and preliminary derivations. \\label{midterm_body_end}",
+        "anchor": "\\clearpage \\label{midterm_references_start} \\bibliography{references.bib} \\end{document}",
+        "after": "",
+        "truncated_before": true,
+        "truncated_after": false
+      }
+    }
+  ],
+  "tracked_changes": [],
+  "orphan_thread_ids": []
+}
