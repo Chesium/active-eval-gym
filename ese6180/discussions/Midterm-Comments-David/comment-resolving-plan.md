@@ -17,7 +17,7 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 | Code | Item | Comments | Lines | David's priority | Owner | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | todo |
-| [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | todo |
+| [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | done |
 | [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | todo |
 | [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | todo |
 | [M05](#m05---certificate-loss-intuition) | Certificate loss intuition | C006 | 88-114 | | Shimin, after discussion | todo |
@@ -40,8 +40,8 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
   tentative.
 - **M01 depends on M06-M09:** David suggests drafting much of the abstract from the
   comments on the Section 2 paragraph titles (C007-C010).
-- **M02 affects M01 and M09:** the current abstract and the M09 paragraph title both use
-  "guarded".
+- **M02 is applied:** M01 and M09 should keep its terms: "safe", "safety test" and "Armijo
+  condition".
 
 ## Items
 
@@ -61,7 +61,7 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 ### M02 - The term "guarded"
 
 - **Comments:** C003, C011
-- **Where:** comments at lines 63 and 193. "guarded" also appears at lines 23 and 46. The
+- **Where (before the fix):** comments at lines 63 and 193. "guarded" also appears at lines 23 and 46. The
   noun "guard" appears at lines 174, 182, 188, 191, 233, 239, 255, 274 and 285, and in the
   label `eq:mid_guard`. The research note sections and the README also use the word.
 - **Problem:** David calls "guarded" an odd term and asks for the term Armijo uses,
@@ -70,6 +70,79 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 - **Original note:**
 
 > term "guarded" for Armijo update: todo (agent)
+
+#### Literature check
+
+- **Armijo (1966):** Corollary 2 calls the method "The Modified Steepest Descent Algorithm".
+  The paper never says "Armijo rule", "line search" or "backtracking". Those are later names,
+  and they are the searchable ones.
+- **Local sources:** "guard" and "guarded" appear in none of the papers in
+  `proposal/literature`, the course chapters, Armijo or Fujinami.
+- **Berkenkamp et al. (2017):** the abstract defines "safety, defined in terms of stability
+  guarantees". This supports David's alternative, "safe".
+- **Mohammadi et al. (arXiv:1912.11899):** an LQR paper that uses "a stepsize selected using a
+  backtracking procedure that guarantees stability of the closed-loop system". That is close
+  to this update's idea.
+- **Boyd and Vandenberghe, Section 9.2:** "we first multiply t by β until x + t∆x ∈ dom f; then
+  we start to check" the sufficient-decrease inequality. This update has a similar order: limit
+  the step for stability, then apply Armijo.
+- **Fujinami et al. (2025):** uses a fixed stepsize, so it offers no line-search term. It does
+  say "jointly stabilizing", which may help M07.
+
+#### Diagnosis
+
+"Guarded" covered more than the Armijo step. In the report, "guard" named the certificate
+stability test, and line 198 named the Armijo test separately. Armijo only checks descent of
+$F_q$, so "Armijo update" alone would drop the stability half.
+
+#### Applied fix
+
+Use one name for each half of the update:
+
+- **Stability half:** "safe", with "safety test" as the noun.
+- **Descent half:** "Armijo condition" and "backtrack", replacing "Armijo-style test".
+- **Whole update:** "safe Armijo update" in the paragraph title and "safe update" elsewhere.
+
+"Safe" could be read as "keeps coverage", and it applies only to retained plants. The title
+"Safe means stable" and the existing paragraph "Stability and descent do not imply coverage"
+address the first risk. The "on the retention set" wording addresses the second.
+
+| Line | Before | After |
+| --- | --- | --- |
+| 23 | `a guarded` | `a safe` (M01 will rewrite this) |
+| 46 | `\text{guarded update}` | `\text{safe update}` |
+| 63 | `the guarded update` | `the safe update` |
+| 174 | `\textbf{Certificate guard.}` | `\textbf{Safe means stable \citep{berkenkamp2017safe}.}` |
+| 176 | `margin-consumption bound` | `margin-use bound` |
+| 177 | `\label{eq:mid_guard}` | `\label{eq:mid_safety}` |
+| 182 | `The guard requires` | `The safety test requires` |
+| 188 | `The guard thus keeps` | `The test thus keeps` |
+| 191 | `passes the guard.` | `passes the test.` |
+| 193 | `\textbf{One guarded update.}` | `\textbf{One safe Armijo update.}` |
+| 196-197 | `Otherwise let $\bar s$ be the smaller of $s_0$ and the step capacity, and return` | `Otherwise backtrack from $\bar s$, the smaller of $s_0$ and the step capacity: return` |
+| 198 | `that passes the Armijo-style test` | `that meets the Armijo condition` |
+| 199-200 | `If none passes, return $K$.` | `If none does, return $K$.` |
+| 201 | `would instead create` | `would create` |
+| 233 | `changes the guard, not $D$, so refitting acts only` | `changes the safety test, not $D$, so it acts only` |
+| 239 | `The guard limits $\Delta K$, not $s$, so when the guard sets the step` | `The safety test limits $\Delta K$, not $s$, so when it sets the step` |
+| 255 | `With no certificate or guard,` | `With no certificate,` |
+| 274 | `sign-blind guard:` | `sign-blind safety test:` |
+| 285 | `make the guard sign-aware` | `make that test sign-aware` |
+
+Lines 176, 199-200 and 201 are not renames. They offset the longer wording so the page count
+holds.
+
+**Checked:** with all 19 edits applied, `midterm_report.tex` builds at four pages with no
+overfull boxes or undefined citations. Pages 3 and 4 end on the same lines as before.
+
+**Follow-ups:**
+
+- Copy these edits to Overleaf.
+- Page 4 stays full, so this leaves no room for M04-M10.
+- Update the same term in `Report_Sections/02_problem_formulation.tex` line 504,
+  `Report_Sections/05_theoretical_results.tex` lines 518 and 647, and `README.md` lines 7 and
+  79. This matters most if M13 reuses that text.
+- Code and `docs/` also say "guard". They are not part of the report and can stay.
 
 ### M03 - R positive definite or semidefinite
 
@@ -129,7 +202,7 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 
 - **Comment:** C008
 - **Where:** "What verifies stability: a deterministic test" paragraph, starting at line 154.
-  The "Certificate guard" definition starts at line 174.
+  The certificate guard definition, now titled "Safe means stable", starts at line 174.
 - **Problem:** David identifies this as the beginning of the novel continuation: building
   this into a feedback loop using the domain randomization ideas of Fujinami et al.
 - **Original note:**
@@ -152,7 +225,8 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 ### M09 - One guarded update
 
 - **Comment:** C010
-- **Where:** "One guarded update" paragraph, starting at line 193.
+- **Where:** "One safe Armijo update" paragraph (previously "One guarded update"), starting at
+  line 193.
 - **Problem:** David sees a chance to clarify the procedure, and asks how a single iteration
   works.
 - **History:** an `algorithm2e` block was added in `f4c39bd` and removed in `9587bb6`.
@@ -192,10 +266,10 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 - **Where:** lines 291-293, plus each new citation in the text.
 - **Problem:** David finds it odd that this draft does not include the references from the
   proposal.
-- **Current gap:** the proposal cites `berkenkamp2017safe`, `fujinami2025domain`,
-  `howard2021timeuniform` and `zhang2022adversarially`; the midterm cites none of them. All
-  four are already in `references.bib`, but only cited entries are printed. M07 and M08 also
-  rely on Fujinami.
+- **Current gap:** the proposal cites `fujinami2025domain`, `howard2021timeuniform` and
+  `zhang2022adversarially`; the midterm cites none of them. All three are already in
+  `references.bib`, but only cited entries are printed. M07 and M08 also rely on Fujinami.
+  M02 already added the fourth proposal citation, `berkenkamp2017safe`.
 - **Original note:**
 
 > reference: redo by agents, incorporating the references in the proposal

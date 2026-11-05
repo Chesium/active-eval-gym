@@ -20,7 +20,7 @@
 \maketitle
 \begin{abstract}
 Can boundary-targeted training enlarge a controller's acceptable operating
-conditions? We connect trajectory-based certificate learning to a guarded
+conditions? We connect trajectory-based certificate learning to a safe
 linear-controller update, with an elementary generalization proof, a
 stability-preserving update, and a numerical study of how its components interact.
 The chosen certificate sets how far each update can go, while the training target
@@ -43,7 +43,7 @@ grow? Each outer round $k$ closes the loop
   \text{fit, then verify, certificate } P_k
  \end{array}\right\}
  \longrightarrow
- \underbrace{K_{k+1}}_{\text{guarded update}}
+ \underbrace{K_{k+1}}_{\text{safe update}}
 \]
 State feedback closes the inner loop within each trajectory; $P_k$ may be fixed or
 refitted.
@@ -60,7 +60,7 @@ curricula \citep{florensa2017reverse} motivate boundary targeting.
 
 \textbf{Progress since the proposal.}
 We proved the bound and verification test of Section~\ref{sec:approach} (full proofs
-are in our research note), implemented the guarded update, and measured how certificate choice, refitting,
+are in our research note), implemented the safe update, and measured how certificate choice, refitting,
 targets, and plant families interact, and ran the loop on CartPole with PPO. Proofs of the cost-drift bound and small-step acceptance are in draft.
 
 \textbf{Plants, conditions, and trajectories.}
@@ -171,34 +171,34 @@ $F_q(\widetilde K)=\sum_{z\in\mathcal Z}q(z)J_{H,\widetilde K}(z)$ over candidat
 gains $\widetilde K$, and $D=-\nabla_KF_q(K)$ is its exact gradient
 direction with $q$ frozen. $P$ limits the step, not $D$.
 
-\textbf{Certificate guard.}
+\textbf{Safe means stable \citep{berkenkamp2017safe}.}
 For new gain $K^+=K+\Delta K$, hold verified $P$ fixed. The closed-loop change is
-$E=-B(\theta)\Delta K$; its size $d_\theta$ and margin-consumption bound $c_\theta$ are
-\begin{equation}\label{eq:mid_guard}
+$E=-B(\theta)\Delta K$; its size $d_\theta$ and margin-use bound $c_\theta$ are
+\begin{equation}\label{eq:mid_safety}
  d_\theta(\Delta K)=\|B(\theta)\Delta K\|_2,\qquad
  c_\theta(\Delta K)=2\|\G(\theta)^\top P\|_2d_\theta(\Delta K)
                  +\|P\|_2d_\theta(\Delta K)^2.
 \end{equation}
-Choose a retained fraction $\rho\in(0,1)$ and radius $\kappa>0$. The guard requires
+Choose a retained fraction $\rho\in(0,1)$ and radius $\kappa>0$. The safety test requires
 $\|\Delta K\|_2\le\kappa$ and $c_\theta(\Delta K)\le(1-\rho)\eta_\theta(P)$ on the
 retention set. With $G=\G(\theta)$, the terms involving $E$ are bounded by
 $c_\theta(\Delta K)I$, so
 $(G+E)^\top P(G+E)-P\preceq-(\eta_\theta(P)-c_\theta(\Delta K))I
 \preceq-\rho\eta_\theta(P)I$.
-The guard thus keeps a fraction $\rho$ of each margin for any target map; keeping
+The test thus keeps a fraction $\rho$ of each margin for any target map; keeping
 $\eta$ also requires $\rho\eta_\theta(P)\ge\eta$. The
 \emph{step capacity} of $P$ along $D$ is the largest $s\ge0$ for which $\Delta K=sD$
-passes the guard.
+passes the test.
 
-\textbf{One guarded update.}
+\textbf{One safe Armijo update.}
 Fix maximum step $s_0>0$, shrink factor $\beta\in(0,1)$, decrease coefficient
 $c_A\in(0,1)$, and maximum index $J_{\max}\ge0$. Construct and freeze $q$ from old
-costs and compute $D$; if $D=0$, return $K$. Otherwise let $\bar s$ be the smaller of
-$s_0$ and the step capacity, and return $K+sD$ for the first $s=\bar s\beta^j$,
-$j=0,\ldots,J_{\max}$, that passes the Armijo-style test
-$F_q(K+sD)\le F_q(K)-c_As\|D\|_F^2$ \citep{armijo1966minimization}. If none passes,
+costs and compute $D$; if $D=0$, return $K$. Otherwise backtrack from $\bar s$, the smaller of
+$s_0$ and the step capacity: return $K+sD$ for the first $s=\bar s\beta^j$,
+$j=0,\ldots,J_{\max}$, that meets the Armijo condition
+$F_q(K+sD)\le F_q(K)-c_As\|D\|_F^2$ \citep{armijo1966minimization}. If none does,
 return $K$. With strict margins and smooth costs, an uncapped search succeeds. A fixed
-step grid would instead create false target effects.
+step grid would create false target effects.
 
 \section{Preliminary results}\label{sec:results}
 Experiments check the statements above and measure how components interact. Two-plant linear families run the update of Section~\ref{sec:approach} for
@@ -230,13 +230,13 @@ capacity rather than the smallest is the largest effect we measured, unless the 
 direction itself makes no progress, as on mirrored plants under background targeting.
 
 \textbf{Refitting.}
-A new $P$ changes the guard, not $D$, so refitting acts only through the step it permits.
+A new $P$ changes the safety test, not $D$, so it acts only through the step it permits.
 Its sign therefore depends on the tie-break. It barely matters on mirrored plants;
 elsewhere it helps or is neutral when the rule favors capacity, hurts otherwise, and so
 widens the gap between rules.
 
 \textbf{Targets and families.}
-The guard limits $\Delta K$, not $s$, so when the guard sets the step a target acts only
+The safety test limits $\Delta K$, not $s$, so when it sets the step a target acts only
 by turning $D$, which requires plants that disagree. In Figure~\ref{fig:mid_results}(c), boundary targeting does nothing
 on same-shape plants. On random and rotated plants it leads after one round; the lead
 then shrinks under large steps but is still growing at round 3 under small ones. Mirrored
@@ -252,7 +252,7 @@ band rule gives $D=0$ here, so this refutes ``stability plus descent implies cov
 not boundary targeting.
 
 \textbf{CartPole with PPO (development pilot).}
-With no certificate or guard, we ran the loop from a frozen PPO policy: evaluate recovery
+With no certificate, we ran the loop from a frozen PPO policy: evaluate recovery
 across initial angle and pole length, refresh the frontier, retrain. On held-out
 evaluations through 153,600 transitions (Figure~\ref{fig:ppo_loop}), the accepted set
 about doubles in all three seeds, while 6--15 of the parent's 28 conditions are lost.
@@ -271,7 +271,7 @@ not mean retained competence.
 
 \section{Challenges and remaining work}
 \textbf{Challenges.}
-\emph{A conservative, sign-blind guard:} it charges worst-case margin use even when an
+\emph{A conservative, sign-blind safety test:} it charges worst-case margin use even when an
 update raises the margin, so step capacity can fall far below what stability needs.
 \emph{A vacuous cost-drift bound:} losses lie within the largest possible cost change
 $b_J(\theta)$ below $h$, so that band's $\mu$-mass bounds lost coverage, but in our first
@@ -282,7 +282,7 @@ Most remaining effort is theoretical: (1) finish the update proofs; (2) prove a
 coverage lower bound computable before updated costs are observed, from a second-order
 upper envelope of each cost along $D$; (3) find assumptions that make it positive, through
 gradient alignment, conflict, and the step needed to cross $h$; (4) tighten curvature
-bounds, make the guard sign-aware, and prove how tie-breaking and refitting act through
+bounds, make that test sign-aware, and prove how tie-breaking and refitting act through
 step capacity. Experiments then test it.
 
 \noindent\textit{AI assistance:} Codex \& Claude assisted with drafting and preliminary derivations.
