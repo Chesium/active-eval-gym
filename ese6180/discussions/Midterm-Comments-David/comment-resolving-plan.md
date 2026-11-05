@@ -17,12 +17,12 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 
 | Code | Item | Comments | Lines | David's priority | Owner | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | TODO |
+| [M01](#m01---abstract) | Abstract | C001, C002 | 22-28 | High (C001) | Shimin | √ |
 | [M02](#m02---the-term-guarded) | The term "guarded" | C003, C011 | 63, 193 | | Agent | √ |
 | [M03](#m03---r-positive-definite-or-semidefinite) | $R\succ0$ or $R\succeq0$ | C004 | 79 | | Discuss | √ |
-| [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | TODO |
+| [M04](#m04---performance-metric-intuition) | Performance metric intuition | C005 | 78-85 | High | Shimin | √ |
 | [M05](#m05---certificate-loss-intuition) | Certificate loss intuition | C006 | 88-114 | | Shimin, after discussion | √ |
-| [M06](#m06---uniform-bound-idea) | Uniform bound idea | C007 | 117 | | Agent | TODO |
+| [M06](#m06---uniform-bound-idea) | Uniform bound idea | C007 | 111 | | Agent | √ |
 | [M07](#m07---what-verifies-stability) | What verifies stability | C008 | 152 | | Discuss | √ |
 | [M08](#m08---targeting-idea) | Targeting idea | C009 | 178 | | Agent | √ |
 | [M09](#m09---one-guarded-update) | One guarded update | C010 | 190 | | Unassigned | √ |
@@ -58,6 +58,18 @@ The full comment text is in [`comments-2026-11-05.md`](comments-2026-11-05.md).
 - **Original note:**
 
 > abstract : todo, I will supply text
+
+#### Applied abstract and title
+
+The selected title, **Evaluation-Guided Domain Randomization: A Feedback Loop for
+Controller and Certificate Learning**, is applied in the source and PDF metadata.
+The selected 75-word balanced abstract from the [three shortened options](abstract-options.md)
+is applied in the source. It introduces the feedback loop, states the certificate and
+stability results, summarizes the preliminary targeting evidence, and identifies the
+remaining coverage question. The proof is described through its result.
+
+**Checked:** rebuilt the repository PDF with the selected abstract: four main-text
+pages, references starting on page 5, no overfull boxes or undefined citations/references.
 
 ### M02 - The term "guarded"
 
@@ -247,8 +259,8 @@ citations, and about two lines are free on page 4.
 ### M06 - Uniform bound idea
 
 - **Comment:** C007
-- **Where:** "What generalizes: a uniform bound" paragraph, starting at line 117. The
-  diagram at lines 127-138 appears to be the "nice visual equation" David mentions.
+- **Where:** "What generalizes: a uniform bound" paragraph, starting at line 111. The
+  diagram at lines 117-128 is the "nice visual equation" David mentions.
 - **Problem:** David says the idea needs to be clear, and likely needs only 2-3 sentences
   before the math.
 - **David's suggestion:** most of the first block of text can become "we follow the method
@@ -258,6 +270,22 @@ citations, and about two lines are free on page 4.
 - **Original note:**
 
 > Uniform bound idea: todo (agent propose)
+
+#### Applied fix
+
+Two opening sentences attribute the certificate-learning foundation to Boffi et al.
+and explain the sample-to-population gap through comparison with a nearby candidate.
+The diagram follows immediately; the net size, dimension, Lipschitz constant, and
+concentration argument now follow it. The bound, fitted-certificate implication,
+violation-risk inequality, and fresh-data requirement remain. The temporary symbol
+$M_K$ is expanded, and the closing comparison with Boffi et al.'s rates is removed.
+
+The opening motivation is also shortened by one rendered line so the performance
+equation stays on page 1 with each candidate abstract. No formatting commands changed.
+
+**Checked:** the current source and all three abstract alternatives build at four
+main-text pages with references starting on page 5, no overfull boxes, and no
+undefined citations or references. See [the options and PDF previews](abstract-options.md).
 
 ### M07 - What verifies stability
 

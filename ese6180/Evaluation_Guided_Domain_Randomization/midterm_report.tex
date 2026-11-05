@@ -4,10 +4,10 @@
 \usepackage{flafter}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
-\hypersetup{pdftitle={Evaluation-Guided Domain Randomization: Midterm Report},
+\hypersetup{pdftitle={Evaluation-Guided Domain Randomization: A Feedback Loop for Controller and Certificate Learning},
   pdfauthor={Shimin Chen}}
 \title[Evaluation-Guided Domain Randomization]{Evaluation-Guided Domain Randomization:\newline
-  Certificates, Controller Updates, and Coverage}
+  A Feedback Loop for Controller and Certificate Learning}
 \author{\Name{Shimin Chen} \Email{cshimin@engineering.upenn.edu}}
 \makeatletter
 \g@addto@macro\ps@jmlrtps{\def\@oddhead{}\let\@evenhead\@oddhead}
@@ -19,20 +19,18 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Can boundary-targeted training enlarge a controller's acceptable operating
-conditions? We connect trajectory-based certificate learning to a safe
-linear-controller update, with an elementary generalization proof, a
-stability-preserving update, and a numerical study of how its components interact.
-The chosen certificate sets how far each update can go, while the training target
-matters only when plants disagree. Our main goal is now to prove when an update
-enlarges coverage.
+Our feedback loop uses policy evaluation to focus training near a performance threshold.
+For known linear systems, learned and verified Lyapunov certificates constrain
+controller updates to preserve stability on retained systems. We bound certificate
+generalization error from finite-horizon trajectories and require Armijo decrease for
+accepted steps. Preliminary experiments show that targeting gains depend on competing
+controller changes across systems. Ongoing work seeks conditions for increasing the
+fraction of acceptable conditions under a fixed evaluation distribution.
 \end{abstract}
 
 \section{Question, feedback loop, and setting}
-Domain randomization trains one controller across varying plants and initial
-conditions. We ask whether evaluation can guide it: if training emphasizes conditions
-near the boundary of acceptable performance, does the set of acceptable conditions
-grow? Each outer round $k$ closes the loop
+We ask whether training near the performance threshold expands a controller's acceptable
+coverage across plants and initial conditions. Each evaluation-guided round $k$ closes the loop
 \[
  \underbrace{K_k}_{\text{controller}}
  \longrightarrow
@@ -76,10 +74,10 @@ $\tau_K(z)=(x_0,\ldots,x_H)$ has $H$ transitions of that one plant.
 Matrix norms $\|\cdot\|_2$ and $\|\cdot\|_F$ are operator and Frobenius.
 
 \textbf{Performance.}
-Fix state-cost weight $Q\succeq0$, input-cost weight $R\succ0$, cost threshold
-$h>0$, and evaluation distribution $\mu$ on $\Theta\times\mathcal X_0$, which
-weights conditions when measuring overall performance and never changes. The
-trajectory cost, acceptable set, and coverage (acceptable fraction) are
+Apart from stability, we define the performance of a trajectory by a typical LQ
+cost $J_{H,K}(z)$, where $Q\succeq0$, $R\succ0$. The acceptable set is its sublevel set
+$S_K^J$ with threshold $h>0$, and its coverage $C_J(K)$ under a fixed evaluation
+distribution $\mu$ measures $K$'s performance:
 \begin{equation}\label{eq:mid_cost}
  J_{H,K}(z)=\sum_{t=0}^{H-1}(x_t^\top Qx_t+u_t^\top Ru_t),\quad
  S_K^J=\{z:J_{H,K}(z)\le h\},\quad C_J(K)=\mu(S_K^J).
@@ -111,13 +109,9 @@ i.i.d.\ conditions.
 
 \section{Solution approach}\label{sec:approach}
 \textbf{What generalizes: a uniform bound.}
-Let $M_K=\max_{\theta\in\Theta}\|\G(\theta)\|_2$. The loss is Lipschitz in $P$ under
-the Frobenius norm, with constant $L_{\mathrm{par}}=(M_K^2+1)/\gamma$.
-Before sampling, choose a net resolution $\varepsilon>0$ and failure probability
-$\delta\in(0,1)$. A data-independent Frobenius $\varepsilon$-net of $\Pclass$ has at
-most $(1+2b\sqrt n/\varepsilon)^d$ centers, where $d=n(n+1)/2$ counts symmetric
-parameters. For any $P$, take a center $P_\varepsilon$ within $\varepsilon$. Each arrow
-bounds an absolute difference:
+Following \citet{boffi2021learning}, we bound the gap between sampled and population
+certificate loss for a frozen controller. Comparing each $P$ with a nearby candidate
+$P_\varepsilon$ in a finite set splits the gap into three differences:
 \begin{center}
 \vspace{-5pt}
 \begin{tikzpicture}[>=Latex,baseline]
@@ -134,20 +128,20 @@ bounds an absolute difference:
 \end{tikzpicture}
 \vspace{-5pt}
 \end{center}
-The union bound makes the middle arrow hold for all centers at once, and the triangle
-inequality adds the three, paying approximation twice. Thus, with probability at least
-$1-\delta$, for every $P\in\Pclass$,
+Fix $\varepsilon>0$ and $\delta\in(0,1)$ before sampling. Use a data-independent Frobenius
+$\varepsilon$-net of $\Pclass$ with at most $(1+2b\sqrt n/\varepsilon)^d$ centers, $d=n(n+1)/2$.
+The outer arrows follow from Lipschitz continuity with
+$L_{\mathrm{par}}=(1+\max_{\theta\in\Theta}\|\G(\theta)\|_2^2)/\gamma$;
+Hoeffding and a union bound give the middle arrow at all centers.
+Adding yields, with probability at least $1-\delta$, for all $P\in\Pclass$,
 \[
  |L_K(P)-\Lhat(P)|\le\Delta_N=2L_{\mathrm{par}}\varepsilon+t_N,
  \quad\text{where}\quad
  t_N=\sqrt{\frac{d\log(1+2b\sqrt n/\varepsilon)+\log(2/\delta)}{2N}}.
 \]
-This simultaneous bound also covers a matrix $\widehat P$ fitted on the same data.
-Since $s_P(\tau)>0$ forces $\ell_P(\tau)=1$, it also limits the violation probability on a
-fresh condition: $\Pr_{\Dcert}\{s_{\widehat P}(\tau_K(z))>0\}\le\Lhat(\widehat P)+\Delta_N$.
-The bound applies only to frozen
-$K$ and trajectories from $\Dcert$, so each new controller needs fresh trajectories,
-and it does not reproduce Boffi et al.'s faster rates.
+The bound covers a fitted $\widehat P$. Since $s_P>0$ implies $\ell_P=1$, it also gives
+$\Pr_{\Dcert}\{s_{\widehat P}(\tau_K(z))>0\}\le\Lhat(\widehat P)+\Delta_N$ on fresh conditions.
+Each updated controller needs fresh trajectories from $\Dcert$.
 
 \textbf{What verifies stability: a deterministic test.}
 Low violation probability implies neither stability nor the desired decrease, so the
@@ -230,33 +224,29 @@ $1/\sqrt N$.
 \textbf{Refitting.}
 Refitting $P$ at each updated $K$ is a natural next step, since the bound holds only
 for a frozen $K$ and a new controller needs fresh trajectories anyway. We tried this,
-drawing fresh trajectories each round and verifying the new $P$ before using it. In
-Figure~\ref{fig:mid_results}(b), final coverage barely moves: it falls by at most
-1.5 points on three families and is unchanged on mirrored plants. A rule that favors
-step capacity reverses this by about 1 point. The theory allows this: verification and the safety test hold for
+drawing fresh trajectories each round and verifying the new $P$ before using it. The theory allows this:
+verification and the safety test hold for
 whichever verified $P$ is in use, but each round then has its own certificate rather
-than one $V_P$ shared across rounds. A new $P$ changes the safety test, not $D$, so it
-acts only through the step it permits, and fitting ignores that step.
+than one $V_P$ shared across rounds. However, in
+Figure~\ref{fig:mid_results}(b), final coverage barely moves.
 
 \textbf{Targets and families.}
 We compared boundary targeting against the uniform background across the four plant
 families. Figure~\ref{fig:mid_results}(c) shows that its benefit depends on how much
 the plants disagree. It has no effect on same-shape plants. On random and rotated
-plants it leads by about 2 points after one round, but that lead is no longer
-distinguishable from zero by round 3. On mirrored plants its lead grows to about
+plants it leads after one round, but that lead is no longer
+distinguishable by round 3. On mirrored plants its lead grows to about
 4 points, because background targeting trades gains for losses and makes no net
 progress. This can be explained by what the safety test limits: it bounds $\Delta K$,
-not $s$, so when it sets the step, a target acts only by turning $D$, which requires
-plants that disagree. About a third of random and rotated pairs have no shared
-certificate on our grid and are left out of these means.
+so when it sets the step, a target acts only by turning $D$, which requires
+plants that disagree.
 
 \textbf{CartPole with PPO (development pilot).}
 With no certificate, we ran the loop from a frozen PPO policy: evaluate recovery
 across initial angle and pole length, refresh the frontier, retrain. On held-out
-evaluations through 153,600 transitions (Figure~\ref{fig:ppo_loop}), the accepted set
-about doubles in all three seeds, while 6--15 of the parent's 28 conditions are lost.
-Later rounds drift to shorter poles and lose nominal recovery, so larger coverage need
-not mean retained competence.
+evaluations through 153K transitions (Figure~\ref{fig:ppo_loop}), the accepted set
+about doubles in all three seeds, while some of the parent's conditions are lost:
+later rounds drift to shorter poles and lose nominal recovery.
 
 \begin{figure}[!h]
  \centering
